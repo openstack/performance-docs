@@ -10,3 +10,4 @@ Test Plans
     :maxdepth: 2
 
     mq/index
+    provisioning/main

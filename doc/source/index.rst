@@ -11,4 +11,3 @@ Performance Documentation
 .. raw:: pdf
 
     PageBreak oneColumn
-
