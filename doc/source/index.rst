@@ -5,7 +5,7 @@ Performance Documentation
     :numbered:
     :maxdepth: 3
 
-    methodology/hyper-scale.rst
+    methodologies/index.rst
     test_plans/index.rst
 
 .. raw:: pdf
