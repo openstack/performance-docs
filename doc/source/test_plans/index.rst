@@ -9,5 +9,5 @@ Test Plans
 .. toctree::
     :maxdepth: 2
 
-    mq/index
-    provisioning/main
+    mq/plan
+    provisioning/plan

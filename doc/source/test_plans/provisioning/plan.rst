@@ -10,20 +10,20 @@ Measuring performance of provisioning systems
 :Abstract:
 
   This document describes a test plan for quantifying the performance of
-  provisioning systems as a function of the number of nodes to be provisioned. The
-  plan includes the collection of several resource utilization metrics, which will
-  be used to analyze and understand the overall performance of each system. In
-  particular, resource bottlenecks will either be fixed, or best practices
-  developed for system configuration and hardware requirements.
+  provisioning systems as a function of the number of nodes to be provisioned.
+  The plan includes the collection of several resource utilization metrics,
+  which will be used to analyze and understand the overall performance of each
+  system. In particular, resource bottlenecks will either be fixed, or best
+  practices developed for system configuration and hardware requirements.
 
 :Conventions:
 
   - **Provisioning:** is the entire process of installing and configuring an
     operating system.
 
-  - **Provisioning system:** is a service or a set of services which enables the
-    installation of an operating system and performs basic operations such as
-    configuring network interfaces and partitioning disks. A preliminary
+  - **Provisioning system:** is a service or a set of services which enables
+    the installation of an operating system and performs basic operations such
+    as configuring network interfaces and partitioning disks. A preliminary
     `list of provisioning systems`_ can be found below in `Applications`_.
     The provisioning system
     can include configuration management systems like Puppet or Chef, but
@@ -37,70 +37,38 @@ Measuring performance of provisioning systems
 
   - **Nodes:** are servers which will be provisioned.
 
-List of performance metrics
----------------------------
-The table below shows the list of test metrics to be collected. The priority
-is the relative ranking of the importance of each metric in evaluating the
-performance of the system.
-
-.. table:: List of performance metrics
-
-  +--------+------------------------+------------------------------------------+
-  |Priority| Parameter              | Description                              |
-  +========+========================+==========================================+
-  |        |                        | | The elapsed time to provision all      |
-  | 1      |PROVISIONING_TIME(NODES)| | nodes, as a function of the numbers of |
-  |        |                        | | nodes                                  |
-  +--------+------------------------+------------------------------------------+
-  |        |                        | | Incoming network bandwidth usage as a  |
-  | 2      |INGRESS_NET(NODES)      | | function of the number of nodes.       |
-  |        |                        | | Average during provisioning on the host|
-  |        |                        | | where the provisioning system is       |
-  |        |                        | | installed.                             |
-  +--------+------------------------+------------------------------------------+
-  |        |                        | | Outgoing network bandwidth usage as a  |
-  | 2      | EGRESS_NET(NODES)      | | function of the number of nodes.       |
-  |        |                        | | Average during provisioning on the host|
-  |        |                        | | where the provisioning system is       |
-  |        |                        | | installed.                             |
-  +--------+------------------------+------------------------------------------+
-  |        |                        | | CPU utilization as a function of the   |
-  | 3      | CPU(NODES)             | | number of nodes. Average during        |
-  |        |                        | | provisioning on the host where the     |
-  |        |                        | | provisioning system is installed.      |
-  +--------+------------------------+------------------------------------------+
-  |        |                        | | Active memory usage as a function of   |
-  | 3      | RAM(NODES)             | | the number of nodes. Average during    |
-  |        |                        | | provisioning on the host where the     |
-  |        |                        | | provisioning system is installed.      |
-  +--------+------------------------+------------------------------------------+
-  |        |                        | | Storage read IO bandwidth as a         |
-  | 3      | WRITE_IO(NODES)        | | function of the number of nodes.       |
-  |        |                        | | Average during provisioning on the host|
-  |        |                        | | where the provisioning system is       |
-  |        |                        | | installed.                             |
-  +--------+------------------------+------------------------------------------+
-  |        |                        | | Storage write IO bandwidth as a        |
-  | 3      | READ_IO(NODES)         | | function of the number of nodes.       |
-  |        |                        | | Average during provisioning on the host|
-  |        |                        | | where the provisioning system is       |
-  |        |                        | | installed.                             |
-  +--------+------------------------+------------------------------------------+
-
 Test Plan
----------
+=========
 
-The above performance metrics will be measured for various number
-of provisioned nodes. The result will be a table that shows the
-dependence of these metrics on the number of nodes.
+This test plan aims to identify the best provisioning solution for cloud
+deployment, using specified list of performance measurements and tools.
+
+Test Environment
+----------------
+
+Preparation
+^^^^^^^^^^^
+
+1.
+  The following package needs to be installed on the provisioning system
+  servers to collect performance metrics.
+
+.. table:: Software to be installed
+
+  +--------------+---------+-----------------------------------+
+  | package name | version | source                            |
+  +==============+=========+===================================+
+  | `dstat`_     | 0.7.2   | Ubuntu trusty universe repository |
+  +--------------+---------+-----------------------------------+
 
 Environment description
 ^^^^^^^^^^^^^^^^^^^^^^^
-Test results MUST include a description of the environment used. The following items
-should be included:
 
-- **Hardware configuration of each server.** If virtual machines are used then both
-  physical and virtual hardware should be fully documented.
+Test results MUST include a description of the environment used. The following
+items should be included:
+
+- **Hardware configuration of each server.** If virtual machines are used then
+  both physical and virtual hardware should be fully documented.
   An example format is given below:
 
 .. table:: Description of server hardware
@@ -141,10 +109,10 @@ should be included:
   |       |size            |       |       |
   +-------+----------------+-------+-------+
 
-- **Configuration of hardware network switches.** The configuration file from the
-  switch can be downloaded and attached.
+- **Configuration of hardware network switches.** The configuration file from
+  the switch can be downloaded and attached.
 
-- **Configuration of virtual machines and virtual networks (if they are used).**
+- **Configuration of virtual machines and virtual networks (if used).**
   The configuration files can be attached, along with the mapping of virtual
   machines to host machines.
 
@@ -166,22 +134,78 @@ should be included:
   affect the amount of work to be performed by the provisioning system
   and thus its performance.
 
-Preparation
+Test Case
+---------
+
+Description
 ^^^^^^^^^^^
-1.
-  The following package needs to be installed on the provisioning system
-  servers to collect performance metrics.
 
-.. table:: Software to be installed
+This specific test plan contains only one test case, that needs to be run
+step by step on the environments differing list of parameters below.
 
-  +--------------+---------+-----------------------------------+
-  | package name | version | source                            |
-  +==============+=========+===================================+
-  | `dstat`_     | 0.7.2   | Ubuntu trusty universe repository |
-  +--------------+---------+-----------------------------------+
+Parameters
+^^^^^^^^^^
+
+=============== =========================================
+Parameter name  Value
+=============== =========================================
+number of nodes 10, 20, 40, 80, 160, 320, 640, 1280, 2000
+=============== =========================================
+
+List of performance metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The table below shows the list of test metrics to be collected. The priority
+is the relative ranking of the importance of each metric in evaluating the
+performance of the system.
+
+.. table:: List of performance metrics
+
+  +--------+-------------------+-------------------+------------------------------------------+
+  |Priority| Value             | Measurement Units | Description                              |
+  +========+===================+===================+==========================================+
+  |        |                   |                   || The elapsed time to provision all       |
+  | 1      | PROVISIONING_TIME | seconds           || nodes, as a function of the numbers of  |
+  |        |                   |                   || nodes                                   |
+  +--------+-------------------+-------------------+------------------------------------------+
+  |        |                   |                   || Incoming network bandwidth usage as a   |
+  | 2      | INGRESS_NET       | Gbit/s            || function of the number of nodes.        |
+  |        |                   |                   || Average during provisioning on the host |
+  |        |                   |                   || where the provisioning system is        |
+  |        |                   |                   || installed.                              |
+  +--------+-------------------+-------------------+------------------------------------------+
+  |        |                   |                   || Outgoing network bandwidth usage as a   |
+  | 2      | EGRESS_NET        | Gbit/s            || function of the number of nodes.        |
+  |        |                   |                   || Average during provisioning on the host |
+  |        |                   |                   || where the provisioning system is        |
+  |        |                   |                   || installed.                              |
+  +--------+-------------------+-------------------+------------------------------------------+
+  |        |                   |                   || CPU utilization as a function of the    |
+  | 3      | CPU               | percentage        || number of nodes. Average during         |
+  |        |                   |                   || provisioning on the host where the      |
+  |        |                   |                   || provisioning system is installed.       |
+  +--------+-------------------+-------------------+------------------------------------------+
+  |        |                   |                   || Active memory usage as a function of    |
+  | 3      | RAM               | GB                || the number of nodes. Average during     |
+  |        |                   |                   || provisioning on the host where the      |
+  |        |                   |                   || provisioning system is installed.       |
+  +--------+-------------------+-------------------+------------------------------------------+
+  |        |                   |                   || Storage read IO bandwidth as a          |
+  | 3      | WRITE_IO          | operations/second || function of the number of nodes.        |
+  |        |                   |                   || Average during provisioning on the host |
+  |        |                   |                   || where the provisioning system is        |
+  |        |                   |                   || installed.                              |
+  +--------+-------------------+-------------------+------------------------------------------+
+  |        |                   |                   || Storage write IO bandwidth as a         |
+  | 3      | READ_IO           | operations/second || function of the number of nodes.        |
+  |        |                   |                   || Average during provisioning on the host |
+  |        |                   |                   || where the provisioning system is        |
+  |        |                   |                   || installed.                              |
+  +--------+-------------------+-------------------+------------------------------------------+
 
 Measuring performance values
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 The script
 `Full script for collecting performance metrics`_
 can be used for the first five of the following steps.
@@ -197,9 +221,8 @@ can be used for the first five of the following steps.
 2.
   Start the provisioning process for the first node and record the wall time.
 3.
-  Wait until the provisioning process has finished (when all nodes are reachable
-  via ssh)
-  and record the wall time.
+  Wait until the provisioning process has finished (when all nodes are
+  reachable via ssh) and record the wall time.
 4.
   Stop the dstat program.
 5.
@@ -233,32 +256,20 @@ can be used for the first five of the following steps.
 
   These values will be graphed and maximum values reported.
 
-6.
-  Repeat steps 1-5 for provisioning at the same time the following number of
-  nodes:
-
-  * 10 nodes
-  * 20 nodes
-  * 40 nodes
-  * 80 nodes
-  * 160 nodes
-  * 320 nodes
-  * 640 nodes
-  * 1280 nodes
-  * 2000 nodes
-
   Additional tests will be performed if some anomalous behaviour is found.
   These may require the collection of additional performance metrics.
 
-7.
+6.
   The result of this part of test will be:
 
 * to provide the following graphs, one for each number of provisioned nodes:
 
   #) Three dependencies on one graph.
 
-     * INGRESS_NET(TIME) Dependence on time of incoming network bandwidth usage.
-     * EGRESS_NET(TIME)  Dependence on time of outgoing network bandwidth usage.
+     * INGRESS_NET(TIME) Dependence on time of incoming network bandwidth
+       usage.
+     * EGRESS_NET(TIME)  Dependence on time of outgoing network bandwidth
+       usage.
      * ALL_NET(TIME)     Dependence on time of total network bandwidth usage.
 
   #) One dependence on one graph.
@@ -313,10 +324,10 @@ nodes.
   +-------+--------------+---------+---------+---------+---------+
 
 Applications
-------------
+============
 
-list of provisioning systems
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+List of provisioning systems
+----------------------------
 
 .. table:: list of provisioning systems
 
@@ -333,7 +344,7 @@ list of provisioning systems
   +-----------------------------+---------+
 
 Full script for collecting performance metrics
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==============================================
 
 .. literalinclude:: measure.sh
     :language: bash
