@@ -2,8 +2,6 @@
 Example Test Plan - The title of your plan
 ==========================================
 
-Please include the following information to this primary section:
-
 :status: test plan status - either **draft** or **ready**
 :version: test plan version
 
@@ -33,13 +31,15 @@ using sections, similar to the written below.
 Test Environment
 ----------------
 
-**Preparation**
+Preparation
+^^^^^^^^^^^
 
 Please specify here what needs to be done with the environment to run
 this test plan. This can include specific tools installation,
 specific OpenStack deployment, etc.
 
-**Environment description**
+Environment description
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Please define here used environment. You can use the scheme below for this
 purpose or modify it due to your needs:
@@ -54,17 +54,20 @@ purpose or modify it due to your needs:
 Test Case 1: Something very interesting #1
 ------------------------------------------
 
-**Description**
+Description
+^^^^^^^^^^^
 
 Define test case #1. Every test case can contain at least the sections, defined
 below.
 
-**Parameters**
+Parameters
+^^^^^^^^^^
 
 Optional section. Can be used if there are multiple test cases differing in
 some input parameters - if so, these parameters need to be listed here.
 
-**List of performance metrics**
+List of performance metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Mandatory section. Defines what measurements are in fact done during the test.
 To be a good citizen in case of multiple metrics collection, it will be nice to
@@ -78,7 +81,8 @@ Priority                     Value            Measurement Units  Description
 3 - not that much important  What's measured  <units>            <description>
 ===========================  ===============  =================  =============
 
-**Some additional section**
+Some additional section
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Depending on the test case nature, something else may need to be defined.
 If so, additional sections with free form titles should be added.
