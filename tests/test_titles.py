@@ -11,6 +11,7 @@
 # under the License.
 
 import glob
+import os
 import re
 
 import docutils.core
@@ -192,12 +193,14 @@ class TestTitles(testtools.TestCase):
         test_plan_tmpl = docutils.core.publish_doctree(template)
         template_titles = self._get_titles(test_plan_tmpl)
 
-        files = glob.glob("doc/source/test_plans/*/*.rst")
+        files = glob.glob("doc/source/test_plans/*/plan.rst")
+        files = [os.path.abspath(filename) for filename in files]
 
         for filename in files:
             with open(filename) as f:
                 data = f.read()
 
+            os.chdir(os.path.dirname(filename))
             test_plan = docutils.core.publish_doctree(data)
             self._check_titles(filename,
                                template_titles,

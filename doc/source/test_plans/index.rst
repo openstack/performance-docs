@@ -12,3 +12,4 @@ Test Plans
     mq/plan
     db/plan
     provisioning/plan
+    tenant_networking/plan
