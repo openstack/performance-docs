@@ -143,7 +143,9 @@ class TestTitles(testtools.TestCase):
 
     def _check_lines_wrapping(self, tpl, raw):
         code_block = False
-        for i, line in enumerate(raw.split("\n")):
+        text_inside_simple_tables = False
+        lines = raw.split("\n")
+        for i, line in enumerate(lines):
             # NOTE(ndipanov): Allow code block lines to be longer than 79 ch
             if code_block:
                 if not line or line.startswith(" "):
@@ -152,15 +154,23 @@ class TestTitles(testtools.TestCase):
                     code_block = False
             if "::" in line:
                 code_block = True
+            # simple style tables also can fit >=80 symbols
+            # open simple style table
+            if "===" in line and not lines[i - 1]:
+                text_inside_simple_tables = True
             if "http://" in line or "https://" in line:
                 continue
             # Allow lines which do not contain any whitespace
             if re.match("\s*[^\s]+$", line):
                 continue
-            self.assertTrue(
-                len(line) < 80,
-                msg="%s:%d: Line limited to a maximum of 79 characters." %
-                (tpl, i + 1))
+            if not text_inside_simple_tables:
+                self.assertTrue(
+                    len(line) < 80,
+                    msg="%s:%d: Line limited to a maximum of 79 characters." %
+                    (tpl, i + 1))
+            # close simple style table
+            if "===" in line and not lines[i + 1]:
+                text_inside_simple_tables = False
 
     def _check_no_cr(self, tpl, raw):
         matches = re.findall("\r", raw)
