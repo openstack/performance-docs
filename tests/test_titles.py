@@ -99,12 +99,12 @@ class TestTitles(testtools.TestCase):
 
             for ex_s in extra_subsections:
                 s_name = (ex_s if type(ex_s) is str or
-                                  type(ex_s) is unicode else ex_s["name"])
+                          type(ex_s) is unicode else ex_s["name"])
                 if s_name.startswith("Test Case"):
                     new_missing_subsections = []
                     for m_s in missing_subsections:
                         m_s_name = (m_s if type(m_s) is str or
-                                           type(m_s) is unicode
+                                    type(m_s) is unicode
                                     else m_s["name"])
                         if not m_s_name.startswith("Test Case"):
                             new_missing_subsections.append(m_s)
