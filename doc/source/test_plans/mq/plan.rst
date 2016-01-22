@@ -184,7 +184,7 @@ following requirements need to be satisfied:
 
 This section describes installation steps for ZeroMQ. ZeroMQ (also ZMQ or 0MQ)
 is an embeddable networking library but acts like a concurrency framework.
-Unlike other AMQP-based drivers, such as RabbitMQ, ZeroMQ doesn’t have any
+Unlike other AMQP-based drivers, such as RabbitMQ, ZeroMQ doesn't have any
 central brokers in oslo.messaging. Instead, each host (running OpenStack
 services) is both a ZeroMQ client and a server. As a result, each host needs to
 listen to a certain TCP port for incoming connections and directly connect to
@@ -230,7 +230,7 @@ following requirements need to be satisfied:
      configuration files.
 
   * To enable the driver, in the section [DEFAULT] of each configuration file,
-    the ‘rpc_backend’ flag must be set to ‘zmq’ and the ‘rpc_zmq_host’ flag
+    the 'rpc_backend' flag must be set to 'zmq' and the 'rpc_zmq_host' flag
     must be set to the hostname of the node.
 
   .. code-block:: none
