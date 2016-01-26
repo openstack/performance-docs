@@ -11,4 +11,4 @@ Test Plans
 
     mq/plan
     db/plan
-    provisioning/main
+    provisioning/plan
