@@ -1,14 +1,17 @@
-=======================
-Message Queue Test Plan
-=======================
+.. _message_queue_performance:
 
-:status: ready
-:version: 0
+=========================
+Message Queue Performance
+=========================
+
+:status: draft
+:version: 1
 
 :Abstract:
 
-  This document describes a test plan for quantifying the performance of
-  message queues usually used as a message bug between OpenStack services.
+  This document describes a test plan for measuring performance of OpenStack
+  message bus. The measurement covers message queue and oslo.messaging library.
+
 
 Test Plan
 =========
@@ -115,8 +118,8 @@ performed for an ActiveMQ installation:
     * for each MQ node create a myid file in dataDir with the id of the
           server and nothing else. For node-1 the file will contain one line
           with 1, node-2 with 2, and node-3 with 3.
-    * start ZooKeeper (on each node): \textbf{./zkServer.sh start}
-    * check ZK status with: \textbf{./zkServer.sh status}
+    * start ZooKeeper (on each node): ``./zkServer.sh start``
+    * check ZK status with: ``./zkServer.sh status``
   * Configure ActiveMQ (apache-activemq-5.12.0/conf/activemq.xml file - set
         the hostname parameter to the node address)
 
@@ -277,115 +280,157 @@ environment is very similar to the all-in-one installation.
 Environment description
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Test results must include used environment description. This includes:
+The environment description includes hardware specification of servers,
+network parameters, operation system and OpenStack deployment characteristics.
 
-* Hardware used (servers, switches, storage, etc.)
-* Network scheme
-* Messaging bus specification and OpenStack version deployed (if any).
+Hardware
+~~~~~~~~
+
+This section contains list of all types of hardware nodes.
+
++-----------+-------+----------------------------------------------------+
+| Parameter | Value | Comments                                           |
++-----------+-------+----------------------------------------------------+
+| model     |       | e.g. Supermicro X9SRD-F                            |
++-----------+-------+----------------------------------------------------+
+| CPU       |       | e.g. 6 x Intel(R) Xeon(R) CPU E5-2620 v2 @ 2.10GHz |
++-----------+-------+----------------------------------------------------+
+
+Network
+~~~~~~~
+
+This section contains list of interfaces and network parameters.
+For complicated cases this section may include topology diagram and switch
+parameters.
+
++------------------+-------+-------------------------+
+| Parameter        | Value | Comments                |
++------------------+-------+-------------------------+
+| card model       |       | e.g. Intel              |
++------------------+-------+-------------------------+
+| driver           |       | e.g. ixgbe              |
++------------------+-------+-------------------------+
+| speed            |       | e.g. 10G or 1G          |
++------------------+-------+-------------------------+
+
+Software
+~~~~~~~~
+
+This section describes installed software.
+
++-----------------+-------+---------------------------+
+| Parameter       | Value | Comments                  |
++-----------------+-------+---------------------------+
+| OS              |       | e.g. Ubuntu 14.04.3       |
++-----------------+-------+---------------------------+
+| oslo.messaging  |       | e.g. 4.0.0                |
++-----------------+-------+---------------------------+
+| MQ Server       |       | e.g. RabbitMQ 3.5.6       |
++-----------------+-------+---------------------------+
+| HA mode         |       | e.g. Cluster              |
++-----------------+-------+---------------------------+
 
 
-Test Case 1: Message Queue Throughput Test
-------------------------------------------
+.. _message_queue_performance_rpc_call:
 
-Description
-^^^^^^^^^^^
-
-This test measures the aggregate throughput of a MQ layer by using the
-oslo.messaging simulator tool. Either RabbitMQ, ActiveMQ, or ZeroMQ can be used
-as the MQ layer. Throughput is calculated as the sum over the MQ clients of the
-throughput for each client. For each test the number of clients/threads is
-configured to one of the specific values defined in the test case parameters
-section. The full set of tests will cover all the "Threads count" values shown,
-plus additional values as needed to quantify the dependence of MQ throughput on
-load, and to find the maximum throughput.
-
-Parameters
-^^^^^^^^^^
-
-======================= ===========
-Parameter name          Value
-======================= ===========
-oslo.messaging version  2.5.0
-simulator.py version    1.0
-Threads count           50, 70, 100
-======================= ===========
-
-List of performance metrics
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-========  ==========  ================  ===================================
-Priority  Value       Measurment Units  Description
-========  ==========  ================  ===================================
-1         Throughput  msg/sec           Directly measured by simulator tool
-========  ==========  ================  ===================================
-
-Result Type
-^^^^^^^^^^^
-
-================  =======================  =========================
-Result type       Measurement Units        Description
-================  =======================  =========================
-Throughput Value  msg/sec                  Table of numerical values
-Throughput Graph  msg/sec vs # of threads  Graph
-================  =======================  =========================
-
-Additional Measurements
-^^^^^^^^^^^^^^^^^^^^^^^
-
-=========== ======= =============================
-Measurement Units   Description
-=========== ======= =============================
-Variance    msg/sec Throughput variance over time
-=========== ======= =============================
-
-Test Case 2: OMGBenchmark Rally test
-------------------------------------
+Test Case 1: RPC Call Throughput Test
+-------------------------------------
 
 Description
 ^^^^^^^^^^^
 
-OMGBenchmark is a rally plugin for benchmarking oslo.messaging.
-The plugin and installation instructions are available on github:
-https://github.com/Yulya/omgbenchmark
+This test measures the aggregate throughput of a MQ layer including
+oslo.messaging library. The test is done for `RPC call`_ messages only. Message
+sizes are different with distribution modelled by data collected from live
+environment.
 
-Parameters
-^^^^^^^^^^
-
-================================= =============== ===============
-Parameter name                    Rally name      Value
-================================= =============== ===============
-oslo.messaging version                            2.5.0
-Number of iterations              times           50, 100, 500
-Threads count                     concurrency     40, 70, 100
-Number of RPC servers             num_servers     10
-Number of RPC clients             num_clients     10
-Number of topics                  num_topics      5
-Number of messages per iteration  num_messages    100
-Message size                      msg_length_file 900-12000 bytes
-================================= =============== ===============
 
 List of performance metrics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-======= ================= ==========================================
-Name    Measurement Units Description
-======= ================= ==========================================
-min     sec               Minimal execution time of one iteration
-median  sec               Median execution time
-90%ile  sec               90th percentile execution time
-95%ile  sec               95th percentile execution time
-max     sec               Maximal execution time of one iteration
-avg     sec               Average execution time
-success none              Number of successfully finished iterations
-count   none              Number of executed iterations
-======= ================= ==========================================
+Test case result is series of following measurements done at different
+numbers of simultaneous threads. The output may be shown in table form
+and/or as chart showing dependency of parameters from number of threads.
 
-Result Type
+========  ==========  =================  =================================
+Priority  Value       Measurement Units  Description
+========  ==========  =================  =================================
+1         Throughput  msg/sec            Number of messages per second
+2         Variance    msg/sec            Throughput variance over time
+2         Latency     ms                 The latency in message processing
+========  ==========  =================  =================================
+
+
+.. _message_queue_performance_rpc_cast:
+
+Test Case 2: RPC Cast Throughput Test
+-------------------------------------
+
+Description
 ^^^^^^^^^^^
 
-=================  =======================  =========================
-Result type        Measurement Units        Description
-=================  =======================  =========================
-Throughput Graph   msg size vs median       Graph
-Concurrency Graph  concurrency vs median    Graph
-=================  =======================  =========================
+This test measures the aggregate throughput of a MQ layer including
+oslo.messaging library. The test is done for `RPC cast`_ messages only. Message
+sizes are different with distribution modelled by data collected from live
+environment.
+
+
+List of performance metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Test case result is series of following measurements done at different
+numbers of simultaneous threads. The output may be shown in table form
+and/or as chart showing dependency of parameters from number of threads.
+
+========  ==========  =================  =================================
+Priority  Value       Measurement Units  Description
+========  ==========  =================  =================================
+1         Throughput  msg/sec            Number of messages per second
+2         Variance    msg/sec            Throughput variance over time
+2         Latency     ms                 The latency in message processing
+========  ==========  =================  =================================
+
+
+.. _message_queue_performance_notification:
+
+Test Case 3: Notification Throughput Test
+-----------------------------------------
+
+Description
+^^^^^^^^^^^
+
+This test measures the aggregate throughput of a MQ layer including
+oslo.messaging library. The test is done for `Notification`_ messages only.
+Message sizes are different with distribution modelled by data collected from
+live environment.
+
+
+List of performance metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Test case result is series of following measurements done at different
+numbers of simultaneous threads. The output may be shown in table form
+and/or as chart showing dependency of parameters from number of threads.
+
+========  ==========  =================  =================================
+Priority  Value       Measurement Units  Description
+========  ==========  =================  =================================
+1         Throughput  msg/sec            Number of messages per second
+2         Variance    msg/sec            Throughput variance over time
+2         Latency     ms                 The latency in message processing
+========  ==========  =================  =================================
+
+
+Tools
+=====
+
+This section contains tools that can be used to perform the test plan.
+
+.. include:: simulator.rst
+
+
+.. references:
+
+.. _RPC call: http://docs.openstack.org/developer/oslo.messaging/rpcclient.html#oslo_messaging.RPCClient.call
+.. _RPC cast: http://docs.openstack.org/developer/oslo.messaging/rpcclient.html#oslo_messaging.RPCClient.cast
+.. _Notification: http://docs.openstack.org/developer/oslo.messaging/notifier.html#notifier
