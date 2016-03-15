@@ -21,6 +21,7 @@ Contents
     introduction.rst
     methodologies/index.rst
     test_plans/index.rst
+    labs/index.rst
 
 .. raw:: pdf
 
