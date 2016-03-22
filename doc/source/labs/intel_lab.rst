@@ -1,3 +1,5 @@
+.. _intel_mirantis_performance_lab:
+
 ===================================
 Intel-Mirantis Performance-Team Lab
 ===================================
