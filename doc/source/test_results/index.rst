@@ -10,3 +10,4 @@ Test Results
     :maxdepth: 2
 
     mq_ha/index
+    container_repositories/index
