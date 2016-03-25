@@ -14,3 +14,4 @@ Test Plans
     db/plan
     provisioning/plan
     tenant_networking/plan
+    container_repositories/plan
