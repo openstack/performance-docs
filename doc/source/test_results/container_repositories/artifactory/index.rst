@@ -197,6 +197,19 @@ Testing process
   The steps from 2 to 5 was repeated with the following values of the
   concurrency parameters: 1,10,30,50,100
 
+As a result of this part we got the following CSV files:
+
+:download:`PUSH_TIME(CONCURRENCY=1) <./results/artifactory-1000-1/push_results.csv>`
+:download:`PUSH_TIME(CONCURRENCY=10) <./results/artifactory-1000-10/push_results.csv>`
+:download:`PUSH_TIME(CONCURRENCY=30) <./results/artifactory-1000-30/push_results.csv>`
+:download:`PUSH_TIME(CONCURRENCY=50) <./results/artifactory-1000-50/push_results.csv>`
+:download:`PUSH_TIME(CONCURRENCY=100) <./results/artifactory-1000-100/push_results.csv>`
+:download:`PULL_TIME(CONCURRENCY=1) <./results/artifactory-1000-1/pull_results.csv>`
+:download:`PULL_TIME(CONCURRENCY=10) <./results/artifactory-1000-10/pull_results.csv>`
+:download:`PULL_TIME(CONCURRENCY=30) <./results/artifactory-1000-30/pull_results.csv>`
+:download:`PULL_TIME(CONCURRENCY=50) <./results/artifactory-1000-50/pull_results.csv>`
+:download:`PULL_TIME(CONCURRENCY=100) <./results/artifactory-1000-100/pull_results.csv>`
+
 Results
 =======
 Push action results
