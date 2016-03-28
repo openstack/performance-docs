@@ -4,65 +4,28 @@
 
 .. _mq_ha_rabbit_report:
 
-=============================================
-RabbitMQ HA Test Reports (HA queues disabled)
-=============================================
+========================
+RabbitMQ HA test reports
+========================
 
 Environment description
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The test plan is executed at the following environment
-(:ref:`intel_mirantis_performance_lab`).
-
-Hardware
-~~~~~~~~
-
-+-----------+------------------------------------------------------------+
-| Parameter | Value                                                      |
-+-----------+------------------------------------------------------------+
-| model     | HP ProLiant DL380 Gen9                                     |
-+-----------+------------------------------------------------------------+
-| CPU       | 2 x Intel(R) Xeon(R) CPU E5-2680 v3 @2.50GHz               |
-+-----------+------------------------------------------------------------+
-| RAM       | 256 Gb                                                     |
-+-----------+------------------------------------------------------------+
-
-Network
-~~~~~~~
-
-+------------------+--------------------------------+
-| Parameter        | Value                          |
-+------------------+--------------------------------+
-| card model       | Intel                          |
-+------------------+--------------------------------+
-| speed            | 10G                            |
-+------------------+--------------------------------+
-
-Software
-~~~~~~~~
-
-This section describes installed software.
-
-+-----------------+--------------------------------------------+
-| Parameter       | Value                                      |
-+-----------------+--------------------------------------------+
-| OS              | Ubuntu 14.04.3                             |
-+-----------------+--------------------------------------------+
-| oslo.messaging  | 4.5.1                                      |
-+-----------------+--------------------------------------------+
-| MQ Server       | RabbitMQ 3.5.6                             |
-+-----------------+--------------------------------------------+
-| HA mode         | Cluster, pacemaker, HA queues disabled     |
-+-----------------+--------------------------------------------+
+This report is generated for :ref:`message_queue_ha` test plan with
+`Oslo.messaging Simulator`_ tool. The data is collected in
+:ref:`intel_mirantis_performance_lab`.
 
 
 Reports
 ^^^^^^^
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
-    rabbitmq/cmsm-km/index
-    rabbitmq/cs1ss1-ks1/index
-    rabbitmq/cs1ss2-ks2/index
-    rabbitmq/cmss2-km/index
+    rabbitmq/index
+    rabbitmq-ha-queues/index
+
+
+.. references:
+
+.. _Oslo.messaging Simulator: https://github.com/openstack/oslo.messaging/blob/master/tools/simulator.py
