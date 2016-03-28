@@ -1,0 +1,148 @@
+Fri Mar 25 10:43:48 UTC 2016 - Start test create with concurrency 1 with 50 nodes
+Fri Mar 25 10:44:24 UTC 2016 - Start test create with concurrency 1 with 100 nodes
+Fri Mar 25 10:45:00 UTC 2016 - Start test create with concurrency 1 with 500 nodes
+Fri Mar 25 10:45:45 UTC 2016 - Start test create with concurrency 2 with 50 nodes
+Fri Mar 25 10:46:21 UTC 2016 - Start test create with concurrency 2 with 100 nodes
+Fri Mar 25 10:46:57 UTC 2016 - Start test create with concurrency 2 with 500 nodes
+Fri Mar 25 10:47:50 UTC 2016 - Start test create with concurrency 4 with 50 nodes
+Fri Mar 25 10:48:36 UTC 2016 - Start test create with concurrency 4 with 100 nodes
+Fri Mar 25 10:49:22 UTC 2016 - Start test create with concurrency 4 with 500 nodes
+Fri Mar 25 10:50:31 UTC 2016 - Start test create with concurrency 8 with 50 nodes
+Fri Mar 25 10:51:13 UTC 2016 - Start test create with concurrency 8 with 100 nodes
+Fri Mar 25 10:52:00 UTC 2016 - Start test create with concurrency 8 with 500 nodes
+Fri Mar 25 10:53:53 UTC 2016 - Start test create with concurrency 16 with 50 nodes
+Fri Mar 25 10:54:44 UTC 2016 - Start test create with concurrency 16 with 100 nodes
+Fri Mar 25 10:55:40 UTC 2016 - Start test create with concurrency 16 with 500 nodes
+Fri Mar 25 11:03:45 UTC 2016 - Start test update_cpu with concurrency 1 with 50 nodes
+Fri Mar 25 11:04:40 UTC 2016 - Start test update_cpu with concurrency 1 with 100 nodes
+Fri Mar 25 11:05:28 UTC 2016 - Start test update_cpu with concurrency 1 with 500 nodes
+Fri Mar 25 11:06:36 UTC 2016 - Start test update_cpu with concurrency 2 with 50 nodes
+Fri Mar 25 11:07:37 UTC 2016 - Start test update_cpu with concurrency 2 with 100 nodes
+Fri Mar 25 11:08:50 UTC 2016 - Start test update_cpu with concurrency 2 with 500 nodes
+Fri Mar 25 11:10:28 UTC 2016 - Start test update_cpu with concurrency 4 with 50 nodes
+Fri Mar 25 11:11:49 UTC 2016 - Start test update_cpu with concurrency 4 with 100 nodes
+Fri Mar 25 11:14:19 UTC 2016 - Start test update_cpu with concurrency 4 with 500 nodes
+Fri Mar 25 11:16:57 UTC 2016 - Start test update_cpu with concurrency 8 with 50 nodes
+Fri Mar 25 11:19:41 UTC 2016 - Start test update_cpu with concurrency 8 with 100 nodes
+Fri Mar 25 11:22:49 UTC 2016 - Start test update_cpu with concurrency 8 with 500 nodes
+Fri Mar 25 11:30:44 UTC 2016 - Start test update_cpu with concurrency 16 with 50 nodes
+Fri Mar 25 11:35:31 UTC 2016 - Start test update_cpu with concurrency 16 with 100 nodes
+Fri Mar 25 11:40:24 UTC 2016 - Start test update_cpu with concurrency 16 with 500 nodes
+Fri Mar 25 12:08:39 UTC 2016 - Start test update_mem with concurrency 1 with 50 nodes
+Fri Mar 25 12:13:59 UTC 2016 - Start test update_mem with concurrency 1 with 100 nodes
+Fri Mar 25 12:14:52 UTC 2016 - Start test update_mem with concurrency 1 with 500 nodes
+Fri Mar 25 12:15:59 UTC 2016 - Start test update_mem with concurrency 2 with 50 nodes
+Fri Mar 25 12:16:56 UTC 2016 - Start test update_mem with concurrency 2 with 100 nodes
+Fri Mar 25 12:18:13 UTC 2016 - Start test update_mem with concurrency 2 with 500 nodes
+Fri Mar 25 12:19:53 UTC 2016 - Start test update_mem with concurrency 4 with 50 nodes
+Fri Mar 25 12:21:16 UTC 2016 - Start test update_mem with concurrency 4 with 100 nodes
+Fri Mar 25 12:23:04 UTC 2016 - Start test update_mem with concurrency 4 with 500 nodes
+Fri Mar 25 12:26:08 UTC 2016 - Start test update_mem with concurrency 8 with 50 nodes
+Fri Mar 25 12:28:48 UTC 2016 - Start test update_mem with concurrency 8 with 100 nodes
+Fri Mar 25 12:31:45 UTC 2016 - Start test update_mem with concurrency 8 with 500 nodes
+Fri Mar 25 12:40:31 UTC 2016 - Start test update_mem with concurrency 16 with 50 nodes
+Fri Mar 25 12:44:59 UTC 2016 - Start test update_mem with concurrency 16 with 100 nodes
+Fri Mar 25 12:50:36 UTC 2016 - Start test update_mem with concurrency 16 with 500 nodes
+Fri Mar 25 13:19:17 UTC 2016 - Start test update_disk with concurrency 1 with 50 nodes
+Fri Mar 25 13:25:51 UTC 2016 - Start test update_disk with concurrency 1 with 100 nodes
+Fri Mar 25 13:26:50 UTC 2016 - Start test update_disk with concurrency 1 with 500 nodes
+Fri Mar 25 13:28:07 UTC 2016 - Start test update_disk with concurrency 2 with 50 nodes
+Fri Mar 25 13:29:06 UTC 2016 - Start test update_disk with concurrency 2 with 100 nodes
+Fri Mar 25 13:30:25 UTC 2016 - Start test update_disk with concurrency 2 with 500 nodes
+Fri Mar 25 13:32:07 UTC 2016 - Start test update_disk with concurrency 4 with 50 nodes
+Fri Mar 25 13:33:34 UTC 2016 - Start test update_disk with concurrency 4 with 100 nodes
+Fri Mar 25 13:35:18 UTC 2016 - Start test update_disk with concurrency 4 with 500 nodes
+Fri Mar 25 13:38:05 UTC 2016 - Start test update_disk with concurrency 8 with 50 nodes
+Fri Mar 25 13:40:36 UTC 2016 - Start test update_disk with concurrency 8 with 100 nodes
+Fri Mar 25 13:43:34 UTC 2016 - Start test update_disk with concurrency 8 with 500 nodes
+Fri Mar 25 13:55:02 UTC 2016 - Start test update_disk with concurrency 16 with 50 nodes
+Fri Mar 25 13:59:38 UTC 2016 - Start test update_disk with concurrency 16 with 100 nodes
+Fri Mar 25 14:04:52 UTC 2016 - Start test update_disk with concurrency 16 with 500 nodes
+Fri Mar 25 14:33:26 UTC 2016 - Start test update_instances with concurrency 1 with 50 nodes
+Fri Mar 25 14:49:51 UTC 2016 - Start test update_instances with concurrency 1 with 100 nodes
+Fri Mar 25 14:50:43 UTC 2016 - Start test update_instances with concurrency 1 with 500 nodes
+Fri Mar 25 15:01:28 UTC 2016 - Start test update_instances with concurrency 2 with 50 nodes
+Fri Mar 25 15:12:15 UTC 2016 - Start test update_instances with concurrency 2 with 100 nodes
+Fri Mar 25 15:23:10 UTC 2016 - Start test update_instances with concurrency 2 with 500 nodes
+Fri Mar 25 15:34:18 UTC 2016 - Start test update_instances with concurrency 4 with 50 nodes
+Fri Mar 25 15:45:43 UTC 2016 - Start test update_instances with concurrency 4 with 100 nodes
+Fri Mar 25 15:57:06 UTC 2016 - Start test update_instances with concurrency 4 with 500 nodes
+Fri Mar 25 16:09:06 UTC 2016 - Start test update_instances with concurrency 8 with 50 nodes
+Fri Mar 25 16:21:30 UTC 2016 - Start test update_instances with concurrency 8 with 100 nodes
+Fri Mar 25 16:33:57 UTC 2016 - Start test update_instances with concurrency 8 with 500 nodes
+Fri Mar 25 16:47:53 UTC 2016 - Start test update_instances with concurrency 16 with 50 nodes
+Fri Mar 25 17:07:32 UTC 2016 - Start test update_instances with concurrency 16 with 100 nodes
+Fri Mar 25 17:21:55 UTC 2016 - Start test update_instances with concurrency 16 with 500 nodes
+Fri Mar 25 17:51:46 UTC 2016 - Start test restart with concurrency 1 with 50 nodes
+Traceback (most recent call last):
+  File "marathon-scale-tests.py", line 465, in <module>
+    int(args.nodes)))
+  File "marathon-scale-tests.py", line 302, in concur_restart_apps
+    apps = create_several_apps(concurrency, instances)
+  File "marathon-scale-tests.py", line 226, in create_several_apps
+    need_statistics=False)["app_name"])
+  File "marathon-scale-tests.py", line 259, in create_app
+    check_operation_status(start_time, app_name, app_instances, timeout)
+  File "marathon-scale-tests.py", line 103, in check_operation_status
+    "task", app_instances, app_name, start_time, timeout, ready_tasks)
+  File "marathon-scale-tests.py", line 46, in check_instances
+    tasks = cluster.list_tasks(app_name)
+  File "/root/sgalkin/scale-rnd/tests/mesos/.venv/local/lib/python2.7/site-packages/marathon/client.py", line 354, in list_tasks
+    response = self._do_request('GET', '/v2/tasks')
+  File "/root/sgalkin/scale-rnd/tests/mesos/.venv/local/lib/python2.7/site-packages/marathon/client.py", line 65, in _do_request
+    raise MarathonError('No remaining Marathon servers to try')
+marathon.exceptions.MarathonError: No remaining Marathon servers to try
+Delete /4ad3b513c726f9d7bb664042976a86dc
+No handlers could be found for logger "marathon"
+Traceback (most recent call last):
+  File "application_managment_helper.py", line 103, in <module>
+    cluster.delete_app(app.id, force=True)
+  File "/root/sgalkin/scale-rnd/tests/mesos/.venv/local/lib/python2.7/site-packages/marathon/client.py", line 209, in delete_app
+    response = self._do_request('DELETE', '/v2/apps/{app_id}'.format(app_id=app_id), params=params)
+  File "/root/sgalkin/scale-rnd/tests/mesos/.venv/local/lib/python2.7/site-packages/marathon/client.py", line 65, in _do_request
+    raise MarathonError('No remaining Marathon servers to try')
+marathon.exceptions.MarathonError: No remaining Marathon servers to try
+Fri Mar 25 17:55:31 UTC 2016 - Start test restart with concurrency 1 with 100 nodes
+Traceback (most recent call last):
+  File "marathon-scale-tests.py", line 465, in <module>
+    int(args.nodes)))
+  File "marathon-scale-tests.py", line 302, in concur_restart_apps
+    apps = create_several_apps(concurrency, instances)
+  File "marathon-scale-tests.py", line 226, in create_several_apps
+    need_statistics=False)["app_name"])
+  File "marathon-scale-tests.py", line 256, in create_app
+    app=new_app)
+  File "/root/sgalkin/scale-rnd/tests/mesos/.venv/local/lib/python2.7/site-packages/marathon/client.py", line 102, in create_app
+    response = self._do_request('POST', '/v2/apps', data=data)
+  File "/root/sgalkin/scale-rnd/tests/mesos/.venv/local/lib/python2.7/site-packages/marathon/client.py", line 65, in _do_request
+    raise MarathonError('No remaining Marathon servers to try')
+marathon.exceptions.MarathonError: No remaining Marathon servers to try
+Fri Mar 25 17:56:14 UTC 2016 - Start test restart with concurrency 1 with 500 nodes
+Fri Mar 25 18:02:40 UTC 2016 - Start test restart with concurrency 2 with 50 nodes
+Fri Mar 25 18:03:31 UTC 2016 - Start test restart with concurrency 2 with 100 nodes
+Fri Mar 25 18:04:51 UTC 2016 - Start test restart with concurrency 2 with 500 nodes
+Fri Mar 25 18:06:24 UTC 2016 - Start test restart with concurrency 4 with 50 nodes
+Fri Mar 25 18:07:54 UTC 2016 - Start test restart with concurrency 4 with 100 nodes
+Fri Mar 25 18:09:39 UTC 2016 - Start test restart with concurrency 4 with 500 nodes
+Fri Mar 25 18:13:01 UTC 2016 - Start test restart with concurrency 8 with 50 nodes
+Fri Mar 25 18:15:31 UTC 2016 - Start test restart with concurrency 8 with 100 nodes
+Fri Mar 25 18:18:26 UTC 2016 - Start test restart with concurrency 8 with 500 nodes
+Fri Mar 25 18:29:22 UTC 2016 - Start test restart with concurrency 16 with 50 nodes
+Fri Mar 25 18:34:06 UTC 2016 - Start test restart with concurrency 16 with 100 nodes
+Fri Mar 25 18:39:52 UTC 2016 - Start test restart with concurrency 16 with 500 nodes
+Fri Mar 25 19:08:01 UTC 2016 - Start test delete with concurrency 1 with 50 nodes
+Fri Mar 25 19:16:32 UTC 2016 - Start test delete with concurrency 1 with 100 nodes
+Fri Mar 25 19:17:18 UTC 2016 - Start test delete with concurrency 1 with 500 nodes
+Fri Mar 25 19:18:09 UTC 2016 - Start test delete with concurrency 2 with 50 nodes
+Fri Mar 25 19:19:01 UTC 2016 - Start test delete with concurrency 2 with 100 nodes
+Fri Mar 25 19:19:54 UTC 2016 - Start test delete with concurrency 2 with 500 nodes
+Fri Mar 25 19:21:07 UTC 2016 - Start test delete with concurrency 4 with 50 nodes
+Fri Mar 25 19:22:34 UTC 2016 - Start test delete with concurrency 4 with 100 nodes
+Fri Mar 25 19:23:57 UTC 2016 - Start test delete with concurrency 4 with 500 nodes
+Fri Mar 25 19:26:00 UTC 2016 - Start test delete with concurrency 8 with 50 nodes
+Fri Mar 25 19:28:03 UTC 2016 - Start test delete with concurrency 8 with 100 nodes
+Fri Mar 25 19:30:39 UTC 2016 - Start test delete with concurrency 8 with 500 nodes
+Fri Mar 25 19:34:35 UTC 2016 - Start test delete with concurrency 16 with 50 nodes
+Fri Mar 25 19:39:23 UTC 2016 - Start test delete with concurrency 16 with 100 nodes
+Fri Mar 25 19:43:40 UTC 2016 - Start test delete with concurrency 16 with 500 nodes
+
