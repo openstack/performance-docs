@@ -13,3 +13,4 @@ Test Results
     mq_ha/index
     container_repositories/index
     db/mysql/index
+    keystone/index

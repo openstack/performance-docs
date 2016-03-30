@@ -15,3 +15,4 @@ Test Plans
     provisioning/plan
     tenant_networking/plan
     container_repositories/plan
+    keystone/plan
