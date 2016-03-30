@@ -12,3 +12,4 @@ Test Results
     mq/rabbitmq/index
     mq_ha/index
     container_repositories/index
+    db/mysql/index

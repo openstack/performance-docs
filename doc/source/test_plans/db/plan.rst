@@ -1,3 +1,5 @@
+.. _db_performance:
+
 ======================
 SQL Database Test Plan
 ======================
