@@ -1,0 +1,8 @@
+default local
+prompt 0
+timeout 0
+totaltimeout 0
+ontimeout 0
+label local
+        kernel http://$server:$http_port/cblr/tftpboot/chain.c32
+        append hd

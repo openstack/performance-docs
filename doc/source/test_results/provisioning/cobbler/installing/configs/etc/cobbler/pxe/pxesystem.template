@@ -1,0 +1,6 @@
+default linux
+prompt 0
+timeout 1
+label linux
+        kernel http://$server:$http_port/cblr/$kernel_path
+        append initrd=http://$server:$http_port/cblr/$initrd_path $append_line
