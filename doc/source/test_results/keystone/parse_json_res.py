@@ -254,7 +254,27 @@ def prepare_tables(nodes):
             for query in NODES["DB queries"]["red_flag"][key][
                     "time_spent"][ts]:
                 multi_join_queries.add_row([db_query_tmpl % query, ts])
-    return common_info_table, multi_join_queries, outliers_table
+
+    # prepare table with cache info
+    cache_table = prettytable.PrettyTable(["**Cached operations**",
+                                           "**args**",
+                                           "**kwargs**",
+                                           "**Times used**"])
+    cache_table.align["**Cached operations**"] = "l"
+    cache_table.align["**args**"] = "l"
+    cache_table.align["**kwargs**"] = "l"
+    cache_table.align["**Times used**"] = "l"
+    cache_table.max_width = 100
+    cache_table.header = True
+    cache_table.hrules = prettytable.ALL
+
+    for operation, times in nodes["Cached operations"].iteritems():
+        operation = operation[1:-1].split(", ")
+        cache_table.add_row([operation[0][1:-1],
+                             ", ".join(operation[1:-1])[1:-1],
+                             operation[-1][1:-1], times])
+
+    return common_info_table, multi_join_queries, outliers_table, cache_table
 
 
 def main():
@@ -271,11 +291,12 @@ def main():
             data = json.load(data_file)
             define_nodes(data)
             nodes = sort_dicts(NODES)
-            common_info_table, multi_join_queries, outliers_table = \
-                prepare_tables(nodes)
+            common_info_table, multi_join_queries, outliers_table,\
+                cache_table = prepare_tables(nodes)
             print(common_info_table)
             print(outliers_table)
             print(multi_join_queries)
+            print(cache_table)
     elif os.path.isdir(args.path):
         for item in os.listdir(args.path):
             if item.endswith(".txt"):
@@ -284,8 +305,8 @@ def main():
                     NODES = copy.deepcopy(NODES_TEMPLATE)
                     define_nodes(data)
                     nodes = sort_dicts(NODES)
-                    common_info_table, multi_join_queries, outliers_table = \
-                        prepare_tables(nodes)
+                    common_info_table, multi_join_queries, outliers_table,\
+                        cache_table = prepare_tables(nodes)
                     item_name = \
                         item.split(".")[0].replace("_", " ").capitalize() + \
                         " request stats"
@@ -298,6 +319,9 @@ def main():
                     print("\n**%s**\n" % "Keystone DB queries with multi "
                                          "JOINs inside")
                     print(multi_join_queries)
+                    print("\n")
+                    print("**Keystone cached methods stats**\n")
+                    print(cache_table)
                     print("\n")
 
 

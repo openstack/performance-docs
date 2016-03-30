@@ -211,6 +211,17 @@ Endpoint list request stats
 | |                                                                                                    |                    |
 +------------------------------------------------------------------------------------------------------+--------------------+
 
+**Keystone cached methods stats**
+
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| **Cached operations** | **args**                                                                                             | **kwargs** | **Times used** |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_project           | <keystone.resource.core.Manager object at 0x7f2e5728b9d0>, u'a465ecd9f7004c38b30792a07b363b2c'       |            | 6              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_role              | <keystone.assignment.core.RoleManager object at 0x7f2e57262350>, u'31c541984f48440ab8753d11d84e58ca' |            | 2              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_domain            | <keystone.resource.core.Manager object at 0x7f2e5728b9d0>, u'default'                                |            | 2              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
 
 Server create request stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -498,6 +509,110 @@ Server create request stats
 | |                                                                                                    |                    |
 +------------------------------------------------------------------------------------------------------+--------------------+
 
+**Keystone cached methods stats**
+
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| **Cached operations** | **args**                                                                                             | **kwargs** | **Times used** |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| _get_token            | <keystone.token.persistence.core.PersistenceManager object at 0x7f76eae62c10>,                       |            | 6              |
+|                       | 'c1613dbf55ac423fb5c0ae8833e4884b'                                                                   |            |                |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| _get_revoke_tree      | <keystone.revoke.core.Manager object at 0x7f76ebf9a990>,                                             |            | 66             |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_project           | <keystone.resource.core.Manager object at 0x7f76ebfea850>, u'a7e61cc2e4634e8c9179257bdb8dcb47'       |            | 81             |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_role              | <keystone.assignment.core.RoleManager object at 0x7f76ebf401d0>, u'141ab89993aa4d9fa645540dad1a3e2a' |            | 27             |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| _get_token            | <keystone.token.persistence.core.PersistenceManager object at 0x7f76eae62a10>,                       |            | 16             |
+|                       | 'c1613dbf55ac423fb5c0ae8833e4884b'                                                                   |            |                |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_domain            | <keystone.resource.core.Manager object at 0x7f76ebfea850>, u'default'                                |            | 27             |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| _get_token            | <keystone.token.persistence.core.PersistenceManager object at 0x7f76eae629d0>,                       |            | 5              |
+|                       | 'c1613dbf55ac423fb5c0ae8833e4884b'                                                                   |            |                |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_project           | <keystone.resource.core.Manager object at 0x7f76ebfe9850>, u'a7e61cc2e4634e8c9179257bdb8dcb47'       |            | 6              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| _get_token            | <keystone.token.persistence.core.PersistenceManager object at 0x7f76eae62a10>,                       |            | 5              |
+|                       | 'e9d77e583df44f7ebf84de745882e722'                                                                   |            |                |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| _get_token            | <keystone.token.persistence.core.PersistenceManager object at 0x7f76eae62c10>,                       |            | 1              |
+|                       | 'e9d77e583df44f7ebf84de745882e722'                                                                   |            |                |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| _validate_v3_token    | <keystone.token.provider.Manager object at 0x7f76ebf648d0>, {u'tenant': {u'domain': {u'id':          |            | 6              |
+|                       | u'default', u'name': u'Default'}, u'id': u'87dfc2348604428590293a3e6ec1c62c', u'name': u'service'},  |            |                |
+|                       | 'user_id': u'bb2514e4901d4682a8ebdedc13b8df83', 'expires': datetime.datetime(2016, 3, 29, 21, 26,    |            |                |
+|                       | 35), u'token_data': {u'token': {u'methods': [u'password'], u'roles': [{u'id':                        |            |                |
+|                       | u'bab7f95dd62e46d68d6aecca9d18c4fd', u'name': u'service'}], u'expires_at':                           |            |                |
+|                       | u'2016-03-29T21:26:35.010736Z', u'project': {u'domain': {u'id': u'default', u'name': u'Default'},    |            |                |
+|                       | u'id': u'87dfc2348604428590293a3e6ec1c62c', u'name': u'service'}, u'catalog': [{u'endpoints':        |            |                |
+|                       | [{u'url': u'http://10.0.2.15:8776/v1/87dfc2348604428590293a3e6ec1c62c', u'interface': u'public',     |            |                |
+|                       | u'region': u'RegionOne', u'region_id': u'RegionOne', u'id': u'56205029c0a1478cbd8c4fc075315746'},    |            |                |
+|                       | {u'url': u'http://10.0.2.15:8776/v1/87dfc2348604428590293a3e6ec1c62c', u'interface': u'admin',       |            |                |
+|                       | u'region': u'RegionOne', u'region_id': u'RegionOne', u'id': u'80de6747b5f14681a14ebcadcd1bfa3c'},    |            |                |
+|                       | {u'url': u'http://10.0.2.15:8776/v1/87dfc2348604428590293a3e6ec1c62c', u'interface': u'internal',    |            |                |
+|                       | u'region': u'RegionOne', u'region_id': u'RegionOne', u'id': u'cba6f65a146b4973ace876b38b3480b9'}],   |            |                |
+|                       | u'type': u'volume', u'id': u'4ebaed7acb634017a6913526311d98e9', u'name': u'cinder'}, {u'endpoints':  |            |                |
+|                       | [{u'url': u'http://10.0.2.15:8776/v2/87dfc2348604428590293a3e6ec1c62c', u'interface': u'public',     |            |                |
+|                       | u'region': u'RegionOne', u'region_id': u'RegionOne', u'id': u'853305e44f5d4236b081a46e1e9b83af'},    |            |                |
+|                       | {u'url': u'http://10.0.2.15:8776/v2/87dfc2348604428590293a3e6ec1c62c', u'interface': u'admin',       |            |                |
+|                       | u'region': u'RegionOne', u'region_id': u'RegionOne', u'id': u'89fdb562d14e40e4ba01268ae79910c5'},    |            |                |
+|                       | {u'url': u'http://10.0.2.15:8776/v2/87dfc2348604428590293a3e6ec1c62c', u'interface': u'internal',    |            |                |
+|                       | u'region': u'RegionOne', u'region_id': u'RegionOne', u'id': u'b27a27f962e44d69939a30ef3cb6b2a3'}],   |            |                |
+|                       | u'type': u'volumev2', u'id': u'4f1650e001bb49b1a995755b88812998', u'name': u'cinderv2'},             |            |                |
+|                       | {u'endpoints': [{u'url': u'http://10.0.2.15:8774/v2/87dfc2348604428590293a3e6ec1c62c', u'interface': |            |                |
+|                       | u'admin', u'region': u'RegionOne', u'region_id': u'RegionOne', u'id':                                |            |                |
+|                       | u'605496c2c01549e09e3c3511d5d050c1'}, {u'url':                                                       |            |                |
+|                       | u'http://10.0.2.15:8774/v2/87dfc2348604428590293a3e6ec1c62c', u'interface': u'internal', u'region':  |            |                |
+|                       | u'RegionOne', u'region_id': u'RegionOne', u'id': u'a359f6aaf80643dd90fd5598f4cf0614'}, {u'url':      |            |                |
+|                       | u'http://10.0.2.15:8774/v2/87dfc2348604428590293a3e6ec1c62c', u'interface': u'public', u'region':    |            |                |
+|                       | u'RegionOne', u'region_id': u'RegionOne', u'id': u'f552054d19ca4cfe981ca02ff4558595'}], u'type':     |            |                |
+|                       | u'compute_legacy', u'id': u'4fb62933662a4017ac2f8beb7239a7c5', u'name': u'nova_legacy'},             |            |                |
+|                       | {u'endpoints': [{u'url': u'http://10.0.2.15:8774/v2.1/87dfc2348604428590293a3e6ec1c62c',             |            |                |
+|                       | u'interface': u'internal', u'region': u'RegionOne', u'region_id': u'RegionOne', u'id':               |            |                |
+|                       | u'21878ce4ff7d48a89f621675d89a0994'}, {u'url':                                                       |            |                |
+|                       | u'http://10.0.2.15:8774/v2.1/87dfc2348604428590293a3e6ec1c62c', u'interface': u'public', u'region':  |            |                |
+|                       | u'RegionOne', u'region_id': u'RegionOne', u'id': u'645b3a5079ae4ed68c61890659b0af96'}, {u'url':      |            |                |
+|                       | u'http://10.0.2.15:8774/v2.1/87dfc2348604428590293a3e6ec1c62c', u'interface': u'admin', u'region':   |            |                |
+|                       | u'RegionOne', u'region_id': u'RegionOne', u'id': u'b20358e6f0574a4abbefd7d9fea42d27'}], u'type':     |            |                |
+|                       | u'compute', u'id': u'8c04194b75b846618a673b59a0a4bf3c', u'name': u'nova'}, {u'endpoints': [{u'url':  |            |                |
+|                       | u'http://10.0.2.15:9292', u'interface': u'admin', u'region': u'RegionOne', u'region_id':             |            |                |
+|                       | u'RegionOne', u'id': u'3f4f3c602e0c4b94aaef28d42f3fe1bc'}, {u'url': u'http://10.0.2.15:9292',        |            |                |
+|                       | u'interface': u'internal', u'region': u'RegionOne', u'region_id': u'RegionOne', u'id':               |            |                |
+|                       | u'610b5a73106b412a992ad987782b7cd0'}, {u'url': u'http://10.0.2.15:9292', u'interface': u'public',    |            |                |
+|                       | u'region': u'RegionOne', u'region_id': u'RegionOne', u'id': u'f39bfd16ee7e43b7bc82fd78eb20a9c4'}],   |            |                |
+|                       | u'type': u'image', u'id': u'a4d2690b9ad34c4ea4e2eafe12125496', u'name': u'glance'}, {u'endpoints':   |            |                |
+|                       | [{u'url': u'http://10.0.2.15:8777', u'interface': u'public', u'region': u'RegionOne', u'region_id':  |            |                |
+|                       | u'RegionOne', u'id': u'40f20ee570504169902791abf506a49c'}, {u'url': u'http://10.0.2.15:8777',        |            |                |
+|                       | u'interface': u'internal', u'region': u'RegionOne', u'region_id': u'RegionOne', u'id':               |            |                |
+|                       | u'49b66e88bdda4e648855b2c0e8b55227'}, {u'url': u'http://10.0.2.15:8777', u'interface': u'admin',     |            |                |
+|                       | u'region': u'RegionOne', u'region_id': u'RegionOne', u'id': u'5f2f9f9a58064a04a449a170d176bce4'}],   |            |                |
+|                       | u'type': u'metering', u'id': u'ac90aa229d7048adb18219359fbbd437', u'name': u'ceilometer'},           |            |                |
+|                       | {u'endpoints': [{u'url': u'http://10.0.2.15:9696/', u'interface': u'public', u'region':              |            |                |
+|                       | u'RegionOne', u'region_id': u'RegionOne', u'id': u'12dbac67dfd842929a73cc2da267a585'}, {u'url':      |            |                |
+|                       | u'http://10.0.2.15:9696/', u'interface': u'admin', u'region': u'RegionOne', u'region_id':            |            |                |
+|                       | u'RegionOne', u'id': u'b6f1f5f59a3649658a1c02c7c9be0e6b'}, {u'url': u'http://10.0.2.15:9696/',       |            |                |
+|                       | u'interface': u'internal', u'region': u'RegionOne', u'region_id': u'RegionOne', u'id':               |            |                |
+|                       | u'd4f8473ff3bc4ba6ad754c5b9ea6fe11'}], u'type': u'network', u'id':                                   |            |                |
+|                       | u'e86e501b77344f35a4877f48f570f86a', u'name': u'neutron'}, {u'endpoints': [{u'url':                  |            |                |
+|                       | u'http://10.0.2.15:5000/v2.0', u'interface': u'public', u'region': u'RegionOne', u'region_id':       |            |                |
+|                       | u'RegionOne', u'id': u'32eedd79382e42a693ae4ae36104e257'}, {u'url': u'http://10.0.2.15:5000/v2.0',   |            |                |
+|                       | u'interface': u'internal', u'region': u'RegionOne', u'region_id': u'RegionOne', u'id':               |            |                |
+|                       | u'6c623f00190348aea66a29e86e980449'}, {u'url': u'http://10.0.2.15:35357/v2.0', u'interface':         |            |                |
+|                       | u'admin', u'region': u'RegionOne', u'region_id': u'RegionOne', u'id':                                |            |                |
+|                       | u'c4f3f0e4a90542e6af07805a9570a91d'}], u'type': u'identity', u'id':                                  |            |                |
+|                       | u'f0dc03fd61e84f338abd2b40371a767a', u'name': u'keystone'}], u'user': {u'domain': {u'id':            |            |                |
+|                       | u'default', u'name': u'Default'}, u'id': u'bb2514e4901d4682a8ebdedc13b8df83', u'name': u'neutron'},  |            |                |
+|                       | u'audit_ids': [u'1rgcCrgFQJqlLiCoeniFUQ'], u'issued_at': u'2016-03-29T20:26:35.010777Z'}}, u'user':  |            |                |
+|                       | {u'domain': {u'id': u'default', u'name': u'Default'}, u'id': u'bb2514e4901d4682a8ebdedc13b8df83',    |            |                |
+|                       | u'name': u'neutron'}, u'key': u'e9d77e583df44f7ebf84de745882e722', u'token_version': u'v3.0', 'id':  |            |                |
+|                       | u'e9d77e583df44f7ebf84de745882e722', 'trust_id': None, u'metadata': {u'roles':                       |            |                |
+|                       | [u'bab7f95dd62e46d68d6aecca9d18c4fd']}}                                                              |            |                |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_role              | <keystone.assignment.core.RoleManager object at 0x7f76ebfbf1d0>, u'141ab89993aa4d9fa645540dad1a3e2a' |            | 2              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_domain            | <keystone.resource.core.Manager object at 0x7f76ebfe9850>, u'default'                                |            | 2              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
 
 Service list request stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -791,6 +906,17 @@ Service list request stats
 | |                                                                                                    |                    |
 +------------------------------------------------------------------------------------------------------+--------------------+
 
+**Keystone cached methods stats**
+
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| **Cached operations** | **args**                                                                                             | **kwargs** | **Times used** |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_project           | <keystone.resource.core.Manager object at 0x7f2e5728b9d0>, u'a465ecd9f7004c38b30792a07b363b2c'       |            | 6              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_role              | <keystone.assignment.core.RoleManager object at 0x7f2e57262350>, u'31c541984f48440ab8753d11d84e58ca' |            | 2              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_domain            | <keystone.resource.core.Manager object at 0x7f2e5728b9d0>, u'default'                                |            | 2              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
 
 Token issue request stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1063,6 +1189,17 @@ Token issue request stats
 | |                                                                                                    |                    |
 +------------------------------------------------------------------------------------------------------+--------------------+
 
+**Keystone cached methods stats**
+
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| **Cached operations** | **args**                                                                                             | **kwargs** | **Times used** |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_project           | <keystone.resource.core.Manager object at 0x7f2e5728b9d0>, u'a465ecd9f7004c38b30792a07b363b2c'       |            | 3              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_role              | <keystone.assignment.core.RoleManager object at 0x7f2e57262350>, u'31c541984f48440ab8753d11d84e58ca' |            | 1              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_domain            | <keystone.resource.core.Manager object at 0x7f2e5728b9d0>, u'default'                                |            | 1              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
 
 User list request stats
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -1366,3 +1503,15 @@ User list request stats
 |                                                                                                      |                    |
 | |                                                                                                    |                    |
 +------------------------------------------------------------------------------------------------------+--------------------+
+
+**Keystone cached methods stats**
+
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| **Cached operations** | **args**                                                                                             | **kwargs** | **Times used** |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_project           | <keystone.resource.core.Manager object at 0x7f2e5728b9d0>, u'a465ecd9f7004c38b30792a07b363b2c'       |            | 6              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_role              | <keystone.assignment.core.RoleManager object at 0x7f2e57262350>, u'31c541984f48440ab8753d11d84e58ca' |            | 2              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
+| get_domain            | <keystone.resource.core.Manager object at 0x7f2e5728b9d0>, u'default'                                |            | 2              |
++-----------------------+------------------------------------------------------------------------------------------------------+------------+----------------+
