@@ -170,39 +170,39 @@
 
     toc7:
       parent: toc
-      leftIndent: 100
+      leftIndent: 120
 
     toc8:
       parent: toc
-      leftIndent: 100
+      leftIndent: 140
 
     toc9:
       parent: toc
-      leftIndent: 100
+      leftIndent: 160
 
     toc10:
       parent: toc
-      leftIndent: 100
+      leftIndent: 160
 
     toc11:
       parent: toc
-      leftIndent: 100
+      leftIndent: 160
 
     toc12:
       parent: toc
-      leftIndent: 100
+      leftIndent: 160
 
     toc13:
       parent: toc
-      leftIndent: 100
+      leftIndent: 160
 
     toc14:
       parent: toc
-      leftIndent: 100
+      leftIndent: 160
 
     toc15:
       parent: toc
-      leftIndent: 100
+      leftIndent: 160
 
     footer:
       parent: normal
@@ -320,7 +320,7 @@
       parent: heading
       fontName: stdBold
       textColor: #D32F1A
-      fontSize: 200%
+      fontSize: 250%
       spaceBefore: 30
       spaceAfter: 30
 
@@ -328,20 +328,21 @@
       parent: heading
       fontName: stdBold
       textColor: #D32F1A
-      fontSize: 150%
+      fontSize: 180%
       spaceBefore: 20
       spaceAfter: 14
 
     heading3:
       parent: heading
       fontName: stdBold
-      fontSize: 125%
+      fontSize: 140%
       spaceBefore: 12
       spaceAfter: 8
 
     heading4:
       parent: heading
       fontName: stdBold
+      fontSize: 115%
       spaceBefore: 12
       spaceBefore: 8
 
@@ -481,6 +482,7 @@
 
     table-body:
       parent : normal
+      fontSize: 8
 
     dedication:
       parent : normal
