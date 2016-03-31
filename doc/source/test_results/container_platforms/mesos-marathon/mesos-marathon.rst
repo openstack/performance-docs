@@ -97,6 +97,8 @@ Results
 
 .. include:: results-mesos-marathon.rst
 
+.. include:: results-marathon-health-check.rst
+
 .. references:
 
 .. _Mesos: http://mesos.apache.org
