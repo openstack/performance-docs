@@ -2,9 +2,9 @@
 
     PageBreak oneColumn
 
-=================================
-MySQL Database performance report
-=================================
+===================================
+MariaDB Database performance report
+===================================
 
 Environment description
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -22,7 +22,7 @@ Software
 +-----------------+--------------------------------------------+
 | OS              | Ubuntu 14.04.3                             |
 +-----------------+--------------------------------------------+
-| DB              | MySQL 5.6.28                               |
+| DB              | MariaDB                                    |
 +-----------------+--------------------------------------------+
 | HA              | Galera                                     |
 +-----------------+--------------------------------------------+
@@ -34,8 +34,7 @@ Reports
 .. toctree::
     :maxdepth: 2
 
-    mysql-galera-direct/index
-    mysql-galera-haproxy/index
+    mariadb-galera-direct/index
 
 .. references:
 
