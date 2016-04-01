@@ -14,3 +14,5 @@ Test Results
     container_repositories/index
     db/mysql/index
     keystone/index
+    container_platforms/index
+
