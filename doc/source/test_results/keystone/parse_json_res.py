@@ -49,7 +49,8 @@ NODES_TEMPLATE = {
             }
         }
     },
-    "Cached operations": {},
+    "Memcache cached operations": {},
+    "Context cached operations": {},
     "Cached time spent": collections.OrderedDict(),
 }
 
@@ -61,7 +62,7 @@ def define_node(node):
     if node["info"]["project"] != "keystone":
         return
 
-    if node["info"]["name"] not in ["db", "cache"]:
+    if node["info"]["name"] not in ["db", "cache", "memoize"]:
         return
 
     time_spent = node["info"]["finished"] - node["info"]["started"]
@@ -70,21 +71,43 @@ def define_node(node):
         process_db_calls(node, time_spent)
     elif node["info"]["name"] == "cache":
         if not node["children"]:
+            process_cache_calls(node, time_spent, "cache")
+        else:
+            for child in node["children"]:
+                define_node(child)
+    elif node["info"]["name"] == "memoize":
+        if not node["children"] or len(node["children"]) == 1:
             process_cache_calls(node, time_spent)
         else:
             for child in node["children"]:
                 define_node(child)
 
 
-def process_cache_calls(node, time_spent):
-    cache_info = node["info"]["meta.raw_payload.cache-start"][
+def process_cache_calls(node, time_spent, prefix="memoize"):
+    cache_info = node["info"]["meta.raw_payload.%s-start" % prefix][
         "info"]["fn_info"]
-    if not NODES["Cached operations"].get(cache_info):
-        NODES["Cached operations"][cache_info] = 0
-    NODES["Cached operations"][cache_info] += 1
-    if not NODES["Cached time spent"].get(time_spent):
-        NODES["Cached time spent"][time_spent] = []
-    NODES["Cached time spent"][time_spent].append(cache_info)
+
+    def add_info(pref):
+        if not NODES["%s cached operations" % pref].get(cache_info):
+            NODES["%s cached operations" % pref][cache_info] = 0
+        NODES["%s cached operations" % pref][cache_info] += 1
+        if not NODES["Cached time spent"].get(time_spent):
+            NODES["Cached time spent"][time_spent] = []
+        NODES["Cached time spent"][time_spent].append(cache_info)
+
+    # Liberty env, all cache is Memcached Cache
+    if not node["children"]:
+        add_info("Memcache")
+        return
+
+    # Mitaka env with nested 2-layer cache
+    ctxt_cache_info = node["children"][0]
+    if ctxt_cache_info["children"]:
+        memcache_cache_info = ctxt_cache_info["children"][0]
+        if not memcache_cache_info["children"]:
+            add_info("Memcache")
+    else:
+        add_info("Context")
 
 
 def process_db_calls(node, time_spent):
@@ -154,7 +177,7 @@ def process_selects(statement, time_spent):
 
 def define_nodes(data):
     for child in data["children"]:
-        if not child["children"]:
+        if not child["children"] or child["info"]["name"] == "memoize":
             define_node(child)
         else:
             define_nodes(child)
@@ -255,24 +278,33 @@ def prepare_tables(nodes):
                     "time_spent"][ts]:
                 multi_join_queries.add_row([db_query_tmpl % query, ts])
 
-    # prepare table with cache info
-    cache_table = prettytable.PrettyTable(["**Cached operations**",
+    # prepare table(s) with cache info
+    cache_table = prettytable.PrettyTable(["**Cache**",
+                                           "**Cached operations**",
                                            "**args**",
                                            "**kwargs**",
                                            "**Times used**"])
-    cache_table.align["**Cached operations**"] = "l"
-    cache_table.align["**args**"] = "l"
-    cache_table.align["**kwargs**"] = "l"
-    cache_table.align["**Times used**"] = "l"
-    cache_table.max_width = 100
-    cache_table.header = True
-    cache_table.hrules = prettytable.ALL
 
-    for operation, times in nodes["Cached operations"].iteritems():
-        operation = operation[1:-1].split(", ")
-        cache_table.add_row([operation[0][1:-1],
-                             ", ".join(operation[1:-1])[1:-1],
-                             operation[-1][1:-1], times])
+    for cache in ["Memcache cached operations", "Context cached operations"]:
+        name_map = {
+            "Memcache cached operations": "Memcache",
+            "Context cached operations": "Local context",
+        }
+        cache_table.align["**Cache**"] = "l"
+        cache_table.align["**Cached operations**"] = "l"
+        cache_table.align["**args**"] = "l"
+        cache_table.align["**kwargs**"] = "l"
+        cache_table.align["**Times used**"] = "l"
+        cache_table.max_width = 100
+        cache_table.header = True
+        cache_table.hrules = prettytable.ALL
+
+        for operation, times in nodes[cache].iteritems():
+            operation = operation[1:-1].split(", ")
+            cache_table.add_row([name_map[cache],
+                                 operation[0][1:-1],
+                                 ", ".join(operation[1:-1])[1:-1],
+                                 operation[-1][1:-1], times])
 
     return common_info_table, multi_join_queries, outliers_table, cache_table
 

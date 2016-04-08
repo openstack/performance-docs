@@ -4,8 +4,8 @@ Keystone DB / cache operations analysis
 Environment description
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The test plan (test case #1) is executed at the all-in-one virtual environment,
-created with Oracle VM VirtualBox Manager.
+The :ref:`keystone_performance` (test case #1) is executed at the all-in-one
+virtual environment, created with Oracle VM VirtualBox Manager.
 
 Hardware
 ~~~~~~~~
@@ -60,26 +60,28 @@ Due to the collected profiling information, it can be clearly seen that
 Keystone was significantly changed during Mitaka timeframe, and lots of changes
 seem to be related to the following:
   * Federation support (introduced more complexity on the DB level)
-  * Moving to oslo.cache instead of local `dogpile.cache` usage in Liberty.
+  * Moving to oslo.cache instead of local `dogpile.cache` usage in Liberty and
+    introducing local context cache layer for per-request caching.
 
 Federation support introduced multiple SQL JOINs usage in Keystone and made
-the database scheme a bit more complex. As for the caching layer usage, one
-specific issue is clearly seen in Mitaka keystone operations caching. Although
-all Liberty and Mitaka environments had identical caching layer configuration,
-from HTML reports it can be clearly seen that on Liberty all possible methods
-were successfully cached and while their calling cached copy was always used.
-On Mitaka OpenStack for some reason cached copy was not used sometimes and the
-DB requests were processed.
+the database scheme a bit more complex. In further multinode research it's
+planned to check how this is influencing operations DB operations performance
+in case, for instance, if Galera cluster is used.
 
-One more interesting moment is related to the `keystone_authtoken` middleware
-(and, more specifically, its cache) usage. Although all environments that took
-part in the research had exactly the same `keystone_authtoken` middleware
-configuration, described in the test plan and containing `memcache_servers`
-parameter set up, Mitaka environments profiling shows that all OpenStack
-services that used `keystone_authtoken` middleware did not use the external
-Memcached cached token copy. All of them used Keystone API every time REST API
-request was coming to the OpenStack services. This behaviour needs to be
-investigated separately.
+As for the caching layer usage, one specific issue is clearly seen in Mitaka
+Keystone operations caching. Although local context cache should reduce number
+of calls to Memcache via storing already grabbed data for the specific API
+request in local thread, this was not observed (the duplicated function calls
+still used Memcache for cache purposes). The `Keystone bug`_ was filed to
+investigate this behaviour.
+
+One more interesting moment is also related to the cache usage. If the cache
+will be turned off in Keystone configuration explicitly, the profiling still
+shows `data being fetched`_ from the Memcache.
+
+.. _Keystone bug: https://bugs.launchpad.net/keystone/+bug/1567403
+.. _data being fetched: https://bugs.launchpad.net/keystone/+bug/1567413
+
 
 Reports
 ^^^^^^^

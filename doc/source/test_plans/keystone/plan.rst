@@ -1,3 +1,5 @@
+.. _keystone_performance:
+
 ============================
 Keystone Performance testing
 ============================
