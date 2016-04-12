@@ -12,7 +12,7 @@ Test Results
     mq/rabbitmq/index
     mq_ha/index
     container_repositories/index
-    db/mysql/index
+    db/index
     keystone/index
     container_platforms/index
 
