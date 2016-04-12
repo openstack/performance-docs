@@ -183,6 +183,64 @@ before exiting.
 
 .. _VMTP: https://github.com/openstack/vmtp
 
+KloudBuster
+-----------
+
+VMTP_ is more likely to be a single flow measurement tool, while KloudBuster_
+can load the data plane or storage infrastructure of any OpenStack cloud at
+massive scale and measure how well the cloud behaves under load. The
+performance data comes from where it matters: the VMs standpoint, where cloud
+applications run.
+
+In the case of HTTP traffic load:
+
+    * Supports to load the data plane with one OpenStack cloud (single-cloud
+      operations for L3 East-West scale) or two OpenStack clouds (dual-cloud
+      operations with one cloud hosting the HTTP servers and the other loading
+      HTTP traffic for L3 North-South scale testing)
+
+    * Supports to stage any number of tenants, routers, networks, and HTTP
+      servers (as many as your cloud can handle)
+
+    * Real HTTP servers (Nginx) running in real Linux images (Ubuntu 14.04)
+
+    * High performance and highly scalable HTTP traffic generators (wrk2) to
+      simulate huge number of HTTP users and TCP connections (hundreds of
+      thousands to millions of concurrent and active connections)
+
+    * Overall throughput aggregation and loss-less millisecond-precision
+      latency aggregation for every single HTTP request (typically millions per
+      run)
+
+    * Traffic shaping to specify on which links traffic should flow
+
+    * Supports periodic reporting for real-time monitoring and results
+      aggregation
+
+In the case of Storage load:
+
+   * VM-level Cinder volume (block storage) or Ephemeral disk file I/O
+     performance measurement using FIO running inside VMs (not bare metal)
+
+   * Supports random and sequential file access mode, and any mix of read/write
+
+   * Returns IOPs, bandwidth and loss-less millisecond-precision latency
+     aggregations for every IO operation (typically millions per run)
+
+   * Supports user configurable workload sequence
+
+*KloudBuster* supports automated progression runs for both type of loads, which
+the VMs involved for testing increases in any multiple for every iteration.
+Automatic cleanup is also performed upon termination to avoid stale resources
+leaving in the cloud under test.
+
+*KloudBuster* is accessible to anybody with basic knowledge of OpenStack,
+installs in minutes and runs off the box in a fully automated way with sensible
+default workloads. Available to run from CLI, REST or Web User Interface... you
+pick what works best for you.
+
+.. _KloudBuster: https://github.com/openstack/kloudbuster
+
 Shaker
 ------
 
