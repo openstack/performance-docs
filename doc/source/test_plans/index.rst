@@ -17,4 +17,5 @@ Test Plans
     container_repositories/plan
     keystone/plan
     container_cluster_systems/plan
+    neutron_features/l3_ha/test_plan
 
