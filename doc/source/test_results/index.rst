@@ -15,4 +15,5 @@ Test Results
     db/index
     keystone/index
     container_platforms/index
+    neutron_features/index
 
