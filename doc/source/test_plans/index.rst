@@ -19,4 +19,5 @@ Test Plans
     container_cluster_systems/plan
     neutron_features/l3_ha/test_plan
     hardware_features/index
+    1000_nodes/plan
 
