@@ -16,4 +16,5 @@ Test Results
     keystone/index
     container_platforms/index
     neutron_features/index
+    hardware_features/index
 
