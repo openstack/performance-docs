@@ -188,10 +188,9 @@ class TestTitles(testtools.TestCase):
                 "Found trailing spaces on line %s of %s" % (i + 1, tpl))
 
     def test_template(self):
+        # Global repository template
         with open("doc/source/test_plans/template.rst") as f:
-            template = f.read()
-        test_plan_tmpl = docutils.core.publish_doctree(template)
-        template_titles = self._get_titles(test_plan_tmpl)
+            global_template = f.read()
 
         files = glob.glob("doc/source/test_plans/*/plan.rst")
         files = [os.path.abspath(filename) for filename in files]
@@ -201,6 +200,17 @@ class TestTitles(testtools.TestCase):
                 data = f.read()
 
             os.chdir(os.path.dirname(filename))
+            #  Try to use template in directory where plan.rst is located
+            try:
+                with open("template.rst") as f:
+                    # use local template
+                    template = f.read()
+            except Exception:
+                # use global template
+                template = global_template
+                pass
+            test_plan_tmpl = docutils.core.publish_doctree(template)
+            template_titles = self._get_titles(test_plan_tmpl)
             test_plan = docutils.core.publish_doctree(data)
             self._check_titles(filename,
                                template_titles,
