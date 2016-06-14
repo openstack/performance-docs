@@ -9,7 +9,7 @@ Test Results
 .. toctree::
     :maxdepth: 2
 
-    mq/rabbitmq/index
+    mq/index
     mq_ha/index
     container_repositories/index
     db/index
