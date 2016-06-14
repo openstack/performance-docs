@@ -53,7 +53,7 @@ Test Case 1: L2 instance-to-instance performance
 
 **Execution**::
 
-    shaker --server-endpoint <host:port> --scenario networking/perf_l2 --book <report folder>
+    shaker --server-endpoint <host:port> --scenario openstack/perf_l2 --book <report folder>
 
 
 Test Case 2: L2 concurrent performance
@@ -64,7 +64,7 @@ Test Case 2: L2 concurrent performance
 **Execution**::
 
 
-    shaker --server-endpoint <host:port> --scenario networking/full_l2 --book <report folder>
+    shaker --server-endpoint <host:port> --scenario openstack/full_l2 --book <report folder>
 
 
 Test Case 3: L3 east-west instance-to-instance performance
@@ -74,7 +74,7 @@ Test Case 3: L3 east-west instance-to-instance performance
 
 **Execution**::
 
-    shaker --server-endpoint <host:port> --scenario networking/perf_l3_east_west --book <report folder>
+    shaker --server-endpoint <host:port> --scenario openstack/perf_l3_east_west --book <report folder>
 
 
 Test Case 4: L3 east-west concurrent performance
@@ -84,7 +84,7 @@ Test Case 4: L3 east-west concurrent performance
 
 **Execution**::
 
-    shaker --server-endpoint <host:port> --scenario networking/full_l3_east_west --book <report folder>
+    shaker --server-endpoint <host:port> --scenario openstack/full_l3_east_west --book <report folder>
 
 
 Test Case 5: L3 north-south instance-to-instance performance
@@ -94,7 +94,7 @@ Test Case 5: L3 north-south instance-to-instance performance
 
 **Execution**::
 
-    shaker --server-endpoint <host:port> --scenario networking/perf_l3_north_south --book <report folder>
+    shaker --server-endpoint <host:port> --scenario openstack/perf_l3_north_south --book <report folder>
 
 
 Test Case 6: L3 north_south concurrent performance
@@ -104,7 +104,17 @@ Test Case 6: L3 north_south concurrent performance
 
 **Execution**::
 
-    shaker --server-endpoint <host:port> --scenario networking/full_l3_north_south --book <report folder>
+    shaker --server-endpoint <host:port> --scenario openstack/full_l3_north_south --book <report folder>
+
+
+Test Case 7: Neutron QoS testing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Test case specification**: :ref:`openstack_tenant_networking_test_plan_qos`
+
+**Execution**::
+
+    shaker --server-endpoint <host:port> --scenario openstack/qos/perf_l2 --book <report folder>
 
 
 .. references:

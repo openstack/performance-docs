@@ -120,14 +120,16 @@ done during 60 seconds, average values are calculated.
 List of performance metrics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-========  ===============  =================  ======================================
-Priority  Value            Measurement Units  Description
-========  ===============  =================  ======================================
-1         Latency          ms                 The network latency
-1         TCP bandwidth    Mbits/s            TCP network bandwidth
-2         UDP bandwidth    packets per sec    Number of UDP packets of 32 bytes size
-2         TCP retransmits  packets per sec    Number of retransmitted TCP packets
-========  ===============  =================  ======================================
+========  ================  =================  ===========================================
+Priority  Value             Measurement Units  Description
+========  ================  =================  ===========================================
+1         Latency           ms                 The network latency
+1         TCP bandwidth     Mbits/s            TCP network bandwidth
+1         UDP bandwidth     packets per sec    Number of UDP packets with 32 bytes payload
+2         UDP delay jitter  ms                 Packet delay variation
+2         UDP packet loss   %                  Percentage of lost UDP packets
+2         TCP retransmits   packets per sec    Number of retransmitted TCP packets
+========  ================  =================  ===========================================
 
 
 .. _openstack_tenant_networking_test_plan_l2_concurrent:
@@ -152,14 +154,16 @@ Test case result is series of following measurements done at different
 levels of concurrency. The output may be shown in table form and/or as chart
 showing dependency of parameters from concurrency.
 
-========  ===============  =================  ======================================
-Priority  Value            Measurement Units  Description
-========  ===============  =================  ======================================
-1         Latency          ms                 The network latency
-1         TCP bandwidth    Mbits/s            TCP network bandwidth
-2         UDP bandwidth    packets per sec    Number of UDP packets of 32 bytes size
-2         TCP retransmits  packets per sec    Number of retransmitted TCP packets
-========  ===============  =================  ======================================
+========  ================  =================  ===========================================
+Priority  Value             Measurement Units  Description
+========  ================  =================  ===========================================
+1         Latency           ms                 The network latency
+1         TCP bandwidth     Mbits/s            TCP network bandwidth
+1         UDP bandwidth     packets per sec    Number of UDP packets with 32 bytes payload
+2         UDP delay jitter  ms                 Packet delay variation
+2         UDP packet loss   %                  Percentage of lost UDP packets
+2         TCP retransmits   packets per sec    Number of retransmitted TCP packets
+========  ================  =================  ===========================================
 
 
 .. _openstack_tenant_networking_test_plan_l3_east_west:
@@ -178,14 +182,16 @@ average values are calculated.
 List of performance metrics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-========  ===============  =================  ======================================
-Priority  Value            Measurement Units  Description
-========  ===============  =================  ======================================
-1         Latency          ms                 The network latency
-1         TCP bandwidth    Mbits/s            TCP network bandwidth
-2         UDP bandwidth    packets per sec    Number of UDP packets of 32 bytes size
-2         TCP retransmits  packets per sec    Number of retransmitted TCP packets
-========  ===============  =================  ======================================
+========  ================  =================  ===========================================
+Priority  Value             Measurement Units  Description
+========  ================  =================  ===========================================
+1         Latency           ms                 The network latency
+1         TCP bandwidth     Mbits/s            TCP network bandwidth
+1         UDP bandwidth     packets per sec    Number of UDP packets with 32 bytes payload
+2         UDP delay jitter  ms                 Packet delay variation
+2         UDP packet loss   %                  Percentage of lost UDP packets
+2         TCP retransmits   packets per sec    Number of retransmitted TCP packets
+========  ================  =================  ===========================================
 
 
 .. _openstack_tenant_networking_test_plan_l3_east_west_concurrent:
@@ -212,14 +218,16 @@ Test case result is series of following measurements done at different
 levels of concurrency. The output may be shown in table form and/or as chart
 showing dependency of parameters from concurrency.
 
-========  ===============  =================  ======================================
-Priority  Value            Measurement Units  Description
-========  ===============  =================  ======================================
-1         Latency          ms                 The network latency
-1         TCP bandwidth    Mbits/s            TCP network bandwidth
-2         UDP bandwidth    packets per sec    Number of UDP packets of 32 bytes size
-2         TCP retransmits  packets per sec    Number of retransmitted TCP packets
-========  ===============  =================  ======================================
+========  ================  =================  ===========================================
+Priority  Value             Measurement Units  Description
+========  ================  =================  ===========================================
+1         Latency           ms                 The network latency
+1         TCP bandwidth     Mbits/s            TCP network bandwidth
+1         UDP bandwidth     packets per sec    Number of UDP packets with 32 bytes payload
+2         UDP delay jitter  ms                 Packet delay variation
+2         UDP packet loss   %                  Percentage of lost UDP packets
+2         TCP retransmits   packets per sec    Number of retransmitted TCP packets
+========  ================  =================  ===========================================
 
 
 .. _openstack_tenant_networking_test_plan_l3_north_south:
@@ -239,14 +247,16 @@ The measurement is done during 60 seconds, average values are calculated.
 List of performance metrics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-========  ===============  =================  ======================================
-Priority  Value            Measurement Units  Description
-========  ===============  =================  ======================================
-1         Latency          ms                 The network latency
-1         TCP bandwidth    Mbits/s            TCP network bandwidth
-2         UDP bandwidth    packets per sec    Number of UDP packets of 32 bytes size
-2         TCP retransmits  packets per sec    Number of retransmitted TCP packets
-========  ===============  =================  ======================================
+========  ================  =================  ===========================================
+Priority  Value             Measurement Units  Description
+========  ================  =================  ===========================================
+1         Latency           ms                 The network latency
+1         TCP bandwidth     Mbits/s            TCP network bandwidth
+1         UDP bandwidth     packets per sec    Number of UDP packets with 32 bytes payload
+2         UDP delay jitter  ms                 Packet delay variation
+2         UDP packet loss   %                  Percentage of lost UDP packets
+2         TCP retransmits   packets per sec    Number of retransmitted TCP packets
+========  ================  =================  ===========================================
 
 
 .. _openstack_tenant_networking_test_plan_l3_north_south_concurrent:
@@ -274,14 +284,53 @@ Test case result is series of following measurements done at different
 levels of concurrency. The output may be shown in table form and/or as chart
 showing dependency of parameters from concurrency.
 
-========  ===============  =================  ======================================
-Priority  Value            Measurement Units  Description
-========  ===============  =================  ======================================
-1         Latency          ms                 The network latency
-1         TCP bandwidth    Mbits/s            TCP network bandwidth
-2         UDP bandwidth    packets per sec    Number of UDP packets of 32 bytes size
-2         TCP retransmits  packets per sec    Number of retransmitted TCP packets
-========  ===============  =================  ======================================
+========  ================  =================  ===========================================
+Priority  Value             Measurement Units  Description
+========  ================  =================  ===========================================
+1         Latency           ms                 The network latency
+1         TCP bandwidth     Mbits/s            TCP network bandwidth
+1         UDP bandwidth     packets per sec    Number of UDP packets with 32 bytes payload
+2         UDP delay jitter  ms                 Packet delay variation
+2         UDP packet loss   %                  Percentage of lost UDP packets
+2         TCP retransmits   packets per sec    Number of retransmitted TCP packets
+========  ================  =================  ===========================================
+
+
+.. _openstack_tenant_networking_test_plan_qos:
+
+Test Case 7: Neutron QoS testing
+--------------------------------
+
+Description
+^^^^^^^^^^^
+
+This test case is used to verify Neutron QoS feature as scale. The feature
+allows to limit the traffic bandwidth in a particular network. To simplify
+testing instances are deployed in the same network (L2 domain). The target
+bandwidth is specified in kBits/s.
+
+.. note::
+
+  In order to work Neutron QoS extension must be installed and properly
+  configured.
+
+
+List of performance metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+========  ================  =================  ===========================================
+Priority  Value             Measurement Units  Description
+========  ================  =================  ===========================================
+1         Latency           ms                 The network latency
+1         TCP bandwidth     Mbits/s            TCP network bandwidth
+1         UDP bandwidth     packets per sec    Number of UDP packets with 32 bytes payload
+2         UDP delay jitter  ms                 Packet delay variation
+2         UDP packet loss   %                  Percentage of lost UDP packets
+2         TCP retransmits   packets per sec    Number of retransmitted TCP packets
+========  ================  =================  ===========================================
+
+It's expected that achieved TCP bandwidth is not higher that the one set in
+Neutron QoS policy.
 
 
 Tools
