@@ -1,0 +1,13 @@
+{
+  "admin": {
+    "password": "password",
+    "tenant_name": "tenant",
+    "username": "user"
+  },
+  "auth_url": "http://1.2.3.4:5000/v2.0",
+  "region_name": "RegionOne",
+  "type": "ExistingCloud",
+  "endpoint_type": "internal",
+  "admin_port": 35357,
+  "https_insecure": true
+}
