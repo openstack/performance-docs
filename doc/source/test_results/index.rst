@@ -13,6 +13,7 @@ Test Results
     mq_ha/index
     container_repositories/index
     db/index
+    tenant_networking/index
     keystone/index
     container_platforms/index
     neutron_features/index
