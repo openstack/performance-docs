@@ -23,4 +23,4 @@ Test Results
     1000_nodes/index
     reliability/index
     control_plane/main
-
+    controlplane_density/index
