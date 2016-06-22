@@ -24,3 +24,4 @@ Test Results
     reliability/index
     control_plane/main
     controlplane_density/index
+    monitoring/index
