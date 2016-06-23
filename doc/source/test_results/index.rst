@@ -20,3 +20,4 @@ Test Results
     hardware_features/index
     provisioning/index
     1000_nodes/index
+    reliability/index
