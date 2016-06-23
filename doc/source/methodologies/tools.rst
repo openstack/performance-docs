@@ -315,3 +315,49 @@ that in future it will be possible to use *Rally* for all data plane testing
 as well.
 
 .. _blueprint: https://blueprints.launchpad.net/rally/+spec/vm-workloads-framework
+
+Browbeat
+--------
+
+Browbeat_ is a powerful combination of several upstream tools for performance
+testing, tuning, comparison and monitoring of an OpenStack cloud. It uses
+Ansible to automate deploying infrastructure such as:
+
+    * Graphite: To serve as a store for system performance metrics being pushed
+      from the cloud by *Collectd*
+    * Grafana: To visualize the system performance data in Graphite and act as a
+      means of actively monitoring the cloud real-time to troubleshoot
+      performance bottlenecks
+    * ELK Stack:
+
+      * Elasticsearch: To act as a storage backend for performance testing data,
+        metadata about how the cloud is setup and log data
+      * Logstash: To manage the logs
+      * Kibana: To Visualize data from Elasticsearch and aid in performance
+        comparison
+
+The tool also sets up *Collectd* on the OpenStack environment so that metrics are
+reported to Graphite. All the user needs to do is fill in minimal variables such
+as IP address, username, password of the infrastructure hosts and *Browbeat*
+will setup the infrastructure hosts and transport system metrics form the
+OpenStack environment so that the user can actively monitor the cloud through
+Grafana. Dashboards that visualize OpenStack related data can be uploaded to
+Grafana by simply running a playbook
+Playbooks to deploy containerized Graphite/Grafana are also available.
+Metrics such as CPU, memory utilization, process/thread counts of
+OpenStack processes along with general system metrics are collected.
+
+Other important features of *Browbeat* are:
+    * Check Overcloud and Undercloud for common configuration/tuning errors and
+      print out a bug report.
+    * Run control/data plane workloads from upstream tools such as Rally, Shaker
+      and Perfkit by simply passing a configuration file. *Browbeat*
+      orchestrates the entire run to include multiple benchmarks at varying
+      concurrencies/configurations and creates a result directory for all results
+    * Pushes the results to the Elasticsearch Instance configured, along with
+      metadata that represents how the cloud is configured(Nova, Neutron,
+      Ceilometer, etc.) so that run-to-run, build-to-build and cloud-to-cloud
+      comparisons can be done
+
+.. _Browbeat: https://github.com/openstack/browbeat
+
