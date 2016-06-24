@@ -1,0 +1,856 @@
+<!doctype html>
+<html ng-app="App">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rally | Rally Task Report</title>
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.1.15-beta/nv.d3.min.css">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.1.15-beta/nv.d3.min.js"></script>
+  
+
+  <script type="text/javascript">
+    "use strict";
+    var widgetDirective = function($compile) {
+  var Chart = {
+    _render: function(node, data, chart, do_after){
+      nv.addGraph(function() {
+        d3.select(node)
+          .datum(data).transition().duration(0)
+          .call(chart);
+        if (typeof do_after === "function") {
+          do_after(node, chart)
+        }
+        nv.utils.windowResize(chart.update);
+      })
+    },
+    /* NOTE(amaretskiy): this is actually a result of
+       d3.scale.category20().range(), excluding red color (#d62728)
+       which is reserved for errors */
+    _colors: ["#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c",
+              "#98df8a", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b",
+              "#c49c94", "#e377c2", "#f7b6d2", "#7f7f7f", "#c7c7c7",
+              "#bcbd22", "#dbdb8d", "#17becf", "#9edae5"],
+    _widgets: {
+      Pie: "pie",
+      StackedArea: "stack",
+      Lines: "lines",
+      Histogram: "histogram"
+    },
+    get_chart: function(widget) {
+      if (widget in this._widgets) {
+        var name = this._widgets[widget];
+        return Chart[name]
+      }
+      return function() { console.log("Error: unexpected widget:", widget) }
+    },
+    pie: function(node, data, opts, do_after) {
+      var chart = nv.models.pieChart()
+        .x(function(d) { return d.key })
+        .y(function(d) { return d.values })
+        .showLabels(true)
+        .labelType("percent")
+        .donut(true)
+        .donutRatio(0.25)
+        .donutLabelsOutside(true)
+        .color(function(d){
+          if (d.data && d.data.color) { return d.data.color }
+        });
+
+      var data_ = [], colors = [], colors_map = {errors: "#d62728"};
+      for (var i in data) {
+        var key = data[i][0];
+        if (! (key in colors_map)) {
+          if (! colors.length) { colors = Chart._colors.slice() }
+          colors_map[key] = colors.shift()
+        }
+        data_.push({key:key, values:data[i][1], color:colors_map[key]})
+      }
+      Chart._render(node, data_, chart)
+    },
+    stack: function(node, data, opts, do_after) {
+      var chart = nv.models.stackedAreaChart()
+        .x(function(d) { return d[0] })
+        .y(function(d) { return d[1] })
+        .useInteractiveGuideline(opts.guide)
+        .showControls(opts.controls)
+        .clipEdge(true);
+      chart.xAxis
+        .tickFormat(d3.format(opts.xformat || "d"))
+        .axisLabel(opts.xname || "")
+        .showMaxMin(false);
+      chart.yAxis
+        .orient("left")
+        .tickFormat(d3.format(opts.yformat || ",.3f"));
+      var data_ = [];
+      for (var i in data) {
+        var d = {key:data[i][0], values:data[i][1]};
+        if (d.key === "failed_duration") {
+          d.color = "#d62728"
+        }
+        data_.push(d);
+      }
+      Chart._render(node, data_, chart, do_after);
+    },
+    lines: function(node, data, opts, do_after) {
+      var chart = nv.models.lineChart()
+        .x(function(d) { return d[0] })
+        .y(function(d) { return d[1] })
+        .useInteractiveGuideline(opts.guide)
+        .clipEdge(true);
+      chart.xAxis
+        .tickFormat(d3.format(opts.xformat || "d"))
+        .axisLabel(opts.xname || "")
+        .showMaxMin(false);
+      chart.yAxis
+        .orient("left")
+        .tickFormat(d3.format(opts.yformat || ",.3f"));
+      var data_ = [];
+      for (var i in data) {
+        var d = {key:data[i][0], values:data[i][1]};
+        if (d.key === "failed_duration") {
+          d.color = "#d62728"
+        }
+        data_.push(d)
+      }
+      Chart._render(node, data_, chart, do_after)
+    },
+    histogram: function(node, data, opts) {
+      var chart = nv.models.multiBarChart()
+        .reduceXTicks(true)
+        .showControls(false)
+        .transitionDuration(0)
+        .groupSpacing(0.05);
+      chart
+        .legend.radioButtonMode(true);
+      chart.xAxis
+        .axisLabel("Duration (seconds)")
+        .tickFormat(d3.format(",.2f"));
+      chart.yAxis
+        .axisLabel("Iterations (frequency)")
+        .tickFormat(d3.format("d"));
+      Chart._render(node, data, chart)
+    }
+  };
+
+  return {
+    restrict: "A",
+    scope: { data: "=" },
+    link: function(scope, element, attrs) {
+      scope.$watch("data", function(data) {
+        if (! data) { return console.log("Chart has no data to render!") }
+        if (attrs.widget === "Table") {
+          var ng_class = attrs.lastrowClass ? " ng-class='{"+attrs.lastrowClass+":$last}'" : "";
+          var template = "<table class='striped'><thead>" +
+            "<tr><th ng-repeat='i in data.cols track by $index'>{{i}}<tr>" +
+            "</thead><tbody>" +
+            "<tr" + ng_class + " ng-repeat='row in data.rows track by $index'>" +
+            "<td ng-repeat='i in row track by $index'>{{i}}" +
+            "<tr>" +
+            "</tbody></table>";
+          var el = element.empty().append($compile(template)(scope)).children()[0]
+        } else {
+
+          var el_chart = element.addClass("chart").css({display:"block"});
+          var el = el_chart.html("<svg></svg>").children()[0];
+
+          var do_after = null;
+
+          if (attrs.widget in {StackedArea:0, Lines:0}) {
+
+            /* Hide widget if not enough data */
+            if ((! data.length) || (data[0].length < 1) || (data[0][1].length < 2)) {
+              return element.empty().css({display:"none"})
+            }
+
+            /* NOTE(amaretskiy): Dirty fix for changing chart width in case
+               if there are too long Y values that overlaps chart box. */
+            var do_after = function(node, chart){
+              var g_box = angular.element(el_chart[0].querySelector(".nv-y.nv-axis"));
+
+              if (g_box && g_box[0] && g_box[0].getBBox) {
+
+                try {
+                  // 30 is padding aroung graphs
+                  var width = g_box[0].getBBox().width + 30;
+                } catch (err) {
+                  // This happens sometimes, just skip silently
+                  return
+                }
+
+                // 890 is chart width (set by CSS)
+                if (typeof width === "number" && width > 890) {
+                  width = (890 * 2) - width;
+                  if (width > 0) {
+                    angular.element(node).css({width:width+"px"});
+                    chart.update()
+                  }
+                }
+              }
+            }
+          }
+          else if (attrs.widget === "Pie") {
+            if (! data.length) {
+              return element.empty().css({display:"none"})
+            }
+          }
+
+          var options = {
+            xname: attrs.nameX || "",
+            xformat: attrs.formatX || "d",
+            yformat: attrs.formatY || ",.3f",
+            controls: attrs.controls === "true",
+            guide: attrs.guide === "true"
+          };
+          Chart.get_chart(attrs.widget)(el, data, options, do_after);
+        }
+
+        if (attrs.nameY) {
+          /* NOTE(amaretskiy): Dirty fix for displaying Y-axis label correctly.
+             I believe sometimes NVD3 will allow doing this in normal way */
+          var label_y = angular.element("<div>").addClass("chart-label-y").text(attrs.nameY);
+          angular.element(el).parent().prepend(label_y)
+        }
+
+        if (attrs.description) {
+          var desc_el = angular.element("<div>").addClass(attrs.descriptionClass || "h3").text(attrs.description);
+          angular.element(el).parent().prepend(desc_el)
+        }
+
+        if (attrs.title) {
+          var title_el = angular.element("<div>").addClass(attrs.titleClass || "h2").text(attrs.title);
+          angular.element(el).parent().prepend(title_el)
+        }
+
+        angular.element(el).parent().append(angular.element("<div style='clear:both'>"))
+      });
+    }
+  }
+};
+
+    var controllerFunction = function($scope, $location) {
+        $scope.source = "{\n  \"NovaServers.boot_server\": [\n    {\n      \"args\": {\n        \"flavor\": {\n          \"name\": \"m1.tiny\"\n        }, \n        \"image\": {\n          \"name\": \"TestVM\"\n        }\n      }, \n      \"context\": {\n        \"network\": {\n          \"network_create_args\": {\n            \"name\": \"c_rally_93d6a11d_xb6TbVvM\", \n            \"tenant_id\": \"d406ddf00c6944678e42acd56012aaa1\"\n          }, \n          \"networks_per_tenant\": 1, \n          \"start_cidr\": \"100.1.0.0/21\", \n          \"subnets_per_network\": 1\n        }, \n        \"quotas\": {\n          \"neutron\": {\n            \"network\": -1, \n            \"port\": -1, \n            \"subnet\": -1\n          }, \n          \"nova\": {\n            \"cores\": -1, \n            \"floating_ips\": -1, \n            \"instances\": -1, \n            \"ram\": -1, \n            \"security_group_rules\": -1, \n            \"security_groups\": -1\n          }\n        }, \n        \"users\": {\n          \"project_domain\": \"default\", \n          \"resource_management_workers\": 30, \n          \"tenants\": 2, \n          \"user_choice_method\": \"random\", \n          \"user_domain\": \"default\", \n          \"users_per_tenant\": 2\n        }\n      }, \n      \"runner\": {\n        \"rps\": 1.7, \n        \"times\": 500, \n        \"type\": \"rps\"\n      }, \n      \"sla\": {\n        \"failure_rate\": {\n          \"max\": 0\n        }\n      }\n    }\n  ]\n}";
+        $scope.scenarios = [{"load_profile": [["parallel iterations", [[0.0, 0], [4.580797151613236, 4.394359724207252], [9.161594303226472, 12.15505668705499], [13.742391454839709, 19.759718073357067], [18.323188606452945, 23.70877239105503], [22.90398575806618, 24.083755820220908], [27.484782909679417, 24.908887440226344], [32.06558006129265, 25.15809083803687], [36.64637721290589, 26.492127186566044], [41.22717436451913, 26.71062123142545], [45.80797151613236, 27.725536036357052], [50.388768667745595, 27.93527947631074], [54.969565819358834, 28.98568397478121], [59.550362970972074, 31.636502501522344], [64.1311601225853, 29.526813618317895], [68.71195727419854, 30.44271726152879], [73.29275442581178, 31.176156625122662], [77.87355157742502, 33.925933889372374], [82.45434872903826, 35.80589940902909], [87.03514588065148, 36.55116219810443], [91.61594303226472, 38.513665414649765], [96.19674018387796, 39.986398278641595], [100.77753733549119, 41.764490945059656], [105.35833448710443, 42.252658779908984], [109.93913163871767, 40.272682450716275], [114.51992879033091, 42.93173674279121], [119.10072594194415, 45.05109831511077], [123.68152309355737, 47.35791812216448], [128.2623202451706, 50.30074167170189], [132.84311739678384, 51.482926876723134], [137.42391454839708, 52.28125078660765], [142.00471170001032, 53.88646747763799], [146.58550885162356, 56.63005418512116], [151.1663060032368, 58.8883573002244], [155.74710315485004, 58.83164482054767], [160.32790030646328, 57.68898156522949], [164.90869745807652, 56.97767509120249], [169.48949460968973, 57.77460656111447], [174.07029176130297, 60.877345225767904], [178.6510889129162, 64.64562669390686], [183.23188606452945, 65.96124575785994], [187.8126832161427, 64.30976889880277], [192.39348036775593, 66.55786683724693], [196.97427751936917, 66.35578605411774], [201.55507467098238, 68.42921090932677], [206.13587182259562, 68.92940710459617], [210.71666897420886, 71.21297547450287], [215.2974661258221, 71.85349349288178], [219.87826327743534, 73.94474724703845], [224.45906042904858, 76.12978931631663], [229.03985758066182, 79.03652716732209], [233.62065473227506, 80.25613397714982], [238.2014518838883, 82.91641574114443], [242.7822490355015, 83.76511716267291], [247.36304618711475, 87.98621298698494], [251.943843338728, 92.21084427002661], [256.5246404903412, 95.35612019534088], [261.10543764195444, 98.34682038368435], [265.6862347935677, 101.36606519223412], [270.2670319451809, 100.00360803793295], [274.84782909679416, 102.18445728999309], [279.4286262484074, 105.72967645206597], [284.00942340002064, 109.6911099045173], [288.5902205516339, 112.48200300555995], [293.1710177032471, 117.71568407460683], [297.75181485486036, 121.10218512222922], [302.3326120064736, 117.06833793127825], [306.91340915808684, 113.30866045392469], [311.4942063097001, 109.96366055450045], [316.0750034613133, 103.88888360935677], [320.65580061292656, 101.88778814196695], [325.2365977645398, 100.313924509906], [329.81739491615303, 95.27650778976869], [334.3981920677662, 88.49037294143838], [338.97898921937946, 83.89752014030122], [343.5597863709927, 77.98482853554916], [348.14058352260594, 74.16330467394046], [352.7213806742192, 70.46942647592269], [357.3021778258324, 67.21598885531415], [361.88297497744566, 62.75459610741114], [366.4637721290589, 56.792106862594665], [371.04456928067214, 51.82045020075709], [375.6253664322854, 47.59014276535259], [380.2061635838986, 42.72773739439878], [384.78696073551185, 34.38705989870426], [389.3677578871251, 28.432591293537566], [393.94855503873833, 21.322107558011048], [398.5293521903516, 17.114286969840244], [403.11014934196476, 13.1492623118452], [407.690946493578, 12.694483728330368], [412.27174364519124, 10.225431150224308], [416.8525407968045, 8.898040980095178], [421.4333379484177, 8], [426.01413510003096, 7.578859721433691], [430.5949322516442, 6.46497252620075], [435.17572940325744, 5.2890950565763255], [439.7565265548707, 4.37108411890232], [444.3373237064839, 2.4364805503879476], [448.91812085809715, 1], [453.4989180097104, 0.0392156862744928], [458.0797151613236, 0]]]], "errors": [{"type": "GetResourceErrorStatus", "message": "Resource <Server: s_rally_3bd8a20a_9UjnQe9R> has ERROR status.\nFault: n/a", "traceback": "Traceback (most recent call last):\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/runner.py\", line 66, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**scenario_kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/servers.py\", line 272, in boot_server\n    auto_assign_nic=auto_assign_nic, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/utils.py\", line 148, in _boot_server\n    check_interval=CONF.benchmark.nova_server_boot_poll_interval\n  File \"/usr/local/lib/python2.7/dist-packages/rally/common/logging.py\", line 236, in wrapper\n    return f(*args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 147, in wait_for\n    check_interval=check_interval)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 211, in wait_for_status\n    resource = update_resource(resource)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 90, in _get_from_manager\n    fault=getattr(res, \"fault\", \"n/a\"))\nGetResourceErrorStatus: Resource <Server: s_rally_3bd8a20a_9UjnQe9R> has ERROR status.\nFault: n/a\n", "iteration": 353}, {"type": "GetResourceErrorStatus", "message": "Resource <Server: s_rally_3bd8a20a_LXmwAg4W> has ERROR status.\nFault: {u'message': u'Timed out waiting for a reply to message ID 6728bb2381da48658c2c0f4787f97648', u'code': 500, u'created': u'2016-06-17T06:22:14Z'}", "traceback": "Traceback (most recent call last):\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/runner.py\", line 66, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**scenario_kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/servers.py\", line 272, in boot_server\n    auto_assign_nic=auto_assign_nic, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/utils.py\", line 148, in _boot_server\n    check_interval=CONF.benchmark.nova_server_boot_poll_interval\n  File \"/usr/local/lib/python2.7/dist-packages/rally/common/logging.py\", line 236, in wrapper\n    return f(*args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 147, in wait_for\n    check_interval=check_interval)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 211, in wait_for_status\n    resource = update_resource(resource)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 90, in _get_from_manager\n    fault=getattr(res, \"fault\", \"n/a\"))\nGetResourceErrorStatus: Resource <Server: s_rally_3bd8a20a_LXmwAg4W> has ERROR status.\nFault: {u'message': u'Timed out waiting for a reply to message ID 6728bb2381da48658c2c0f4787f97648', u'code': 500, u'created': u'2016-06-17T06:22:14Z'}\n", "iteration": 365}, {"type": "GetResourceErrorStatus", "message": "Resource <Server: s_rally_3bd8a20a_IrhSJt9m> has ERROR status.\nFault: n/a", "traceback": "Traceback (most recent call last):\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/runner.py\", line 66, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**scenario_kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/servers.py\", line 272, in boot_server\n    auto_assign_nic=auto_assign_nic, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/utils.py\", line 148, in _boot_server\n    check_interval=CONF.benchmark.nova_server_boot_poll_interval\n  File \"/usr/local/lib/python2.7/dist-packages/rally/common/logging.py\", line 236, in wrapper\n    return f(*args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 147, in wait_for\n    check_interval=check_interval)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 211, in wait_for_status\n    resource = update_resource(resource)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 90, in _get_from_manager\n    fault=getattr(res, \"fault\", \"n/a\"))\nGetResourceErrorStatus: Resource <Server: s_rally_3bd8a20a_IrhSJt9m> has ERROR status.\nFault: n/a\n", "iteration": 377}, {"type": "GetResourceErrorStatus", "message": "Resource <Server: s_rally_3bd8a20a_KNhRVnpN> has ERROR status.\nFault: n/a", "traceback": "Traceback (most recent call last):\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/runner.py\", line 66, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**scenario_kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/servers.py\", line 272, in boot_server\n    auto_assign_nic=auto_assign_nic, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/utils.py\", line 148, in _boot_server\n    check_interval=CONF.benchmark.nova_server_boot_poll_interval\n  File \"/usr/local/lib/python2.7/dist-packages/rally/common/logging.py\", line 236, in wrapper\n    return f(*args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 147, in wait_for\n    check_interval=check_interval)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 211, in wait_for_status\n    resource = update_resource(resource)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 90, in _get_from_manager\n    fault=getattr(res, \"fault\", \"n/a\"))\nGetResourceErrorStatus: Resource <Server: s_rally_3bd8a20a_KNhRVnpN> has ERROR status.\nFault: n/a\n", "iteration": 380}, {"type": "GetResourceErrorStatus", "message": "Resource <Server: s_rally_3bd8a20a_5aejIOHc> has ERROR status.\nFault: n/a", "traceback": "Traceback (most recent call last):\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/runner.py\", line 66, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**scenario_kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/servers.py\", line 272, in boot_server\n    auto_assign_nic=auto_assign_nic, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/utils.py\", line 148, in _boot_server\n    check_interval=CONF.benchmark.nova_server_boot_poll_interval\n  File \"/usr/local/lib/python2.7/dist-packages/rally/common/logging.py\", line 236, in wrapper\n    return f(*args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 147, in wait_for\n    check_interval=check_interval)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 211, in wait_for_status\n    resource = update_resource(resource)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 90, in _get_from_manager\n    fault=getattr(res, \"fault\", \"n/a\"))\nGetResourceErrorStatus: Resource <Server: s_rally_3bd8a20a_5aejIOHc> has ERROR status.\nFault: n/a\n", "iteration": 390}, {"type": "GetResourceErrorStatus", "message": "Resource <Server: s_rally_3bd8a20a_6EYzQBBm> has ERROR status.\nFault: n/a", "traceback": "Traceback (most recent call last):\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/runner.py\", line 66, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**scenario_kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/servers.py\", line 272, in boot_server\n    auto_assign_nic=auto_assign_nic, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/utils.py\", line 148, in _boot_server\n    check_interval=CONF.benchmark.nova_server_boot_poll_interval\n  File \"/usr/local/lib/python2.7/dist-packages/rally/common/logging.py\", line 236, in wrapper\n    return f(*args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 147, in wait_for\n    check_interval=check_interval)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 211, in wait_for_status\n    resource = update_resource(resource)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 90, in _get_from_manager\n    fault=getattr(res, \"fault\", \"n/a\"))\nGetResourceErrorStatus: Resource <Server: s_rally_3bd8a20a_6EYzQBBm> has ERROR status.\nFault: n/a\n", "iteration": 394}, {"type": "GetResourceErrorStatus", "message": "Resource <Server: s_rally_3bd8a20a_Bgl3EmMo> has ERROR status.\nFault: n/a", "traceback": "Traceback (most recent call last):\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/runner.py\", line 66, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**scenario_kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/servers.py\", line 272, in boot_server\n    auto_assign_nic=auto_assign_nic, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/utils.py\", line 148, in _boot_server\n    check_interval=CONF.benchmark.nova_server_boot_poll_interval\n  File \"/usr/local/lib/python2.7/dist-packages/rally/common/logging.py\", line 236, in wrapper\n    return f(*args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 147, in wait_for\n    check_interval=check_interval)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 211, in wait_for_status\n    resource = update_resource(resource)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 90, in _get_from_manager\n    fault=getattr(res, \"fault\", \"n/a\"))\nGetResourceErrorStatus: Resource <Server: s_rally_3bd8a20a_Bgl3EmMo> has ERROR status.\nFault: n/a\n", "iteration": 405}, {"type": "GetResourceErrorStatus", "message": "Resource <Server: s_rally_3bd8a20a_K8NyQxFk> has ERROR status.\nFault: n/a", "traceback": "Traceback (most recent call last):\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/runner.py\", line 66, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**scenario_kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/servers.py\", line 272, in boot_server\n    auto_assign_nic=auto_assign_nic, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/plugins/openstack/scenarios/nova/utils.py\", line 148, in _boot_server\n    check_interval=CONF.benchmark.nova_server_boot_poll_interval\n  File \"/usr/local/lib/python2.7/dist-packages/rally/common/logging.py\", line 236, in wrapper\n    return f(*args, **kwargs)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 147, in wait_for\n    check_interval=check_interval)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 211, in wait_for_status\n    resource = update_resource(resource)\n  File \"/usr/local/lib/python2.7/dist-packages/rally/task/utils.py\", line 90, in _get_from_manager\n    fault=getattr(res, \"fault\", \"n/a\"))\nGetResourceErrorStatus: Resource <Server: s_rally_3bd8a20a_K8NyQxFk> has ERROR status.\nFault: n/a\n", "iteration": 436}], "name": "boot_server", "runner": "rps", "iterations_count": 500, "output_errors": [], "pos": "0", "load_duration": 449.0977599620819, "sla_success": false, "met": "boot_server", "atomic": {"pie": [["nova.boot_server", 49.750402691364286]], "iter": [["nova.boot_server", [[1, 13.047208070755005], [2, 14.407619953155518], [3, 13.256810903549194], [4, 14.134428024291992], [5, 14.43002200126648], [6, 14.124402046203613], [7, 14.601265907287598], [8, 13.20992398262024], [9, 14.412802934646606], [10, 15.033493041992188], [11, 13.754715919494629], [12, 13.164592027664185], [13, 14.902577877044678], [14, 14.547509908676147], [15, 13.676748037338257], [16, 15.060282945632935], [17, 13.602872133255005], [18, 15.241636037826538], [19, 14.435041904449463], [20, 14.871912002563477], [21, 15.32521390914917], [22, 14.38235878944397], [23, 14.712618827819824], [24, 14.885651111602783], [25, 15.1315279006958], [26, 14.734601020812988], [27, 15.444260835647583], [28, 14.265630006790161], [29, 14.023434162139893], [30, 16.094936847686768], [31, 15.943474769592285], [32, 14.754274129867554], [33, 16.685776948928833], [34, 13.49763798713684], [35, 15.928200006484985], [36, 16.056279182434082], [37, 15.960728168487549], [38, 16.176734924316406], [39, 17.084264993667603], [40, 13.619062900543213], [41, 13.995611190795898], [42, 18.131386041641235], [43, 17.968852996826172], [44, 16.869833946228027], [45, 15.780068159103394], [46, 13.847498178482056], [47, 16.783737897872925], [48, 19.594045877456665], [49, 16.058111906051636], [50, 22.22426199913025], [51, 15.663871049880981], [52, 12.625770092010498], [53, 16.435250997543335], [54, 16.380589962005615], [55, 15.594080924987793], [56, 14.017307043075562], [57, 16.880647897720337], [58, 14.958132028579712], [59, 15.593073844909668], [60, 15.610753059387207], [61, 20.654160976409912], [62, 16.779678106307983], [63, 22.772948026657104], [64, 19.862820148468018], [65, 15.710625886917114], [66, 17.64058804512024], [67, 14.973448991775513], [68, 19.659149885177612], [69, 19.301212072372437], [70, 19.32610583305359], [71, 16.927431106567383], [72, 16.88263988494873], [73, 19.653417825698853], [74, 15.178773880004883], [75, 17.404683828353882], [76, 16.92728590965271], [77, 16.33087992668152], [78, 17.536118984222412], [79, 16.360265016555786], [80, 20.01016902923584], [81, 17.803130865097046], [82, 18.342080116271973], [83, 17.7816641330719], [84, 18.22410297393799], [85, 15.830672979354858], [86, 20.08815288543701], [87, 17.64162302017212], [88, 18.842462062835693], [89, 17.938332080841064], [90, 18.61416506767273], [91, 14.389198064804077], [92, 18.317293882369995], [93, 19.682811975479126], [94, 18.430701971054077], [95, 22.18615698814392], [96, 22.35619592666626], [97, 18.95295000076294], [98, 18.53919291496277], [99, 23.872019052505493], [100, 20.106832027435303], [101, 21.768725872039795], [102, 19.359315872192383], [103, 26.221909046173096], [104, 19.213804006576538], [105, 23.302006006240845], [106, 20.38858413696289], [107, 21.031387090682983], [108, 27.979612112045288], [109, 20.11840295791626], [110, 20.34632706642151], [111, 29.408684015274048], [112, 29.316231966018677], [113, 19.03041410446167], [114, 22.65184998512268], [115, 17.21411895751953], [116, 18.97089409828186], [117, 37.013952016830444], [118, 20.663878202438354], [119, 21.468754053115845], [120, 24.800962924957275], [121, 19.52167010307312], [122, 22.887901067733765], [123, 28.660346031188965], [124, 18.240992069244385], [125, 21.369983911514282], [126, 26.227614879608154], [127, 21.241737842559814], [128, 23.554497003555298], [129, 31.879233837127686], [130, 23.030205011367798], [131, 20.225307941436768], [132, 30.363724946975708], [133, 24.171948194503784], [134, 23.425153017044067], [135, 29.036661863327026], [136, 23.14644193649292], [137, 20.691208124160767], [138, 25.547895908355713], [139, 20.587276935577393], [140, 21.685845851898193], [141, 22.815109968185425], [142, 23.148937940597534], [143, 22.92998504638672], [144, 26.886436939239502], [145, 20.72217607498169], [146, 21.777778148651123], [147, 31.921654224395752], [148, 22.089342832565308], [149, 21.624480962753296], [150, 35.22672200202942], [151, 25.48208212852478], [152, 29.679627895355225], [153, 23.450199127197266], [154, 25.911082983016968], [155, 32.346863985061646], [156, 23.76706886291504], [157, 27.03855800628662], [158, 22.574116945266724], [159, 35.39898896217346], [160, 36.48915410041809], [161, 35.70353603363037], [162, 32.5078010559082], [163, 20.96510910987854], [164, 26.848657846450806], [165, 34.995511054992676], [166, 20.07264494895935], [167, 24.2616548538208], [168, 31.750492095947266], [169, 22.609081029891968], [170, 23.911427974700928], [171, 35.73032307624817], [172, 27.360275983810425], [173, 31.126673936843872], [174, 37.770771980285645], [175, 27.956467151641846], [176, 34.92728400230408], [177, 39.04488492012024], [178, 27.5573148727417], [179, 28.685142040252686], [180, 49.64096212387085], [181, 23.41594910621643], [182, 29.440989017486572], [183, 40.20752501487732], [184, 31.07464289665222], [185, 30.53100085258484], [186, 41.98818302154541], [187, 22.99911403656006], [188, 33.2333550453186], [189, 45.63853311538696], [190, 24.817765951156616], [191, 31.738080978393555], [192, 47.98877191543579], [193, 26.032724857330322], [194, 30.050167083740234], [195, 48.789846897125244], [196, 30.981981992721558], [197, 24.174276113510132], [198, 37.84822702407837], [199, 41.949087142944336], [200, 29.869920015335083], [201, 40.548888206481934], [202, 28.043200969696045], [203, 32.314453125], [204, 35.12000799179077], [205, 33.30949687957764], [206, 29.433873891830444], [207, 53.36698317527771], [208, 34.46322703361511], [209, 33.458595991134644], [210, 45.08373498916626], [211, 27.850727081298828], [212, 30.878806114196777], [213, 50.511046171188354], [214, 34.99109721183777], [215, 24.94421887397766], [216, 43.627074003219604], [217, 21.69407606124878], [218, 28.30022096633911], [219, 55.40092182159424], [220, 32.63621783256531], [221, 21.680546045303345], [222, 46.568248987197876], [223, 27.916610956192017], [224, 37.711047887802124], [225, 44.416346073150635], [226, 32.07669186592102], [227, 37.51738691329956], [228, 46.46082305908203], [229, 31.13949704170227], [230, 31.528419971466064], [231, 49.12420105934143], [232, 25.536057949066162], [233, 21.793524980545044], [234, 49.07024908065796], [235, 25.381284952163696], [236, 23.259972095489502], [237, 51.34469294548035], [238, 26.029125928878784], [239, 48.70887994766235], [240, 20.83779788017273], [241, 26.87371301651001], [242, 24.886575937271118], [243, 37.581626892089844], [244, 55.35437798500061], [245, 38.92414999008179], [246, 49.84406495094299], [247, 33.36392307281494], [248, 37.56457591056824], [249, 46.34333109855652], [250, 36.93365406990051], [251, 28.72062397003174], [252, 47.5891170501709], [253, 35.241461992263794], [254, 31.912293195724487], [255, 27.90003514289856], [256, 53.13554096221924], [257, 33.50010108947754], [258, 59.60091805458069], [259, 32.32449507713318], [260, 28.70029091835022], [261, 54.19050908088684], [262, 38.54669809341431], [263, 27.1651611328125], [264, 50.59871697425842], [265, 35.51240611076355], [266, 34.67076897621155], [267, 61.35507297515869], [268, 31.24012589454651], [269, 34.74812889099121], [270, 61.23512387275696], [271, 42.4901909828186], [272, 28.455976963043213], [273, 51.5834698677063], [274, 31.443320989608765], [275, 37.014639139175415], [276, 77.35387992858887], [277, 36.893553018569946], [278, 41.06707310676575], [279, 64.03603410720825], [280, 28.50053596496582], [281, 36.252641916275024], [282, 65.17180585861206], [283, 38.722641944885254], [284, 31.190354108810425], [285, 84.93107295036316], [286, 42.21738600730896], [287, 28.480377912521362], [288, 75.47723197937012], [289, 40.030282974243164], [290, 28.30943202972412], [291, 65.98451399803162], [292, 39.17703104019165], [293, 60.28926706314087], [294, 30.89449191093445], [295, 27.78923201560974], [296, 35.45921611785889], [297, 62.51439189910889], [298, 31.973405122756958], [299, 62.0684928894043], [300, 60.349514961242676], [301, 35.839226961135864], [302, 25.114561080932617], [303, 75.33972477912903], [304, 43.860276222229004], [305, 34.497591972351074], [306, 71.03298687934875], [307, 38.55064606666565], [308, 35.48199391365051], [309, 64.88527202606201], [310, 32.41659998893738], [311, 32.125548124313354], [312, 81.59468793869019], [313, 33.9241681098938], [314, 29.200698137283325], [315, 71.1927330493927], [316, 39.315114974975586], [317, 44.25739812850952], [318, 77.98637700080872], [319, 52.247023820877075], [320, 71.7011239528656], [321, 30.582520961761475], [322, 51.95192003250122], [323, 42.244333028793335], [324, 68.95076084136963], [325, 30.04808783531189], [326, 40.85336709022522], [327, 70.88592195510864], [328, 29.24961805343628], [329, 32.7996129989624], [330, 87.088693857193], [331, 44.05974578857422], [332, 29.961493968963623], [333, 30.645642042160034], [334, 91.60301899909973], [335, 31.646188020706177], [336, 81.22967600822449], [337, 30.743979930877686], [338, 35.34345602989197], [339, 83.38960003852844], [340, 66.07756614685059], [341, 29.258647918701172], [342, 96.202889919281], [343, 39.01916289329529], [344, 44.09350800514221], [345, 93.96676015853882], [346, 43.664451122283936], [347, 69.71210193634033], [348, 175.02183508872986], [349, 32.158020973205566], [350, 49.69959592819214], [351, 177.05832195281982], [352, 47.52433896064758], [353, 47.020200967788696], [354, 120.45926403999329], [355, 49.58289289474487], [356, 65.15446710586548], [357, 99.50632691383362], [358, 40.728232860565186], [359, 33.837965965270996], [360, 96.74642491340637], [361, 55.45454382896423], [362, 46.05102801322937], [363, 98.05846691131592], [364, 49.47425198554993], [365, 48.89598107337952], [366, 183.70530009269714], [367, 51.838958978652954], [368, 49.93986415863037], [369, 120.07248401641846], [370, 58.26699709892273], [371, 46.63954997062683], [372, 108.34717798233032], [373, 50.260643005371094], [374, 49.3476288318634], [375, 112.0112771987915], [376, 50.29513096809387], [377, 60.39769411087036], [378, 125.59184288978577], [379, 48.960618019104004], [380, 53.304434061050415], [381, 126.69104886054993], [382, 40.3980929851532], [383, 41.35022497177124], [384, 101.01723980903625], [385, 159.99420809745789], [386, 54.3806049823761], [387, 100.13265681266785], [388, 41.50608801841736], [389, 44.631603956222534], [390, 170.09344291687012], [391, 81.35325193405151], [392, 136.3772029876709], [393, 52.564932107925415], [394, 54.86296892166138], [395, 79.80439305305481], [396, 129.6486039161682], [397, 65.5174310207367], [398, 58.5053448677063], [399, 136.88929200172424], [400, 48.58223605155945], [401, 65.95834589004517], [402, 126.09944581985474], [403, 74.71536087989807], [404, 49.66722583770752], [405, 150.66959595680237], [406, 93.7939441204071], [407, 57.54411792755127], [408, 140.9058117866516], [409, 67.49955797195435], [410, 155.2657070159912], [411, 127.40808510780334], [412, 73.0342378616333], [413, 59.590375900268555], [414, 134.44586896896362], [415, 139.18228888511658], [416, 41.9585599899292], [417, 124.94733500480652], [418, 69.70771503448486], [419, 52.802201986312866], [420, 146.3979458808899], [421, 55.3992919921875], [422, 55.853780031204224], [423, 127.99487686157227], [424, 60.198911905288696], [425, 128.90983986854553], [426, 116.52653408050537], [427, 139.34232211112976], [428, 155.1246109008789], [429, 129.97296905517578], [430, 67.71367192268372], [431, 138.49331998825073], [432, 121.70670413970947], [433, 73.75664710998535], [434, 58.43574094772339], [435, 182.08302211761475], [436, 76.26430296897888], [437, 85.7281060218811], [438, 125.31125617027283], [439, 71.22586107254028], [440, 149.36126494407654], [441, 114.93150305747986], [442, 121.36757397651672], [443, 65.0765027999878], [444, 79.66850090026855], [445, 77.13528299331665], [446, 127.22109580039978], [447, 134.80969405174255], [448, 165.17908596992493], [449, 116.66650009155273], [450, 58.09513807296753], [451, 134.0820770263672], [452, 79.8591001033783], [453, 116.69764399528503], [454, 70.78537797927856], [455, 59.46193599700928], [456, 171.56865406036377], [457, 78.22258496284485], [458, 62.80814003944397], [459, 61.87344312667847], [460, 123.72642803192139], [461, 75.7585129737854], [462, 137.49973392486572], [463, 59.221534967422485], [464, 159.5157768726349], [465, 61.560600996017456], [466, 68.60983204841614], [467, 105.17715692520142], [468, 72.02743411064148], [469, 63.466837882995605], [470, 114.65736413002014], [471, 62.12363815307617], [472, 63.21128511428833], [473, 105.78249192237854], [474, 165.09150099754333], [475, 170.2069730758667], [476, 81.9836118221283], [477, 73.50117492675781], [478, 84.31456089019775], [479, 87.856281042099], [480, 131.59183311462402], [481, 132.86990404129028], [482, 70.62323379516602], [483, 72.7789740562439], [484, 71.76339101791382], [485, 104.64017987251282], [486, 69.11802697181702], [487, 106.29371500015259], [488, 72.18013286590576], [489, 70.41053199768066], [490, 155.03809690475464], [491, 87.20616888999939], [492, 77.81777882575989], [493, 95.72299885749817], [494, 70.76017498970032], [495, 80.90330481529236], [496, 132.8846251964569], [497, 94.92067384719849], [498, 97.41745710372925], [499, 67.77092003822327], [500, 68.67392492294312]]], ["failed_duration", [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [10, 0], [11, 0], [12, 0], [13, 0], [14, 0], [15, 0], [16, 0], [17, 0], [18, 0], [19, 0], [20, 0], [21, 0], [22, 0], [23, 0], [24, 0], [25, 0], [26, 0], [27, 0], [28, 0], [29, 0], [30, 0], [31, 0], [32, 0], [33, 0], [34, 0], [35, 0], [36, 0], [37, 0], [38, 0], [39, 0], [40, 0], [41, 0], [42, 0], [43, 0], [44, 0], [45, 0], [46, 0], [47, 0], [48, 0], [49, 0], [50, 0], [51, 0], [52, 0], [53, 0], [54, 0], [55, 0], [56, 0], [57, 0], [58, 0], [59, 0], [60, 0], [61, 0], [62, 0], [63, 0], [64, 0], [65, 0], [66, 0], [67, 0], [68, 0], [69, 0], [70, 0], [71, 0], [72, 0], [73, 0], [74, 0], [75, 0], [76, 0], [77, 0], [78, 0], [79, 0], [80, 0], [81, 0], [82, 0], [83, 0], [84, 0], [85, 0], [86, 0], [87, 0], [88, 0], [89, 0], [90, 0], [91, 0], [92, 0], [93, 0], [94, 0], [95, 0], [96, 0], [97, 0], [98, 0], [99, 0], [100, 0], [101, 0], [102, 0], [103, 0], [104, 0], [105, 0], [106, 0], [107, 0], [108, 0], [109, 0], [110, 0], [111, 0], [112, 0], [113, 0], [114, 0], [115, 0], [116, 0], [117, 0], [118, 0], [119, 0], [120, 0], [121, 0], [122, 0], [123, 0], [124, 0], [125, 0], [126, 0], [127, 0], [128, 0], [129, 0], [130, 0], [131, 0], [132, 0], [133, 0], [134, 0], [135, 0], [136, 0], [137, 0], [138, 0], [139, 0], [140, 0], [141, 0], [142, 0], [143, 0], [144, 0], [145, 0], [146, 0], [147, 0], [148, 0], [149, 0], [150, 0], [151, 0], [152, 0], [153, 0], [154, 0], [155, 0], [156, 0], [157, 0], [158, 0], [159, 0], [160, 0], [161, 0], [162, 0], [163, 0], [164, 0], [165, 0], [166, 0], [167, 0], [168, 0], [169, 0], [170, 0], [171, 0], [172, 0], [173, 0], [174, 0], [175, 0], [176, 0], [177, 0], [178, 0], [179, 0], [180, 0], [181, 0], [182, 0], [183, 0], [184, 0], [185, 0], [186, 0], [187, 0], [188, 0], [189, 0], [190, 0], [191, 0], [192, 0], [193, 0], [194, 0], [195, 0], [196, 0], [197, 0], [198, 0], [199, 0], [200, 0], [201, 0], [202, 0], [203, 0], [204, 0], [205, 0], [206, 0], [207, 0], [208, 0], [209, 0], [210, 0], [211, 0], [212, 0], [213, 0], [214, 0], [215, 0], [216, 0], [217, 0], [218, 0], [219, 0], [220, 0], [221, 0], [222, 0], [223, 0], [224, 0], [225, 0], [226, 0], [227, 0], [228, 0], [229, 0], [230, 0], [231, 0], [232, 0], [233, 0], [234, 0], [235, 0], [236, 0], [237, 0], [238, 0], [239, 0], [240, 0], [241, 0], [242, 0], [243, 0], [244, 0], [245, 0], [246, 0], [247, 0], [248, 0], [249, 0], [250, 0], [251, 0], [252, 0], [253, 0], [254, 0], [255, 0], [256, 0], [257, 0], [258, 0], [259, 0], [260, 0], [261, 0], [262, 0], [263, 0], [264, 0], [265, 0], [266, 0], [267, 0], [268, 0], [269, 0], [270, 0], [271, 0], [272, 0], [273, 0], [274, 0], [275, 0], [276, 0], [277, 0], [278, 0], [279, 0], [280, 0], [281, 0], [282, 0], [283, 0], [284, 0], [285, 0], [286, 0], [287, 0], [288, 0], [289, 0], [290, 0], [291, 0], [292, 0], [293, 0], [294, 0], [295, 0], [296, 0], [297, 0], [298, 0], [299, 0], [300, 0], [301, 0], [302, 0], [303, 0], [304, 0], [305, 0], [306, 0], [307, 0], [308, 0], [309, 0], [310, 0], [311, 0], [312, 0], [313, 0], [314, 0], [315, 0], [316, 0], [317, 0], [318, 0], [319, 0], [320, 0], [321, 0], [322, 0], [323, 0], [324, 0], [325, 0], [326, 0], [327, 0], [328, 0], [329, 0], [330, 0], [331, 0], [332, 0], [333, 0], [334, 0], [335, 0], [336, 0], [337, 0], [338, 0], [339, 0], [340, 0], [341, 0], [342, 0], [343, 0], [344, 0], [345, 0], [346, 0], [347, 0], [348, 0], [349, 0], [350, 0], [351, 0], [352, 0], [353, 0], [354, 3.600120544433594e-05], [355, 0], [356, 0], [357, 0], [358, 0], [359, 0], [360, 0], [361, 0], [362, 0], [363, 0], [364, 0], [365, 0], [366, 4.172325134277344e-05], [367, 0], [368, 0], [369, 0], [370, 0], [371, 0], [372, 0], [373, 0], [374, 0], [375, 0], [376, 0], [377, 0], [378, 9.322166442871094e-05], [379, 0], [380, 0], [381, 6.318092346191406e-05], [382, 0], [383, 0], [384, 0], [385, 0], [386, 0], [387, 0], [388, 0], [389, 0], [390, 0], [391, 0.00015306472778320312], [392, 0], [393, 0], [394, 0], [395, 6.389617919921875e-05], [396, 0], [397, 0], [398, 0], [399, 0], [400, 0], [401, 0], [402, 0], [403, 0], [404, 0], [405, 0], [406, 4.1961669921875e-05], [407, 0], [408, 0], [409, 0], [410, 0], [411, 0], [412, 0], [413, 0], [414, 0], [415, 0], [416, 0], [417, 0], [418, 0], [419, 0], [420, 0], [421, 0], [422, 0], [423, 0], [424, 0], [425, 0], [426, 0], [427, 0], [428, 0], [429, 0], [430, 0], [431, 0], [432, 0], [433, 0], [434, 0], [435, 0], [436, 0], [437, 8.296966552734375e-05], [438, 0], [439, 0], [440, 0], [441, 0], [442, 0], [443, 0], [444, 0], [445, 0], [446, 0], [447, 0], [448, 0], [449, 0], [450, 0], [451, 0], [452, 0], [453, 0], [454, 0], [455, 0], [456, 0], [457, 0], [458, 0], [459, 0], [460, 0], [461, 0], [462, 0], [463, 0], [464, 0], [465, 0], [466, 0], [467, 0], [468, 0], [469, 0], [470, 0], [471, 0], [472, 0], [473, 0], [474, 0], [475, 0], [476, 0], [477, 0], [478, 0], [479, 0], [480, 0], [481, 0], [482, 0], [483, 0], [484, 0], [485, 0], [486, 0], [487, 0], [488, 0], [489, 0], [490, 0], [491, 0], [492, 0], [493, 0], [494, 0], [495, 0], [496, 0], [497, 0], [498, 0], [499, 0], [500, 0]]]], "histogram": {"data": [[{"disabled": 0, "values": [{"y": 99, "x": 20.064010526822962}, {"y": 72, "x": 27.502250961635426}, {"y": 74, "x": 34.94049139644788}, {"y": 47, "x": 42.37873183126035}, {"y": 33, "x": 49.81697226607281}, {"y": 24, "x": 57.255212700885274}, {"y": 24, "x": 64.69345313569774}, {"y": 28, "x": 72.13169357051021}, {"y": 15, "x": 79.56993400532266}, {"y": 12, "x": 87.00817444013512}, {"y": 6, "x": 94.44641487494759}, {"y": 9, "x": 101.88465530976005}, {"y": 5, "x": 109.32289574457252}, {"y": 6, "x": 116.76113617938498}, {"y": 5, "x": 124.19937661419745}, {"y": 12, "x": 131.63761704900992}, {"y": 9, "x": 139.07585748382235}, {"y": 4, "x": 146.51409791863483}, {"y": 2, "x": 153.9523383534473}, {"y": 5, "x": 161.39057878825975}, {"y": 2, "x": 168.82881922307223}, {"y": 4, "x": 176.2670596578847}, {"y": 3, "x": 183.70530009269714}], "key": "nova.boot_server", "view": "Square Root Choice"}], [{"disabled": 0, "values": [{"y": 197, "x": 29.733723092079163}, {"y": 111, "x": 46.84167609214783}, {"y": 64, "x": 63.9496290922165}, {"y": 48, "x": 81.05758209228516}, {"y": 20, "x": 98.16553509235382}, {"y": 11, "x": 115.2734880924225}, {"y": 20, "x": 132.38144109249117}, {"y": 14, "x": 149.48939409255982}, {"y": 8, "x": 166.5973470926285}, {"y": 7, "x": 183.70530009269714}], "key": "nova.boot_server", "view": "Sturges Formula"}], [{"disabled": 0, "values": [{"y": 141, "x": 23.318240717053413}, {"y": 99, "x": 34.01071134209633}, {"y": 61, "x": 44.703181967139244}, {"y": 44, "x": 55.39565259218216}, {"y": 36, "x": 66.08812321722507}, {"y": 30, "x": 76.78059384226799}, {"y": 19, "x": 87.4730644673109}, {"y": 10, "x": 98.16553509235382}, {"y": 8, "x": 108.85800571739674}, {"y": 6, "x": 119.55047634243965}, {"y": 16, "x": 130.24294696748257}, {"y": 13, "x": 140.93541759252548}, {"y": 3, "x": 151.6278882175684}, {"y": 5, "x": 162.3203588426113}, {"y": 5, "x": 173.01282946765423}, {"y": 4, "x": 183.70530009269714}], "key": "nova.boot_server", "view": "Rice Rule"}]], "views": [{"id": 0, "name": "Square Root Choice"}, {"id": 1, "name": "Sturges Formula"}, {"id": 2, "name": "Rice Rule"}]}}, "iterations": {"pie": [["success", 492], ["errors", 8]], "iter": [["duration", [[1, 13.047277927398682], [2, 14.407685041427612], [3, 13.2568678855896], [4, 14.134480953216553], [5, 14.430081129074097], [6, 14.124459028244019], [7, 14.601337909698486], [8, 13.209979057312012], [9, 14.41286015510559], [10, 15.033559083938599], [11, 13.75477409362793], [12, 13.164649963378906], [13, 14.902642965316772], [14, 14.547560930252075], [15, 13.676805973052979], [16, 15.060333013534546], [17, 13.602930068969727], [18, 15.241695880889893], [19, 14.43509316444397], [20, 14.871966123580933], [21, 15.32526707649231], [22, 14.382421016693115], [23, 14.712683200836182], [24, 14.885708093643188], [25, 15.131593942642212], [26, 14.734673976898193], [27, 15.444329977035522], [28, 14.265687942504883], [29, 14.023488998413086], [30, 16.09501004219055], [31, 15.943539142608643], [32, 14.754356861114502], [33, 16.685853004455566], [34, 13.497709035873413], [35, 15.92827296257019], [36, 16.05638599395752], [37, 15.960793018341064], [38, 16.176799058914185], [39, 17.084330081939697], [40, 13.619125843048096], [41, 13.995680093765259], [42, 18.13145399093628], [43, 17.968929052352905], [44, 16.86991000175476], [45, 15.780134201049805], [46, 13.847562074661255], [47, 16.78380584716797], [48, 19.594106912612915], [49, 16.05814504623413], [50, 22.22454810142517], [51, 15.663904905319214], [52, 12.625802993774414], [53, 16.435288190841675], [54, 16.380631923675537], [55, 15.594117879867554], [56, 14.017340898513794], [57, 16.881001949310303], [58, 14.95816421508789], [59, 15.593106985092163], [60, 15.610789060592651], [61, 20.65462899208069], [62, 16.7798068523407], [63, 22.773067951202393], [64, 19.86290216445923], [65, 15.71066403388977], [66, 17.640657901763916], [67, 14.973492860794067], [68, 19.65929412841797], [69, 19.301280975341797], [70, 19.32618498802185], [71, 16.92747187614441], [72, 16.882678985595703], [73, 19.653493881225586], [74, 15.17881178855896], [75, 17.404720067977905], [76, 16.92732310295105], [77, 16.330919981002808], [78, 17.536174058914185], [79, 16.360302925109863], [80, 20.0102379322052], [81, 17.80317211151123], [82, 18.342124938964844], [83, 17.78170394897461], [84, 18.22414207458496], [85, 15.83071494102478], [86, 20.088221073150635], [87, 17.641672134399414], [88, 18.8425030708313], [89, 17.93837308883667], [90, 18.614288091659546], [91, 14.389241933822632], [92, 18.317405939102173], [93, 19.683013916015625], [94, 18.430744886398315], [95, 22.186223030090332], [96, 22.356271982192993], [97, 18.953110933303833], [98, 18.539278030395508], [99, 23.872128009796143], [100, 20.107025861740112], [101, 21.768903970718384], [102, 19.359392881393433], [103, 26.2219979763031], [104, 19.21389102935791], [105, 23.302101135253906], [106, 20.388649940490723], [107, 21.03146195411682], [108, 27.979662895202637], [109, 20.11845898628235], [110, 20.34641194343567], [111, 29.408724069595337], [112, 29.31628394126892], [113, 19.030539989471436], [114, 22.65190100669861], [115, 17.21417498588562], [116, 18.970958948135376], [117, 37.01403093338013], [118, 20.664011001586914], [119, 21.4689838886261], [120, 24.80105495452881], [121, 19.52177095413208], [122, 22.887997150421143], [123, 28.660441160202026], [124, 18.2410409450531], [125, 21.370182991027832], [126, 26.227694034576416], [127, 21.2418692111969], [128, 23.554545879364014], [129, 31.879297018051147], [130, 23.030264854431152], [131, 20.22538709640503], [132, 30.36388897895813], [133, 24.1719970703125], [134, 23.42524003982544], [135, 29.036744832992554], [136, 23.14652395248413], [137, 20.691291093826294], [138, 25.547981023788452], [139, 20.587471961975098], [140, 21.685922145843506], [141, 22.81528902053833], [142, 23.148996829986572], [143, 22.930130004882812], [144, 26.886576890945435], [145, 20.722223043441772], [146, 21.777931928634644], [147, 31.921730995178223], [148, 22.089478969573975], [149, 21.62457299232483], [150, 35.22676205635071], [151, 25.482129096984863], [152, 29.67967200279236], [153, 23.450303077697754], [154, 25.91112208366394], [155, 32.346900939941406], [156, 23.767112016677856], [157, 27.038599014282227], [158, 22.574198961257935], [159, 35.39902591705322], [160, 36.48923110961914], [161, 35.70357394218445], [162, 32.507843017578125], [163, 20.965156078338623], [164, 26.848697900772095], [165, 34.99558615684509], [166, 20.07270097732544], [167, 24.26172709465027], [168, 31.75052499771118], [169, 22.609373092651367], [170, 23.91148614883423], [171, 35.73035502433777], [172, 27.360315084457397], [173, 31.12672996520996], [174, 37.770874977111816], [175, 27.956507921218872], [176, 34.927321910858154], [177, 39.044921875], [178, 27.557353973388672], [179, 28.685259103775024], [180, 49.64131188392639], [181, 23.41598892211914], [182, 29.441039085388184], [183, 40.20757699012756], [184, 31.074679136276245], [185, 30.53107500076294], [186, 41.98830199241638], [187, 22.999194860458374], [188, 33.23343300819397], [189, 45.63864517211914], [190, 24.81780695915222], [191, 31.7381649017334], [192, 47.98884296417236], [193, 26.03276515007019], [194, 30.050251960754395], [195, 48.78992199897766], [196, 30.982053995132446], [197, 24.174581050872803], [198, 37.84830403327942], [199, 41.9491400718689], [200, 29.869985103607178], [201, 40.54898810386658], [202, 28.043263912200928], [203, 32.314481019973755], [204, 35.120047092437744], [205, 33.30953097343445], [206, 29.433940172195435], [207, 53.36721396446228], [208, 34.463303089141846], [209, 33.45863699913025], [210, 45.08379101753235], [211, 27.85079598426819], [212, 30.878846883773804], [213, 50.511127948760986], [214, 34.991135120391846], [215, 24.944440126419067], [216, 43.627148151397705], [217, 21.694190979003906], [218, 28.300286054611206], [219, 55.400962114334106], [220, 32.63626503944397], [221, 21.680609941482544], [222, 46.56832504272461], [223, 27.916667938232422], [224, 37.71110796928406], [225, 44.41641283035278], [226, 32.07673692703247], [227, 37.517462968826294], [228, 46.460882902145386], [229, 31.139564990997314], [230, 31.528507947921753], [231, 49.124287128448486], [232, 25.53612518310547], [233, 21.79361605644226], [234, 49.07032299041748], [235, 25.381359100341797], [236, 23.260048866271973], [237, 51.3447699546814], [238, 26.029196977615356], [239, 48.70897603034973], [240, 20.83785605430603], [241, 26.873772144317627], [242, 24.887090921401978], [243, 37.58171010017395], [244, 55.35445809364319], [245, 38.92422604560852], [246, 49.844156980514526], [247, 33.364140033721924], [248, 37.56465196609497], [249, 46.34340691566467], [250, 36.93373703956604], [251, 28.720674991607666], [252, 47.58916997909546], [253, 35.24152493476868], [254, 31.912367820739746], [255, 27.900074005126953], [256, 53.13562083244324], [257, 33.500181913375854], [258, 59.60096096992493], [259, 32.32453513145447], [260, 28.70034694671631], [261, 54.19058609008789], [262, 38.546764850616455], [263, 27.165278911590576], [264, 50.598793029785156], [265, 35.512490034103394], [266, 34.67085886001587], [267, 61.355385065078735], [268, 31.240169048309326], [269, 34.748201847076416], [270, 61.23519706726074], [271, 42.490235805511475], [272, 28.456033945083618], [273, 51.58360505104065], [274, 31.443392038345337], [275, 37.01471996307373], [276, 77.35396099090576], [277, 36.893632888793945], [278, 41.06714391708374], [279, 64.03613495826721], [280, 28.500575065612793], [281, 36.25270104408264], [282, 65.17185688018799], [283, 38.72272801399231], [284, 31.190428018569946], [285, 84.9311249256134], [286, 42.21746110916138], [287, 28.480422019958496], [288, 75.47734785079956], [289, 40.030344009399414], [290, 28.309486150741577], [291, 65.98459696769714], [292, 39.177103996276855], [293, 60.28930997848511], [294, 30.89456295967102], [295, 27.78929305076599], [296, 35.45945596694946], [297, 62.51443791389465], [298, 31.97343897819519], [299, 62.068564891815186], [300, 60.34954905509949], [301, 35.83927512168884], [302, 25.11464214324951], [303, 75.3397889137268], [304, 43.860357999801636], [305, 34.497644901275635], [306, 71.03307008743286], [307, 38.55067992210388], [308, 35.482085943222046], [309, 64.8853530883789], [310, 32.41663384437561], [311, 32.12563705444336], [312, 81.59477400779724], [313, 33.92421102523804], [314, 29.200740814208984], [315, 71.1927969455719], [316, 39.31517815589905], [317, 44.25745987892151], [318, 77.9864490032196], [319, 52.24705505371094], [320, 71.70116996765137], [321, 30.582571983337402], [322, 51.952110052108765], [323, 42.24442100524902], [324, 68.95097184181213], [325, 30.048133850097656], [326, 40.8534369468689], [327, 70.88601994514465], [328, 29.249680995941162], [329, 32.799663066864014], [330, 87.08876299858093], [331, 44.05981516838074], [332, 29.961541891098022], [333, 30.645684003829956], [334, 91.60307884216309], [335, 31.64627504348755], [336, 81.22976016998291], [337, 30.744014978408813], [338, 35.34352898597717], [339, 83.3898069858551], [340, 66.07763195037842], [341, 29.25870394706726], [342, 96.20304298400879], [343, 39.01922583580017], [344, 44.093589067459106], [345, 93.96680402755737], [346, 43.664639949798584], [347, 69.71217894554138], [348, 175.0218939781189], [349, 32.158058881759644], [350, 49.69964909553528], [351, 177.0583598613739], [352, 47.52440619468689], [353, 47.02024817466736], [354, 0], [355, 49.58295512199402], [356, 65.15455603599548], [357, 99.50640511512756], [358, 40.72827482223511], [359, 33.83800506591797], [360, 96.74654078483582], [361, 55.4546320438385], [362, 46.05109405517578], [363, 98.05853199958801], [364, 49.474395990371704], [365, 48.89603805541992], [366, 0], [367, 51.83905792236328], [368, 49.93996500968933], [369, 120.07252502441406], [370, 58.26703906059265], [371, 46.639617919921875], [372, 108.34723806381226], [373, 50.260725021362305], [374, 49.34771704673767], [375, 112.0113730430603], [376, 50.29520106315613], [377, 60.39773488044739], [378, 0], [379, 48.96066689491272], [380, 53.304505825042725], [381, 0], [382, 40.39815402030945], [383, 41.35029101371765], [384, 101.01731204986572], [385, 159.99425101280212], [386, 54.38067078590393], [387, 100.13272213935852], [388, 41.5061399936676], [389, 44.63170504570007], [390, 170.0936918258667], [391, 0], [392, 136.37725186347961], [393, 52.56500697135925], [394, 54.86304688453674], [395, 0], [396, 129.64864110946655], [397, 65.51752614974976], [398, 58.505505084991455], [399, 136.8893358707428], [400, 48.58232593536377], [401, 65.95841312408447], [402, 126.09949398040771], [403, 74.71549916267395], [404, 49.667317152023315], [405, 150.66963601112366], [406, 0], [407, 57.544203996658325], [408, 140.90585613250732], [409, 67.49964308738708], [410, 155.26575303077698], [411, 127.40813398361206], [412, 73.03430104255676], [413, 59.59042000770569], [414, 134.4459547996521], [415, 139.18232011795044], [416, 41.9586341381073], [417, 124.94739508628845], [418, 69.70784306526184], [419, 52.802294969558716], [420, 146.39812397956848], [421, 55.39939498901367], [422, 55.85385608673096], [423, 127.99504804611206], [424, 60.19897699356079], [425, 128.90991187095642], [426, 116.52659511566162], [427, 139.34237790107727], [428, 155.1246521472931], [429, 129.9730041027069], [430, 67.71377086639404], [431, 138.49337100982666], [432, 121.70676708221436], [433, 73.75668907165527], [434, 58.43582797050476], [435, 182.0830681324005], [436, 76.26436996459961], [437, 0], [438, 125.31129503250122], [439, 71.22593188285828], [440, 149.36134099960327], [441, 114.93154692649841], [442, 121.36763191223145], [443, 65.07656908035278], [444, 79.66856813430786], [445, 77.13538384437561], [446, 127.2211971282959], [447, 134.80974817276], [448, 165.17913007736206], [449, 116.66658687591553], [450, 58.09522891044617], [451, 134.0821409225464], [452, 79.85916209220886], [453, 116.69768977165222], [454, 70.78542494773865], [455, 59.46200084686279], [456, 171.56869506835938], [457, 78.2226459980011], [458, 62.80821514129639], [459, 61.87349009513855], [460, 123.7265350818634], [461, 75.75855684280396], [462, 137.49978590011597], [463, 59.22158193588257], [464, 159.51590204238892], [465, 61.56066703796387], [466, 68.60988402366638], [467, 105.17721104621887], [468, 72.02749013900757], [469, 63.466914892196655], [470, 114.65742087364197], [471, 62.12368202209473], [472, 63.211337089538574], [473, 105.78253388404846], [474, 165.0915470123291], [475, 170.20701599121094], [476, 81.98372006416321], [477, 73.50121998786926], [478, 84.31461310386658], [479, 87.85634517669678], [480, 131.59188795089722], [481, 132.86993789672852], [482, 70.62328791618347], [483, 72.7790699005127], [484, 71.76344513893127], [485, 104.64023208618164], [486, 69.11807298660278], [487, 106.2937560081482], [488, 72.18018984794617], [489, 70.41057300567627], [490, 155.03815507888794], [491, 87.20622897148132], [492, 77.81792998313904], [493, 95.72305607795715], [494, 70.76023316383362], [495, 80.90333890914917], [496, 132.8847119808197], [497, 94.92078185081482], [498, 97.41756701469421], [499, 67.77098512649536], [500, 68.67400598526001]]], ["idle_duration", [[1, 0.0], [2, 0.0], [3, 0.0], [4, 0.0], [5, 0.0], [6, 0.0], [7, 0.0], [8, 0.0], [9, 0.0], [10, 0.0], [11, 0.0], [12, 0.0], [13, 0.0], [14, 0.0], [15, 0.0], [16, 0.0], [17, 0.0], [18, 0.0], [19, 0.0], [20, 0.0], [21, 0.0], [22, 0.0], [23, 0.0], [24, 0.0], [25, 0.0], [26, 0.0], [27, 0.0], [28, 0.0], [29, 0.0], [30, 0.0], [31, 0.0], [32, 0.0], [33, 0.0], [34, 0.0], [35, 0.0], [36, 0.0], [37, 0.0], [38, 0.0], [39, 0.0], [40, 0.0], [41, 0.0], [42, 0.0], [43, 0.0], [44, 0.0], [45, 0.0], [46, 0.0], [47, 0.0], [48, 0.0], [49, 0.0], [50, 0.0], [51, 0.0], [52, 0.0], [53, 0.0], [54, 0.0], [55, 0.0], [56, 0.0], [57, 0.0], [58, 0.0], [59, 0.0], [60, 0.0], [61, 0.0], [62, 0.0], [63, 0.0], [64, 0.0], [65, 0.0], [66, 0.0], [67, 0.0], [68, 0.0], [69, 0.0], [70, 0.0], [71, 0.0], [72, 0.0], [73, 0.0], [74, 0.0], [75, 0.0], [76, 0.0], [77, 0.0], [78, 0.0], [79, 0.0], [80, 0.0], [81, 0.0], [82, 0.0], [83, 0.0], [84, 0.0], [85, 0.0], [86, 0.0], [87, 0.0], [88, 0.0], [89, 0.0], [90, 0.0], [91, 0.0], [92, 0.0], [93, 0.0], [94, 0.0], [95, 0.0], [96, 0.0], [97, 0.0], [98, 0.0], [99, 0.0], [100, 0.0], [101, 0.0], [102, 0.0], [103, 0.0], [104, 0.0], [105, 0.0], [106, 0.0], [107, 0.0], [108, 0.0], [109, 0.0], [110, 0.0], [111, 0.0], [112, 0.0], [113, 0.0], [114, 0.0], [115, 0.0], [116, 0.0], [117, 0.0], [118, 0.0], [119, 0.0], [120, 0.0], [121, 0.0], [122, 0.0], [123, 0.0], [124, 0.0], [125, 0.0], [126, 0.0], [127, 0.0], [128, 0.0], [129, 0.0], [130, 0.0], [131, 0.0], [132, 0.0], [133, 0.0], [134, 0.0], [135, 0.0], [136, 0.0], [137, 0.0], [138, 0.0], [139, 0.0], [140, 0.0], [141, 0.0], [142, 0.0], [143, 0.0], [144, 0.0], [145, 0.0], [146, 0.0], [147, 0.0], [148, 0.0], [149, 0.0], [150, 0.0], [151, 0.0], [152, 0.0], [153, 0.0], [154, 0.0], [155, 0.0], [156, 0.0], [157, 0.0], [158, 0.0], [159, 0.0], [160, 0.0], [161, 0.0], [162, 0.0], [163, 0.0], [164, 0.0], [165, 0.0], [166, 0.0], [167, 0.0], [168, 0.0], [169, 0.0], [170, 0.0], [171, 0.0], [172, 0.0], [173, 0.0], [174, 0.0], [175, 0.0], [176, 0.0], [177, 0.0], [178, 0.0], [179, 0.0], [180, 0.0], [181, 0.0], [182, 0.0], [183, 0.0], [184, 0.0], [185, 0.0], [186, 0.0], [187, 0.0], [188, 0.0], [189, 0.0], [190, 0.0], [191, 0.0], [192, 0.0], [193, 0.0], [194, 0.0], [195, 0.0], [196, 0.0], [197, 0.0], [198, 0.0], [199, 0.0], [200, 0.0], [201, 0.0], [202, 0.0], [203, 0.0], [204, 0.0], [205, 0.0], [206, 0.0], [207, 0.0], [208, 0.0], [209, 0.0], [210, 0.0], [211, 0.0], [212, 0.0], [213, 0.0], [214, 0.0], [215, 0.0], [216, 0.0], [217, 0.0], [218, 0.0], [219, 0.0], [220, 0.0], [221, 0.0], [222, 0.0], [223, 0.0], [224, 0.0], [225, 0.0], [226, 0.0], [227, 0.0], [228, 0.0], [229, 0.0], [230, 0.0], [231, 0.0], [232, 0.0], [233, 0.0], [234, 0.0], [235, 0.0], [236, 0.0], [237, 0.0], [238, 0.0], [239, 0.0], [240, 0.0], [241, 0.0], [242, 0.0], [243, 0.0], [244, 0.0], [245, 0.0], [246, 0.0], [247, 0.0], [248, 0.0], [249, 0.0], [250, 0.0], [251, 0.0], [252, 0.0], [253, 0.0], [254, 0.0], [255, 0.0], [256, 0.0], [257, 0.0], [258, 0.0], [259, 0.0], [260, 0.0], [261, 0.0], [262, 0.0], [263, 0.0], [264, 0.0], [265, 0.0], [266, 0.0], [267, 0.0], [268, 0.0], [269, 0.0], [270, 0.0], [271, 0.0], [272, 0.0], [273, 0.0], [274, 0.0], [275, 0.0], [276, 0.0], [277, 0.0], [278, 0.0], [279, 0.0], [280, 0.0], [281, 0.0], [282, 0.0], [283, 0.0], [284, 0.0], [285, 0.0], [286, 0.0], [287, 0.0], [288, 0.0], [289, 0.0], [290, 0.0], [291, 0.0], [292, 0.0], [293, 0.0], [294, 0.0], [295, 0.0], [296, 0.0], [297, 0.0], [298, 0.0], [299, 0.0], [300, 0.0], [301, 0.0], [302, 0.0], [303, 0.0], [304, 0.0], [305, 0.0], [306, 0.0], [307, 0.0], [308, 0.0], [309, 0.0], [310, 0.0], [311, 0.0], [312, 0.0], [313, 0.0], [314, 0.0], [315, 0.0], [316, 0.0], [317, 0.0], [318, 0.0], [319, 0.0], [320, 0.0], [321, 0.0], [322, 0.0], [323, 0.0], [324, 0.0], [325, 0.0], [326, 0.0], [327, 0.0], [328, 0.0], [329, 0.0], [330, 0.0], [331, 0.0], [332, 0.0], [333, 0.0], [334, 0.0], [335, 0.0], [336, 0.0], [337, 0.0], [338, 0.0], [339, 0.0], [340, 0.0], [341, 0.0], [342, 0.0], [343, 0.0], [344, 0.0], [345, 0.0], [346, 0.0], [347, 0.0], [348, 0.0], [349, 0.0], [350, 0.0], [351, 0.0], [352, 0.0], [353, 0.0], [354, 0], [355, 0.0], [356, 0.0], [357, 0.0], [358, 0.0], [359, 0.0], [360, 0.0], [361, 0.0], [362, 0.0], [363, 0.0], [364, 0.0], [365, 0.0], [366, 0], [367, 0.0], [368, 0.0], [369, 0.0], [370, 0.0], [371, 0.0], [372, 0.0], [373, 0.0], [374, 0.0], [375, 0.0], [376, 0.0], [377, 0.0], [378, 0], [379, 0.0], [380, 0.0], [381, 0], [382, 0.0], [383, 0.0], [384, 0.0], [385, 0.0], [386, 0.0], [387, 0.0], [388, 0.0], [389, 0.0], [390, 0.0], [391, 0], [392, 0.0], [393, 0.0], [394, 0.0], [395, 0], [396, 0.0], [397, 0.0], [398, 0.0], [399, 0.0], [400, 0.0], [401, 0.0], [402, 0.0], [403, 0.0], [404, 0.0], [405, 0.0], [406, 0], [407, 0.0], [408, 0.0], [409, 0.0], [410, 0.0], [411, 0.0], [412, 0.0], [413, 0.0], [414, 0.0], [415, 0.0], [416, 0.0], [417, 0.0], [418, 0.0], [419, 0.0], [420, 0.0], [421, 0.0], [422, 0.0], [423, 0.0], [424, 0.0], [425, 0.0], [426, 0.0], [427, 0.0], [428, 0.0], [429, 0.0], [430, 0.0], [431, 0.0], [432, 0.0], [433, 0.0], [434, 0.0], [435, 0.0], [436, 0.0], [437, 0], [438, 0.0], [439, 0.0], [440, 0.0], [441, 0.0], [442, 0.0], [443, 0.0], [444, 0.0], [445, 0.0], [446, 0.0], [447, 0.0], [448, 0.0], [449, 0.0], [450, 0.0], [451, 0.0], [452, 0.0], [453, 0.0], [454, 0.0], [455, 0.0], [456, 0.0], [457, 0.0], [458, 0.0], [459, 0.0], [460, 0.0], [461, 0.0], [462, 0.0], [463, 0.0], [464, 0.0], [465, 0.0], [466, 0.0], [467, 0.0], [468, 0.0], [469, 0.0], [470, 0.0], [471, 0.0], [472, 0.0], [473, 0.0], [474, 0.0], [475, 0.0], [476, 0.0], [477, 0.0], [478, 0.0], [479, 0.0], [480, 0.0], [481, 0.0], [482, 0.0], [483, 0.0], [484, 0.0], [485, 0.0], [486, 0.0], [487, 0.0], [488, 0.0], [489, 0.0], [490, 0.0], [491, 0.0], [492, 0.0], [493, 0.0], [494, 0.0], [495, 0.0], [496, 0.0], [497, 0.0], [498, 0.0], [499, 0.0], [500, 0.0]]], ["failed_duration", [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [10, 0], [11, 0], [12, 0], [13, 0], [14, 0], [15, 0], [16, 0], [17, 0], [18, 0], [19, 0], [20, 0], [21, 0], [22, 0], [23, 0], [24, 0], [25, 0], [26, 0], [27, 0], [28, 0], [29, 0], [30, 0], [31, 0], [32, 0], [33, 0], [34, 0], [35, 0], [36, 0], [37, 0], [38, 0], [39, 0], [40, 0], [41, 0], [42, 0], [43, 0], [44, 0], [45, 0], [46, 0], [47, 0], [48, 0], [49, 0], [50, 0], [51, 0], [52, 0], [53, 0], [54, 0], [55, 0], [56, 0], [57, 0], [58, 0], [59, 0], [60, 0], [61, 0], [62, 0], [63, 0], [64, 0], [65, 0], [66, 0], [67, 0], [68, 0], [69, 0], [70, 0], [71, 0], [72, 0], [73, 0], [74, 0], [75, 0], [76, 0], [77, 0], [78, 0], [79, 0], [80, 0], [81, 0], [82, 0], [83, 0], [84, 0], [85, 0], [86, 0], [87, 0], [88, 0], [89, 0], [90, 0], [91, 0], [92, 0], [93, 0], [94, 0], [95, 0], [96, 0], [97, 0], [98, 0], [99, 0], [100, 0], [101, 0], [102, 0], [103, 0], [104, 0], [105, 0], [106, 0], [107, 0], [108, 0], [109, 0], [110, 0], [111, 0], [112, 0], [113, 0], [114, 0], [115, 0], [116, 0], [117, 0], [118, 0], [119, 0], [120, 0], [121, 0], [122, 0], [123, 0], [124, 0], [125, 0], [126, 0], [127, 0], [128, 0], [129, 0], [130, 0], [131, 0], [132, 0], [133, 0], [134, 0], [135, 0], [136, 0], [137, 0], [138, 0], [139, 0], [140, 0], [141, 0], [142, 0], [143, 0], [144, 0], [145, 0], [146, 0], [147, 0], [148, 0], [149, 0], [150, 0], [151, 0], [152, 0], [153, 0], [154, 0], [155, 0], [156, 0], [157, 0], [158, 0], [159, 0], [160, 0], [161, 0], [162, 0], [163, 0], [164, 0], [165, 0], [166, 0], [167, 0], [168, 0], [169, 0], [170, 0], [171, 0], [172, 0], [173, 0], [174, 0], [175, 0], [176, 0], [177, 0], [178, 0], [179, 0], [180, 0], [181, 0], [182, 0], [183, 0], [184, 0], [185, 0], [186, 0], [187, 0], [188, 0], [189, 0], [190, 0], [191, 0], [192, 0], [193, 0], [194, 0], [195, 0], [196, 0], [197, 0], [198, 0], [199, 0], [200, 0], [201, 0], [202, 0], [203, 0], [204, 0], [205, 0], [206, 0], [207, 0], [208, 0], [209, 0], [210, 0], [211, 0], [212, 0], [213, 0], [214, 0], [215, 0], [216, 0], [217, 0], [218, 0], [219, 0], [220, 0], [221, 0], [222, 0], [223, 0], [224, 0], [225, 0], [226, 0], [227, 0], [228, 0], [229, 0], [230, 0], [231, 0], [232, 0], [233, 0], [234, 0], [235, 0], [236, 0], [237, 0], [238, 0], [239, 0], [240, 0], [241, 0], [242, 0], [243, 0], [244, 0], [245, 0], [246, 0], [247, 0], [248, 0], [249, 0], [250, 0], [251, 0], [252, 0], [253, 0], [254, 0], [255, 0], [256, 0], [257, 0], [258, 0], [259, 0], [260, 0], [261, 0], [262, 0], [263, 0], [264, 0], [265, 0], [266, 0], [267, 0], [268, 0], [269, 0], [270, 0], [271, 0], [272, 0], [273, 0], [274, 0], [275, 0], [276, 0], [277, 0], [278, 0], [279, 0], [280, 0], [281, 0], [282, 0], [283, 0], [284, 0], [285, 0], [286, 0], [287, 0], [288, 0], [289, 0], [290, 0], [291, 0], [292, 0], [293, 0], [294, 0], [295, 0], [296, 0], [297, 0], [298, 0], [299, 0], [300, 0], [301, 0], [302, 0], [303, 0], [304, 0], [305, 0], [306, 0], [307, 0], [308, 0], [309, 0], [310, 0], [311, 0], [312, 0], [313, 0], [314, 0], [315, 0], [316, 0], [317, 0], [318, 0], [319, 0], [320, 0], [321, 0], [322, 0], [323, 0], [324, 0], [325, 0], [326, 0], [327, 0], [328, 0], [329, 0], [330, 0], [331, 0], [332, 0], [333, 0], [334, 0], [335, 0], [336, 0], [337, 0], [338, 0], [339, 0], [340, 0], [341, 0], [342, 0], [343, 0], [344, 0], [345, 0], [346, 0], [347, 0], [348, 0], [349, 0], [350, 0], [351, 0], [352, 0], [353, 0], [354, 120.45930004119873], [355, 0], [356, 0], [357, 0], [358, 0], [359, 0], [360, 0], [361, 0], [362, 0], [363, 0], [364, 0], [365, 0], [366, 183.7053418159485], [367, 0], [368, 0], [369, 0], [370, 0], [371, 0], [372, 0], [373, 0], [374, 0], [375, 0], [376, 0], [377, 0], [378, 125.5919361114502], [379, 0], [380, 0], [381, 126.69111204147339], [382, 0], [383, 0], [384, 0], [385, 0], [386, 0], [387, 0], [388, 0], [389, 0], [390, 0], [391, 81.3534049987793], [392, 0], [393, 0], [394, 0], [395, 79.80445694923401], [396, 0], [397, 0], [398, 0], [399, 0], [400, 0], [401, 0], [402, 0], [403, 0], [404, 0], [405, 0], [406, 93.79398608207703], [407, 0], [408, 0], [409, 0], [410, 0], [411, 0], [412, 0], [413, 0], [414, 0], [415, 0], [416, 0], [417, 0], [418, 0], [419, 0], [420, 0], [421, 0], [422, 0], [423, 0], [424, 0], [425, 0], [426, 0], [427, 0], [428, 0], [429, 0], [430, 0], [431, 0], [432, 0], [433, 0], [434, 0], [435, 0], [436, 0], [437, 85.72818899154663], [438, 0], [439, 0], [440, 0], [441, 0], [442, 0], [443, 0], [444, 0], [445, 0], [446, 0], [447, 0], [448, 0], [449, 0], [450, 0], [451, 0], [452, 0], [453, 0], [454, 0], [455, 0], [456, 0], [457, 0], [458, 0], [459, 0], [460, 0], [461, 0], [462, 0], [463, 0], [464, 0], [465, 0], [466, 0], [467, 0], [468, 0], [469, 0], [470, 0], [471, 0], [472, 0], [473, 0], [474, 0], [475, 0], [476, 0], [477, 0], [478, 0], [479, 0], [480, 0], [481, 0], [482, 0], [483, 0], [484, 0], [485, 0], [486, 0], [487, 0], [488, 0], [489, 0], [490, 0], [491, 0], [492, 0], [493, 0], [494, 0], [495, 0], [496, 0], [497, 0], [498, 0], [499, 0], [500, 0]]]], "histogram": {"data": [[{"disabled": null, "values": [{"y": 106, "x": 19.99351017371468}, {"y": 73, "x": 27.361217353654943}, {"y": 72, "x": 34.72892453359521}, {"y": 47, "x": 42.09663171353547}, {"y": 30, "x": 49.46433889347574}, {"y": 29, "x": 56.83204607341601}, {"y": 24, "x": 64.19975325335628}, {"y": 25, "x": 71.56746043329653}, {"y": 18, "x": 78.9351676132368}, {"y": 9, "x": 86.30287479317707}, {"y": 4, "x": 93.67058197311734}, {"y": 10, "x": 101.0382891530576}, {"y": 5, "x": 108.40599633299787}, {"y": 3, "x": 115.77370351293813}, {"y": 6, "x": 123.1414106928784}, {"y": 10, "x": 130.50911787281865}, {"y": 9, "x": 137.87682505275893}, {"y": 4, "x": 145.24453223269919}, {"y": 3, "x": 152.61223941263947}, {"y": 4, "x": 159.97994659257972}, {"y": 3, "x": 167.34765377252}, {"y": 3, "x": 174.71536095246026}, {"y": 3, "x": 182.0830681324005}], "key": "task", "view": "Square Root Choice"}], [{"disabled": null, "values": [{"y": 204, "x": 29.571529507637024}, {"y": 110, "x": 46.517256021499634}, {"y": 65, "x": 63.462982535362244}, {"y": 47, "x": 80.40870904922485}, {"y": 16, "x": 97.35443556308746}, {"y": 11, "x": 114.30016207695007}, {"y": 18, "x": 131.24588859081268}, {"y": 14, "x": 148.1916151046753}, {"y": 8, "x": 165.1373416185379}, {"y": 7, "x": 182.0830681324005}], "key": "task", "view": "Sturges Formula"}], [{"disabled": null, "values": [{"y": 147, "x": 23.216882064938545}, {"y": 99, "x": 33.807961136102676}, {"y": 61, "x": 44.39904020726681}, {"y": 45, "x": 54.99011927843094}, {"y": 34, "x": 65.58119834959507}, {"y": 32, "x": 76.1722774207592}, {"y": 15, "x": 86.76335649192333}, {"y": 9, "x": 97.35443556308746}, {"y": 9, "x": 107.9455146342516}, {"y": 7, "x": 118.53659370541573}, {"y": 11, "x": 129.12767277657986}, {"y": 14, "x": 139.718751847744}, {"y": 3, "x": 150.30983091890812}, {"y": 6, "x": 160.90090999007225}, {"y": 4, "x": 171.49198906123638}, {"y": 4, "x": 182.0830681324005}], "key": "task", "view": "Rice Rule"}]], "views": [{"id": 0, "name": "Square Root Choice"}, {"id": 1, "name": "Sturges Formula"}, {"id": 2, "name": "Rice Rule"}]}}, "additive_output": [], "table": {"rows": [["nova.boot_server", 12.626, 34.993, 106.243, 134.246, 182.083, 48.736, "98.4%", 500], ["total", 12.626, 34.993, 106.243, 134.246, 182.083, 48.736, "98.4%", 500]], "cols": ["Action", "Min (sec)", "Median (sec)", "90%ile (sec)", "95%ile (sec)", "Max (sec)", "Avg (sec)", "Success", "Count"]}, "full_duration": 644.7169010639191, "config": "{\n  \"NovaServers.boot_server\": [\n    {\n      \"runner\": {\n        \"rps\": 1.7, \n        \"type\": \"rps\", \n        \"times\": 500\n      }, \n      \"args\": {\n        \"flavor\": {\n          \"name\": \"m1.tiny\"\n        }, \n        \"image\": {\n          \"name\": \"TestVM\"\n        }\n      }, \n      \"sla\": {\n        \"failure_rate\": {\n          \"max\": 0\n        }\n      }, \n      \"context\": {\n        \"network\": {\n          \"network_create_args\": {\n            \"tenant_id\": \"d406ddf00c6944678e42acd56012aaa1\", \n            \"name\": \"c_rally_93d6a11d_xb6TbVvM\"\n          }, \n          \"subnets_per_network\": 1, \n          \"start_cidr\": \"100.1.0.0/21\", \n          \"networks_per_tenant\": 1\n        }, \n        \"users\": {\n          \"users_per_tenant\": 2, \n          \"project_domain\": \"default\", \n          \"user_choice_method\": \"random\", \n          \"user_domain\": \"default\", \n          \"tenants\": 2, \n          \"resource_management_workers\": 30\n        }, \n        \"quotas\": {\n          \"neutron\": {\n            \"subnet\": -1, \n            \"network\": -1, \n            \"port\": -1\n          }, \n          \"nova\": {\n            \"ram\": -1, \n            \"floating_ips\": -1, \n            \"security_group_rules\": -1, \n            \"instances\": -1, \n            \"cores\": -1, \n            \"security_groups\": -1\n          }\n        }\n      }\n    }\n  ]\n}", "sla": [{"criterion": "failure_rate", "detail": "Failure rate criteria 0.00% <= 1.60% <= 0.00% - Failed", "success": false}], "complete_output": [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []], "cls": "NovaServers"}];
+
+      $scope.location = {
+        /* #/path/hash/sub/div */
+        normalize: function(str) {
+          /* Remove unwanted characters from string */
+          if (typeof str !== "string") { return "" }
+          return str.replace(/[^\w\-\.]/g, "")
+        },
+        uri: function(obj) {
+          /* Getter/Setter */
+          if (! obj) {
+            var uri = {path: "", hash: "", sub: "", div: ""};
+            var arr = ["div", "sub", "hash", "path"];
+            angular.forEach($location.url().split("/"), function(value){
+              var v = $scope.location.normalize(value);
+              if (v) { var k = arr.pop(); if (k) { this[k] = v }}
+            }, uri);
+            return uri
+          }
+          var arr = [obj.path, obj.hash, obj.sub, obj.div], res = [];
+          for (var i in arr) { if (! arr[i]) { break }; res.push(arr[i]) }
+          return $location.url("/" + res.join("/"))
+        },
+        path: function(path, hash) {
+          /* Getter/Setter */
+          if (path === "") { return this.uri({}) }
+          path = this.normalize(path);
+          var uri = this.uri();
+          if (! path) { return uri.path }
+          uri.path = path;
+          var _hash = this.normalize(hash);
+          if (_hash || hash === "") { uri.hash = _hash }
+          return this.uri(uri)
+        },
+        hash: function(hash) {
+          /* Getter/Setter */
+          if (hash) { this.uri({path:this.uri().path, hash:hash}) }
+          return this.uri().hash
+        }
+      }
+
+      /* Dispatch */
+
+      $scope.route = function(uri) {
+        if (! $scope.scenarios_map) { return }
+        if (uri.path in $scope.scenarios_map) {
+          $scope.view = {is_scenario:true};
+          $scope.scenario = $scope.scenarios_map[uri.path];
+          $scope.nav_idx = $scope.nav_map[uri.path];
+          if ($scope.scenario.iterations.histogram.views.length) {
+            $scope.mainHistogram = $scope.scenario.iterations.histogram.views[0]
+          }
+          if ($scope.scenario.atomic.histogram.views.length) {
+            $scope.atomicHistogram = $scope.scenario.atomic.histogram.views[0]
+          }
+          $scope.outputIteration = 0;
+          $scope.showTab(uri);
+        } else {
+          $scope.scenario = null;
+          if (uri.path === "source") {
+            $scope.view = {is_source:true}
+          } else {
+            $scope.view = {is_main:true}
+          }
+        }
+      }
+
+      $scope.$on("$locationChangeSuccess", function (event, newUrl, oldUrl) {
+        $scope.route($scope.location.uri())
+      });
+
+      $scope.showNav = function(nav_idx) { $scope.nav_idx = nav_idx }
+
+      /* Tabs */
+
+      $scope.tabs = [
+        {
+          id: "overview",
+          name: "Overview",
+          visible: function(){ return !! $scope.scenario.iterations.pie.length }
+        },{
+          id: "details",
+          name: "Details",
+          visible: function(){ return !! $scope.scenario.atomic.pie.length }
+        },{
+          id: "output",
+          name: "Scenario Data",
+          visible: function(){ return $scope.scenario.output.length }
+        },{
+          id: "failures",
+          name: "Failures",
+          visible: function(){ return !! $scope.scenario.errors.length }
+        },{
+          id: "task",
+          name: "Input task",
+          visible: function(){ return !! $scope.scenario.config }
+        }
+      ];
+      $scope.tabs_map = {};
+      angular.forEach($scope.tabs,
+                      function(tab){ this[tab.id] = tab }, $scope.tabs_map);
+
+      $scope.showTab = function(uri) {
+        $scope.tab = uri.hash in $scope.tabs_map ? uri.hash : "overview";
+        if (! $scope.scenario.output) {
+          var has_additive = !! $scope.scenario.additive_output.length;
+          var has_complete = !! ($scope.scenario.complete_output.length
+                                 && $scope.scenario.complete_output[0].length);
+          $scope.scenario.output = {
+            has_additive: has_additive,
+            has_complete: has_complete,
+            length: has_additive + has_complete,
+            active: has_additive ? "additive" : (has_complete ? "complete" : "")
+          }
+        }
+        if (uri.hash === "output") {
+          if (uri.sub && $scope.scenario.output["has_" + uri.sub]) {
+            $scope.scenario.output.active = uri.sub
+          }
+        }
+      }
+
+      for (var i in $scope.tabs) {
+        if ($scope.tabs[i].id === $scope.location.hash()) {
+          $scope.tab = $scope.tabs[i].id
+        }
+        $scope.tabs[i].isVisible = function() {
+          if ($scope.scenario) {
+            if (this.visible()) { return true }
+            /* If tab should be hidden but is selected - show another one */
+            if (this.id === $scope.location.hash()) {
+              for (var i in $scope.tabs) {
+                var tab = $scope.tabs[i];
+                if (tab.id != this.id && tab.visible()) {
+                  $scope.tab = tab.id;
+                  return false
+                }
+              }
+            }
+          }
+          return false
+        }
+      }
+
+      $scope.showError = function(message) {
+          return (function (e) {
+            e.style.display = "block";
+            e.textContent = message
+          })(document.getElementById("page-error"))
+      }
+
+      /* Initialization */
+
+      angular.element(document).ready(function(){
+        if (! $scope.scenarios.length) {
+          return $scope.showError("No data...")
+        }
+
+        /* Compose data mapping */
+
+        $scope.nav = [];
+        $scope.nav_map = {};
+        $scope.scenarios_map = {};
+        var met = [], itr = 0, cls_idx = 0;
+        var prev_cls, prev_met;
+
+        for (var idx in $scope.scenarios) {
+          var sc = $scope.scenarios[idx];
+          if (! prev_cls) {
+            prev_cls = sc.cls
+          }
+          else if (prev_cls !== sc.cls) {
+            $scope.nav.push({cls:prev_cls, met:met, idx:cls_idx});
+            prev_cls = sc.cls;
+            met = [];
+            itr = 1;
+            cls_idx += 1
+          }
+
+          if (prev_met !== sc.met) { itr = 1 };
+          sc.ref = $scope.location.normalize(sc.cls+"."+sc.met+(itr > 1 ? "-"+itr : ""));
+          $scope.scenarios_map[sc.ref] = sc;
+          $scope.nav_map[sc.ref] = cls_idx;
+          met.push({name:sc.name, itr:itr, idx:idx, ref:sc.ref});
+          prev_met = sc.met;
+          itr += 1;
+        }
+
+        if (met.length) {
+          $scope.nav.push({cls:prev_cls, met:met, idx:cls_idx})
+        }
+
+        /* Start */
+
+        var uri = $scope.location.uri();
+        uri.path = $scope.location.path();
+        $scope.route(uri);
+        $scope.$digest()
+      })
+    };
+
+    if (typeof angular === "object") {
+      angular.module("App", [])
+        .controller("Controller", ["$scope", "$location", controllerFunction])
+        .directive("widget", widgetDirective)
+    }
+
+
+</script>
+  <style>
+    body { margin:0; padding:0 0 50px; font-size:14px; font-family:Helvetica,Arial,sans-serif }
+    a, a:active, a:focus, a:visited { text-decoration:none; outline:none }
+    p { margin:0; padding:5px 0 }
+    p.thesis { padding:10px 0 }
+    h1 { color:#666; margin:0 0 20px; font-size:30px; font-weight:normal }
+    h2, .h2 { color:#666; margin:24px 0 6px; font-size:25px; font-weight:normal }
+    h3, .h3 { color:#777; margin:12px 0 4px; font-size:18px; font-weight:normal }
+    table { border-collapse:collapse; border-spacing:0; width:100%; font-size:12px; margin:0 0 10px }
+    table th { text-align:left; padding:8px; color:#000; border:2px solid #ddd; border-width:0 0 2px 0 }
+    table th.sortable { cursor:pointer }
+    table td { text-align:left; border-top:1px solid #ddd; padding:8px; color:#333 }
+    table.compact td { padding:4px 8px }
+    table.striped tr:nth-child(odd) td { background:#f9f9f9 }
+    table.linked tbody tr:hover { background:#f9f9f9; cursor:pointer }
+    .rich, .rich td { font-weight:bold }
+    .code { padding:10px; font-size:13px; color:#333; background:#f6f6f6; border:1px solid #e5e5e5; border-radius:4px }
+
+    .header { text-align:left; background:#333; font-size:18px; padding:13px 0; margin-bottom:20px; color:#fff; background-image:linear-gradient(to bottom, #444 0px, #222 100%) }
+    .header a, .header a:visited, .header a:focus { color:#999 }
+
+    .notify-error { padding:5px 10px; background:#fee; color:red }
+    .status-skip, .status-skip td { color:grey }
+    .status-pass, .status-pass td { color:green }
+    .status-fail, .status-fail td { color:red }
+    .capitalize { text-transform:capitalize }
+    
+    .aside { margin:0 20px 0 0; display:block; width:255px; float:left }
+    .aside > div { margin-bottom: 15px }
+    .aside > div div:first-child { border-top-left-radius:4px; border-top-right-radius:4px }
+    .aside > div div:last-child { border-bottom-left-radius:4px; border-bottom-right-radius:4px }
+    .navcls { color:#678; background:#eee; border:1px solid #ddd; margin-bottom:-1px; display:block; padding:8px 9px; font-weight:bold; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer }
+    .navcls.expanded { color:#469 }
+    .navcls.active { background:#428bca; background-image:linear-gradient(to bottom, #428bca 0px, #3278b3 100%); border-color:#3278b3; color:#fff }
+    .navmet { color:#555; background:#fff; border:1px solid #ddd; font-size:12px; display:block; margin-bottom:-1px; padding:8px 10px; text-align:left; text-overflow:ellipsis; white-space:nowrap; overflow:hidden; cursor:pointer }
+    .navmet:hover { background:#f8f8f8 }
+    .navmet.active, .navmet.active:hover { background:#428bca; background-image:linear-gradient(to bottom, #428bca 0px, #3278b3 100%); border-color:#3278b3; color:#fff }
+
+    .tabs { list-style:outside none none; margin:0 0 5px; padding:0; border-bottom:1px solid #ddd }
+    .tabs:after { clear:both }
+    .tabs li { float:left; margin-bottom:-1px; display:block; position:relative }
+    .tabs li div { border:1px solid transparent; border-radius:4px 4px 0 0; line-height:20px; margin-right:2px; padding:10px 15px; color:#428bca }
+    .tabs li div:hover { border-color:#eee #eee #ddd; background:#eee; cursor:pointer; }
+    .tabs li.active div { background:#fff; border-color:#ddd #ddd transparent; border-style:solid; border-width:1px; color:#555; cursor:default }
+    .failure-mesg { color:#900 }
+    .failure-trace { color:#333; white-space:pre; overflow:auto }
+
+    .link { color:#428BCA; padding:5px 15px 5px 5px; text-decoration:underline; cursor:pointer }
+    .link.active { color:#333; text-decoration:none }
+
+    .chart { padding:0; margin:0; width:890px }
+    .chart svg { height:300px; padding:0; margin:0; overflow:visible; float:right }
+    .chart.lower svg { height:180px }
+    .chart-label-y { font-size:12px; position:relative; top:5px; padding:0; margin:0 }
+
+    .expandable { cursor:pointer }
+    .clearfix { clear:both }
+    .sortable > .arrow { display:inline-block; width:12px; height:inherit; color:#c90 }
+    .content-main { margin:0 5px; display:block; float:left }
+
+    .content-wrap {  margin:0 auto; padding:0 5px </%block>}
+    
+    @media only screen and (min-width: 320px)  { .content-wrap { width:900px  } .content-main { width:600px } }
+    @media only screen and (min-width: 900px)  { .content-wrap { width:880px  } .content-main { width:590px } }
+    @media only screen and (min-width: 1000px) { .content-wrap { width:980px  } .content-main { width:690px } }
+    @media only screen and (min-width: 1100px) { .content-wrap { width:1080px } .content-main { width:790px } }
+    @media only screen and (min-width: 1200px) { .content-wrap { width:1180px } .content-main { width:890px } }
+
+  </style>
+</head>
+<body ng-controller="Controller">
+
+  <div class="header">
+    <div class="content-wrap">
+      <a href="https://github.com/openstack/rally">Rally</a>&nbsp;
+      <span>task results</span>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+    
+
+    <p id="page-error" class="notify-error" style="display:none"></p>
+
+    <div id="content-nav" class="aside" ng-show="scenarios.length" ng-cloack>
+      <div>
+        <div class="navcls"
+             ng-class="{active:view.is_main}"
+             ng-click="location.path('')">Task overview</div>
+        <div class="navcls"
+             ng-class="{active:view.is_source}"
+             ng-click="location.path('source', '')">Input file</div>
+      </div>
+      <div>
+        <div class="navcls" title="{{n.cls}}"
+             ng-repeat-start="n in nav track by $index"
+             ng-click="showNav(n.idx)"
+             ng-class="{expanded:n.idx==nav_idx}">
+                <span ng-hide="n.idx==nav_idx">&#9658;</span>
+                <span ng-show="n.idx==nav_idx">&#9660;</span>
+                {{n.cls}}</div>
+        <div class="navmet" title="{{m.name}}"
+             ng-show="n.idx==nav_idx"
+             ng-class="{active:m.ref==scenario.ref}"
+             ng-click="location.path(m.ref)"
+             ng-repeat="m in n.met track by $index"
+             ng-repeat-end>{{m.name}}</div>
+      </div>
+    </div>
+
+    <div id="content-main" class="content-main" ng-show="scenarios.length" ng-cloak>
+
+      <div ng-show="view.is_main">
+        <h1>Task overview</h1>
+        <table class="linked compact"
+               ng-init="ov_srt='ref'; ov_dir=false">
+          <thead>
+            <tr>
+              <th class="sortable"
+                  title="Scenario name, with optional suffix of call number"
+                  ng-click="ov_srt='ref'; ov_dir=!ov_dir">
+                Scenario
+                <span class="arrow">
+                  <b ng-show="ov_srt=='ref' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='ref' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable"
+                  title="How long the scenario run, without context duration"
+                  ng-click="ov_srt='load_duration'; ov_dir=!ov_dir">
+                Load duration (s)
+                <span class="arrow">
+                  <b ng-show="ov_srt=='load_duration' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='load_duration' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable"
+                  title="Scenario duration plus context duration"
+                  ng-click="ov_srt='full_duration'; ov_dir=!ov_dir">
+                Full duration (s)
+                <span class="arrow">
+                  <b ng-show="ov_srt=='full_duration' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='full_duration' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable" title="Number of iterations"
+                  ng-click="ov_srt='iterations_count'; ov_dir=!ov_dir">
+                Iterations
+                <span class="arrow">
+                  <b ng-show="ov_srt=='iterations_count' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='iterations_count' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable" title="Scenario runner type"
+                  ng-click="ov_srt='runner'; ov_dir=!ov_dir">
+                Runner
+                <span class="arrow">
+                  <b ng-show="ov_srt=='runner' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='runner' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable" title="Number of errors occurred"
+                  ng-click="ov_srt='errors.length'; ov_dir=!ov_dir">
+                Errors
+                <span class="arrow">
+                  <b ng-show="ov_srt=='errors.length' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='errors.length' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable" title="Whether SLA check is successful"
+                  ng-click="ov_srt='sla_success'; ov_dir=!ov_dir">
+                Success (SLA)
+                <span class="arrow">
+                  <b ng-show="ov_srt=='sla_success' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='sla_success' && ov_dir">&#x25be;</b>
+                </span>
+            <tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="sc in scenarios | orderBy:ov_srt:ov_dir"
+                ng-click="location.path(sc.ref)">
+              <td>{{sc.ref}}
+              <td>{{sc.load_duration | number:3}}
+              <td>{{sc.full_duration | number:3}}
+              <td>{{sc.iterations_count}}
+              <td>{{sc.runner}}
+              <td>{{sc.errors.length}}
+              <td>
+                <span ng-show="sc.sla_success" class="status-pass">&#x2714;</span>
+                <span ng-hide="sc.sla_success" class="status-fail">&#x2716;</span>
+            <tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div ng-show="view.is_source">
+        <h1>Input file</h1>
+        <pre class="code">{{source}}</pre>
+      </div>
+
+      <div ng-show="view.is_scenario">
+        <h1>{{scenario.cls}}.<wbr>{{scenario.name}} ({{scenario.full_duration | number:3}}s)</h1>
+        <ul class="tabs">
+          <li ng-repeat="t in tabs"
+              ng-show="t.isVisible()"
+              ng-class="{active:t.id == tab}"
+              ng-click="location.hash(t.id)">
+            <div>{{t.name}}</div>
+          </li>
+          <div class="clearfix"></div>
+        </ul>
+        <div ng-include="tab"></div>
+
+        <script type="text/ng-template" id="overview">
+          <p class="thesis">
+            Load duration: <b>{{scenario.load_duration | number:3}} s</b> &nbsp;
+            Full duration: <b>{{scenario.full_duration | number:3}} s</b> &nbsp;
+            Iterations: <b>{{scenario.iterations_count}}</b> &nbsp;
+            Failures: <b>{{scenario.errors.length}}</b>
+          </p>
+
+          <div ng-show="scenario.sla.length">
+            <h2>Service-level agreement</h2>
+            <table class="striped">
+              <thead>
+                <tr>
+                  <th>Criterion
+                  <th>Detail
+                  <th>Success
+                <tr>
+              </thead>
+              <tbody>
+                <tr class="rich"
+                    ng-repeat="row in scenario.sla track by $index"
+                    ng-class="{'status-fail':!row.success, 'status-pass':row.success}">
+                  <td>{{row.criterion}}
+                  <td>{{row.detail}}
+                  <td class="capitalize">{{row.success}}
+                <tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div widget="Table"
+               data="scenario.table"
+               lastrow-class="rich"
+               title="Total durations">
+          </div>
+
+          <div widget="StackedArea"
+               data="scenario.iterations.iter"
+               name-x="Iteration sequence number"
+               controls="true"
+               guide="true">
+          </div>
+
+          <div widget="StackedArea"
+               data="scenario.load_profile"
+               title="Load Profile"
+               title-class="h3"
+               name-x="Timeline (seconds)"
+               format-y="d"
+               format-x=",.2f"
+               class="lower">
+          </div>
+
+          <div widget="Pie"
+               data="scenario.iterations.pie"
+               title="Distribution"
+               title-class="h3"
+               style="float:left; width:40%; margin-top:15px">
+          </div>
+
+          <div widget="Histogram"
+               ng-if="scenario.iterations.histogram.data.length"
+               data="scenario.iterations.histogram.data[mainHistogram.id]"
+               style="float:left; width:59%; margin-top:15px; position:relative; top:40px">
+          </div>
+
+          <select ng-model="mainHistogram"
+                  ng-show="scenario.iterations.histogram.data.length"
+                  ng-options="i.name for i in scenario.iterations.histogram.views track by i.id"
+                  style="float:right; margin:45px 35px 0">
+          </select>
+
+          <div class="clearfix"></div>
+
+        </script>
+
+        <script type="text/ng-template" id="details">
+
+          <div widget="StackedArea"
+               data="scenario.atomic.iter"
+               title="Atomic Action Durations"
+               name-x="Iteration sequence number"
+               controls="true"
+               guide="true">
+          </div>
+
+          <div widget="Pie"
+               data="scenario.atomic.pie"
+               title="Distribution"
+               title-class="h3"
+               style="float:left; width:40%; margin-top:15px">
+          </div>
+
+          <div widget="Histogram" data="scenario.atomic.histogram.data[atomicHistogram.id]"
+               ng-if="scenario.atomic.histogram.data.length"
+               style="float:left; width:59%; margin-top:15px; position:relative; top:40px">
+          </div>
+
+          <select ng-show="scenario.atomic.histogram.data.length"
+                  ng-model="atomicHistogram"
+                  ng-options="i.name for i in scenario.atomic.histogram.views track by i.id"
+                  style="float:right; margin:45px 35px 0">
+          </select>
+
+          <div class="clearfix"></div>
+
+        </script>
+
+        <script type="text/ng-template" id="output">
+
+          <div style="padding:10px 0 0">
+            <span class="link"
+                  ng-click="location.hash('output/additive')"
+                  ng-class="{active:scenario.output.active === 'additive'}"
+                  ng-if="scenario.output.has_additive">Aggregated</span>
+            <span class="link"
+                  ng-click="location.hash('output/complete')"
+                  ng-class="{active:scenario.output.active === 'complete'}"
+                  ng-if="scenario.output.has_complete">Per iteration</span>
+          </div>
+
+          <div ng-repeat="chart in scenario.additive_output"
+               ng-if="scenario.output.active === 'additive'">
+            <div widget="{{chart.widget}}"
+                 title="{{chart.title}}"
+                 description="{{chart.description}}"
+                 name-x="{{chart.axis_label}}"
+                 name-y="{{chart.label}}"
+                 data="chart.data">
+            </div>
+          </div>
+
+          <div ng-if="scenario.output.active === 'complete'" style="padding:10px 0 0">
+            <select ng-model="outputIteration">
+              <option ng-repeat="i in scenario.complete_output track by $index"
+                      value="{{$index}}">
+                Iteration {{$index}}
+            </select>
+
+            <div ng-repeat="chart in scenario.complete_output[outputIteration]">
+              <div widget="{{chart.widget}}"
+                   title="{{chart.title}}"
+                   description="{{chart.description}}"
+                   name-x="{{chart.axis_label}}"
+                   name-y="{{chart.label}}"
+                   data="chart.data">
+              </div>
+            </div>
+          </div>
+        </script>
+
+        <script type="text/ng-template" id="failures">
+          <h2>Task failures (<ng-pluralize
+            count="scenario.errors.length"
+            when="{'1': '1 iteration', 'other': '{} iterations'}"></ng-pluralize> failed)
+          </h2>
+          <table class="striped">
+            <thead>
+              <tr>
+                <th>
+                <th>Iteration
+                <th>Exception type
+                <th>Exception message
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="expandable"
+                  ng-repeat-start="i in scenario.errors track by $index"
+                  ng-click="i.expanded = ! i.expanded">
+                <td>
+                  <span ng-hide="i.expanded">&#9658;</span>
+                  <span ng-show="i.expanded">&#9660;</span>
+                <td>{{i.iteration}}
+                <td>{{i.type}}
+                <td class="failure-mesg">{{i.message}}
+              </tr>
+              <tr ng-show="i.expanded" ng-repeat-end>
+                <td colspan="4" class="failure-trace">{{i.traceback}}
+              </tr>
+            </tbody>
+          </table>
+        </script>
+
+        <script type="text/ng-template" id="task">
+          <h2>Subtask Configuration</h2>
+          <pre class="code">{{scenario.config}}</pre>
+        </script>
+      </div>
+
+    </div>
+    <div class="clearfix"></div>
+
+
+  </div>
+
+  <script type="text/javascript">
+    if (! window.angular) {(function(f){
+      f(document.getElementById("content-nav"), "none");
+      f(document.getElementById("content-main"), "none");
+      f(document.getElementById("page-error"), "block").textContent = "Failed to load AngularJS framework"
+    })(function(e, s){e.style.display = s; return e})}
+</script>
+</body>
+</html>
