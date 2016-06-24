@@ -1,7 +1,7 @@
 .. _1000_nodes:
 
 ===========================================================
-1000 Compute nodes resourse consumption/scalability testing
+1000 Compute nodes resource consumption/scalability testing
 ===========================================================
 
 :status: **ready**
@@ -18,10 +18,10 @@ Test Plan
 =========
 
 Most of current OpenStack users wonder how it will behave on scale with a lot
-of compute nodes. This is a valid consern because OpenStack have a lot of
+of compute nodes. This is a valid concern because OpenStack have a lot of
 services whose have different load and resources consumptions patterns.
 Most of the cloud operations are related to the two things: workloads placement
-and simple controlplane/dataplane management for them.
+and simple control/data plane management for them.
 So the main idea of this test plan is to create simple workloads (10-30k of
 VMs) and observe how core services working with them and what is resources
 consumption during active workloads placement and some time after that.
@@ -30,11 +30,11 @@ Test Environment
 ----------------
 
 Test assumes that each and every service will be monitored separately for
-resourses consuption using known techniques like atop/nagios/containerization
+resources consuption using known techniques like atop/nagios/containerization
 and any other toolkits/solutions which will allow to:
 
-1. Measure CPU/RAM consuption of process/set of processes.
-2. Separate services and provide them as much as possible resourses available
+1. Measure CPU/RAM consumption of process/set of processes.
+2. Separate services and provide them as much as possible resources available
    to fulfill their needs.
 
 List of mandatory services for OpenStack testing:
@@ -63,8 +63,8 @@ List of optional service which may be omitted:
 
 Rally fits here as a pretty stable and reliable load runner. Monitoring could be
 done by any suitable software which will be able to provide a results in a form
-which allow to build graphs/visualize resources consuption to analyze them or
-do the analyzis automatically.
+which allow to build graphs/visualize resources consumption to analyze them or
+do the analysis automatically.
 
 Preparation
 ^^^^^^^^^^^
@@ -74,7 +74,7 @@ Preparation
 To begin testing environment should have all the OpenStack services up and
 running. Of course they should be configured accordingly to the recommended
 settings from release and/or for your specific environment or use case.
-To have real world RPS/TPS/etc metrics all the services (inlcuding compute
+To have real world RPS/TPS/etc metrics all the services (including compute
 nodes) should be on the separate physical servers but again it depends on
 setup and requirements. For simplicity and testing only control plane the
 Fake compute driver could be used.
