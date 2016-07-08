@@ -19,5 +19,6 @@ Test Results
     neutron_features/index
     hardware_features/index
     provisioning/index
+    openstack_load/index
     1000_nodes/index
     reliability/index

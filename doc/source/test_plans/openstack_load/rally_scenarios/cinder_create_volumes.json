@@ -1,0 +1,36 @@
+{
+  "CinderVolumes.create_volume": [
+    {
+      "runner": {
+        "rps": 8,
+        "type": "rps",
+        "times": 1000
+      },
+      "args": {
+        "size": 10
+      },
+      "sla": {
+        "failure_rate": {
+          "max": 0
+        }
+      },
+      "context": {
+        "users": {
+          "users_per_tenant": 1,
+          "project_domain": "default",
+          "user_choice_method": "random",
+          "user_domain": "default",
+          "tenants": 1,
+          "resource_management_workers": 5
+        },
+        "quotas": {
+          "cinder": {
+            "gigabytes": -1,
+            "volumes": -1,
+            "snapshots": -1
+          }
+        }
+      }
+    }
+  ]
+}

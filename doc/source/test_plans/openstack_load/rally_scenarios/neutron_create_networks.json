@@ -1,0 +1,34 @@
+{
+  "NeutronNetworks.create_network": [
+    {
+      "runner": {
+        "rps": 5,
+        "type": "rps",
+        "times": 1000
+      },
+      "args": {
+        "network_create_args": {}
+      },
+      "sla": {
+        "failure_rate": {
+          "max": 0
+        }
+      },
+      "context": {
+        "users": {
+          "users_per_tenant": 4,
+          "project_domain": "default",
+          "user_choice_method": "random",
+          "user_domain": "default",
+          "tenants": 30,
+          "resource_management_workers": 30
+        },
+        "quotas": {
+          "neutron": {
+            "network": -1
+          }
+        }
+      }
+    }
+  ]
+}

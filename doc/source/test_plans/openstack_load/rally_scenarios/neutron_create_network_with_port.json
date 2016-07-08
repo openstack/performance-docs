@@ -1,0 +1,37 @@
+{
+  "NeutronNetworks.create_port": [
+    {
+      "runner": {
+        "rps": 5,
+        "type": "rps",
+        "times": 500
+      },
+      "args": {
+        "network_create_args": {},
+        "ports_per_network": 1,
+        "port_create_args": {}
+      },
+      "sla": {
+        "failure_rate": {
+          "max": 0
+        }
+      },
+      "context": {
+        "users": {
+          "users_per_tenant": 2,
+          "project_domain": "default",
+          "user_choice_method": "random",
+          "user_domain": "default",
+          "tenants": 20,
+          "resource_management_workers": 30
+        },
+        "quotas": {
+          "neutron": {
+            "network": -1,
+            "port": -1
+          }
+        }
+      }
+    }
+  ]
+}
