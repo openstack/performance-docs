@@ -23,8 +23,8 @@ share the ideas of how we can evaluate, analyse and test OpenStack cloud
 performance, including the very infrastructure basics.
 
 As a community we want this knowledge to become publicly available to allow
-OpenStack developers, QA engineers and operators to have unified way for their
-projects and products evaluation and best recipes for doing this.
+OpenStack developers, QA engineers and operators to have a unified way for their
+projects and products evaluation and the best recipes for doing this.
 
 Who will be interested in this?
 -------------------------------
@@ -35,10 +35,10 @@ takes active part in either OpenStack development or its usage.
 Who is contributing to this guide?
 ----------------------------------
 
-Short answer: OpenStack community.
+Short answer: The OpenStack community.
 
-A bit longer answer: performance engineers from various companies, cloud
-operators, OpenStack projects developers, etc. We all are part of
-**Performance Team**. Therefore you can find here
-test plans and methodologies, that were written keeping in mind all these
-groups of people, their interest and experience.
+Longer answer: performance engineers from various companies, cloud
+operators, OpenStack project developers, etc. We all are part of the
+**Performance Team**. Therefore, here you can find
+test plans and methodologies that were written keeping in mind all of these
+groups of people, their interests and experiences.
