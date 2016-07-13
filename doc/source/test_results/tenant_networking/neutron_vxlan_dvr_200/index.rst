@@ -38,8 +38,10 @@ Reports
 .. toctree::
     :maxdepth: 2
 
+    perf_l2_dense/index
     perf_l2/index
     full_l2/index
+    perf_l3_east_west_dense/index
     perf_l3_east_west/index
     full_l3_east_west/index
     perf_l3_north_south/index

@@ -62,7 +62,7 @@ Ping
 **Stats**:
 
 =============  ========  ========  ========
-Metric         Min       Avg       Max     
+Metric         Min       Avg       Max
 =============  ========  ========  ========
 ping_icmp, ms      0.27      0.56      1.55
 =============  ========  ========  ========
@@ -70,7 +70,7 @@ ping_icmp, ms      0.27      0.56      1.55
 **SLA**:
 
 =========================  ===========  ==================  ========
-Expression                 Concurrency  Node                Result  
+Expression                 Concurrency  Node                Result
 =========================  ===========  ==================  ========
 stats.ping_icmp.avg < 2.0            1  node-25.domain.tld  OK
 =========================  ===========  ==================  ========
@@ -94,7 +94,7 @@ TCP
 **Stats**:
 
 =================  ========  ========  ========
-Metric             Min       Avg       Max     
+Metric             Min       Avg       Max
 =================  ========  ========  ========
 bandwidth, Mbit/s   5559.96   6875.94   7930.98
 retransmits                                  26
@@ -103,7 +103,7 @@ retransmits                                  26
 **SLA**:
 
 ==========================  ===========  ==================  ========
-Expression                  Concurrency  Node                Result  
+Expression                  Concurrency  Node                Result
 ==========================  ===========  ==================  ========
 stats.bandwidth.avg > 5000            1  node-25.domain.tld  OK
 stats.retransmits.max < 10            1  node-25.domain.tld  FAIL
@@ -129,16 +129,18 @@ UDP
 
 **Stats**:
 
-============  ========  ========  ========
-Metric        Min       Avg       Max     
-============  ========  ========  ========
-packets, pps    184290    206668    223370
-============  ========  ========  ========
+============  =========  =========  =========
+Metric        Min        Avg        Max
+============  =========  =========  =========
+loss, %                      0.019
+jitter, ms                   0.003
+packets, pps     184290     206668     223370
+============  =========  =========  =========
 
 **SLA**:
 
 ==========================  ===========  ==================  ========
-Expression                  Concurrency  Node                Result  
+Expression                  Concurrency  Node                Result
 ==========================  ===========  ==================  ========
 stats.packets.avg > 100000            1  node-25.domain.tld  OK
 ==========================  ===========  ==================  ========

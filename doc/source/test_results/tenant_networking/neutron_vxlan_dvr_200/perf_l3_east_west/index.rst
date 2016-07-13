@@ -71,7 +71,7 @@ ping_icmp, ms      0.54      0.71      1.24
 **SLA**:
 
 =========================  ===========  ===================  ========
-Expression                 Concurrency  Node                 Result  
+Expression                 Concurrency  Node                 Result
 =========================  ===========  ===================  ========
 stats.ping_icmp.avg < 2.0            1  node-164.domain.tld  OK
 =========================  ===========  ===================  ========
@@ -95,7 +95,7 @@ TCP
 **Stats**:
 
 =================  ========  ========  ========
-Metric             Min       Avg       Max     
+Metric             Min       Avg       Max
 =================  ========  ========  ========
 bandwidth, Mbit/s   5405.46   5812.68   7309.81
 retransmits                                  13
@@ -104,7 +104,7 @@ retransmits                                  13
 **SLA**:
 
 ==========================  ===========  ===================  ========
-Expression                  Concurrency  Node                 Result  
+Expression                  Concurrency  Node                 Result
 ==========================  ===========  ===================  ========
 stats.bandwidth.avg > 5000            1  node-164.domain.tld  OK
 stats.retransmits.max < 10            1  node-164.domain.tld  FAIL
@@ -130,11 +130,13 @@ UDP
 
 **Stats**:
 
-============  ========  ========  ========
-Metric        Min       Avg       Max     
-============  ========  ========  ========
-packets, pps    138870    153702    165970
-============  ========  ========  ========
+============  =========  =========  =========
+Metric        Min        Avg        Max
+============  =========  =========  =========
+loss, %                      0.005
+jitter, ms                   0.004
+packets, pps     138870     153702     165970
+============  =========  =========  =========
 
 **SLA**:
 

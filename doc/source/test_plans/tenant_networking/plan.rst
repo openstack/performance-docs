@@ -105,16 +105,43 @@ This section describes installed software.
 | virtual routers |       | e.g. legacy or HA or DVR  |
 +-----------------+-------+---------------------------+
 
+.. _openstack_tenant_networking_test_plan_l2_dense:
+
+Test Case 1: single node L2 instance-to-instance performance
+------------------------------------------------------------
+
+Description
+^^^^^^^^^^^
+
+This test case is executed on a single pair of instances launched on *one
+compute node* and plugged into the same tenant network. The measurement is
+done during 60 seconds, average values are calculated.
+
+List of performance metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+========  ================  =================  ===========================================
+Priority  Value             Measurement Units  Description
+========  ================  =================  ===========================================
+1         Latency           ms                 The network latency
+1         TCP bandwidth     Mbits/s            TCP network bandwidth
+1         UDP bandwidth     packets per sec    Number of UDP packets with 32 bytes payload
+2         UDP delay jitter  ms                 Packet delay variation
+2         UDP packet loss   %                  Percentage of lost UDP packets
+2         TCP retransmits   packets per sec    Number of retransmitted TCP packets
+========  ================  =================  ===========================================
+
+
 .. _openstack_tenant_networking_test_plan_l2:
 
-Test Case 1: L2 instance-to-instance performance
+Test Case 2: L2 instance-to-instance performance
 ------------------------------------------------
 
 Description
 ^^^^^^^^^^^
 
-This test case is executed on a single pair of instances launched on different
-compute nodes and plugged into the same tenant network. The measurement is
+This test case is executed on a single pair of instances launched on *different
+compute nodes* and plugged into the same tenant network. The measurement is
 done during 60 seconds, average values are calculated.
 
 List of performance metrics
@@ -134,7 +161,7 @@ Priority  Value             Measurement Units  Description
 
 .. _openstack_tenant_networking_test_plan_l2_concurrent:
 
-Test Case 2: L2 concurrent performance
+Test Case 3: L2 concurrent performance
 --------------------------------------
 
 Description
@@ -166,16 +193,44 @@ Priority  Value             Measurement Units  Description
 ========  ================  =================  ===========================================
 
 
+.. _openstack_tenant_networking_test_plan_l3_east_west_dense:
+
+Test Case 4: single node L3 east-west instance-to-instance performance
+----------------------------------------------------------------------
+
+Description
+^^^^^^^^^^^
+
+This test case is executed on a single pair of instances launched on *one
+compute node* and plugged into different tenant networks. Networks are
+connected by a single router. The measurement is done during 60 seconds,
+average values are calculated.
+
+List of performance metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+========  ================  =================  ===========================================
+Priority  Value             Measurement Units  Description
+========  ================  =================  ===========================================
+1         Latency           ms                 The network latency
+1         TCP bandwidth     Mbits/s            TCP network bandwidth
+1         UDP bandwidth     packets per sec    Number of UDP packets with 32 bytes payload
+2         UDP delay jitter  ms                 Packet delay variation
+2         UDP packet loss   %                  Percentage of lost UDP packets
+2         TCP retransmits   packets per sec    Number of retransmitted TCP packets
+========  ================  =================  ===========================================
+
+
 .. _openstack_tenant_networking_test_plan_l3_east_west:
 
-Test Case 3: L3 east-west instance-to-instance performance
+Test Case 5: L3 east-west instance-to-instance performance
 ----------------------------------------------------------
 
 Description
 ^^^^^^^^^^^
 
-This test case is executed on a single pair of instances launched on different
-compute nodes and plugged into different tenant networks. Networks are
+This test case is executed on a single pair of instances launched on *different
+compute nodes* and plugged into different tenant networks. Networks are
 connected by a single router. The measurement is done during 60 seconds,
 average values are calculated.
 
@@ -196,7 +251,7 @@ Priority  Value             Measurement Units  Description
 
 .. _openstack_tenant_networking_test_plan_l3_east_west_concurrent:
 
-Test Case 4: L3 east-west concurrent performance
+Test Case 6: L3 east-west concurrent performance
 ------------------------------------------------
 
 Description
@@ -230,16 +285,45 @@ Priority  Value             Measurement Units  Description
 ========  ================  =================  ===========================================
 
 
+.. _openstack_tenant_networking_test_plan_l3_north_south_dense:
+
+Test Case 7: single node L3 north-south instance-to-instance performance
+------------------------------------------------------------------------
+
+Description
+^^^^^^^^^^^
+
+This test case is executed on a single pair of instances launched on *one
+compute node* and plugged into different tenant networks. Each networks is
+connected to own router, thus traffic goes via external network. The
+destination instance is reached by floating IP.
+The measurement is done during 60 seconds, average values are calculated.
+
+List of performance metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+========  ================  =================  ===========================================
+Priority  Value             Measurement Units  Description
+========  ================  =================  ===========================================
+1         Latency           ms                 The network latency
+1         TCP bandwidth     Mbits/s            TCP network bandwidth
+1         UDP bandwidth     packets per sec    Number of UDP packets with 32 bytes payload
+2         UDP delay jitter  ms                 Packet delay variation
+2         UDP packet loss   %                  Percentage of lost UDP packets
+2         TCP retransmits   packets per sec    Number of retransmitted TCP packets
+========  ================  =================  ===========================================
+
+
 .. _openstack_tenant_networking_test_plan_l3_north_south:
 
-Test Case 5: L3 north-south instance-to-instance performance
+Test Case 8: L3 north-south instance-to-instance performance
 ------------------------------------------------------------
 
 Description
 ^^^^^^^^^^^
 
-This test case is executed on a single pair of instances launched on different
-compute nodes and plugged into different tenant networks. Each networks is
+This test case is executed on a single pair of instances launched on *different
+compute nodes* and plugged into different tenant networks. Each networks is
 connected to own router, thus traffic goes via external network. The
 destination instance is reached by floating IP.
 The measurement is done during 60 seconds, average values are calculated.
@@ -261,7 +345,7 @@ Priority  Value             Measurement Units  Description
 
 .. _openstack_tenant_networking_test_plan_l3_north_south_concurrent:
 
-Test Case 6: L3 north-south concurrent performance
+Test Case 9: L3 north-south concurrent performance
 --------------------------------------------------
 
 Description
@@ -298,8 +382,8 @@ Priority  Value             Measurement Units  Description
 
 .. _openstack_tenant_networking_test_plan_qos:
 
-Test Case 7: Neutron QoS testing
---------------------------------
+Test Case 10: Neutron QoS testing
+---------------------------------
 
 Description
 ^^^^^^^^^^^
