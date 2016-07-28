@@ -22,3 +22,5 @@ Test Plans
     openstack_load/plan
     1000_nodes/plan
     reliability/plan
+    control_plane/plan
+
