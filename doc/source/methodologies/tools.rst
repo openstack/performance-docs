@@ -101,12 +101,19 @@ an issue. **Gatling** uses its own DSL for the test scenarios.
 Wrk and Apache AB
 -----------------
 
-**Wrk** and **Apache AB** are command line tools to test HTTP based resources.
-In these tools everything is configured via command line interface through
-command line parameters. It has few powerful setting essential to generate
-HTTP load. As a result of simplicity both tools are capable to generate high
-loads. It can be also extended via plugins, and currently there are plugins for
-Kafka and RabbitMQ tests.
+**Wrk** and **Apache AB** are command line tools to test HTTP based resources
+written in C. They only provide a command line interface but can generate 
+higher HTTP load than tools written in Java or Python.
+Apache AB is single threaded and can be extended via plugins (currently plugins for
+Kafka and RabbitMQ tests).
+`Wrk <https://github.com/wg/wrk>`_ can be multi-threaded and is one of the
+most scalable HTTP traffic generator.
+`Wrk2 <https://github.com/giltene/wrk2>`_ is a version that has been corrected to
+generate very accurate latency measurement.
+`A fork of wrk2 <https://github.com/yicwang/wrk2>`_ further provides
+compressed latency histograms that are ready to be sent over the network to
+any test orchestrator for aggregation.
+
 
 Rally
 -----
@@ -150,7 +157,7 @@ VMTP
 VMTP_ is a data path performance measurement tool built specifically for
 OpenStack clouds. It was written to provide a quick, simple and automated way
 to get VM-level or host-level single-flow throughput and latency numbers from
-any OpenStack cloud, and to take into account various Neutron topologies.
+any OpenStack cloud and to take into account various Neutron topologies.
 
 *VMTP* is a small Python application that will automatically perform ping
 connectivity, round trip time measurement (latency) and TCP/UDP throughput
@@ -166,45 +173,45 @@ flows:
 
 * External host/VM download and upload throughput/latency (L3/floating IP)
 
-In case if SSH login to any Linux host (native or virtual) is available, *VMTP*
-can collect the following data:
-
-* Host to host process-level throughput/latency (intra-node and inter-node)
-
-Also, *VMTP* can automatically extract the CPU usage from all native hosts in
-the cloud during the throughput tests, provided the Ganglia monitoring service
-(gmond) installed and enabled on those hosts.
 
 For VM-related flows, *VMTP* will automatically create the necessary OpenStack
 resources (router, networks, subnets, key pairs, security groups, test VMs)
-using the public OpenStack API, install the test tools and then orchestrate
+using the public OpenStack API, install the test tools, then orchestrate
 them to gather the throughput measurements then cleanup all related resources
 before exiting.
 
+*VMTP* also supports:
+
+* throughput and latency for VMs using SR-IOV
+* provider network
+
 .. _VMTP: https://github.com/openstack/vmtp
+
+`VMTP online documentation <http://vmtp.readthedocs.io/>`_
+
 
 KloudBuster
 -----------
 
-VMTP_ is more likely to be a single flow measurement tool, while KloudBuster_
+While VMTP_ is a single flow measurement tool, KloudBuster_
 can load the data plane or storage infrastructure of any OpenStack cloud at
 massive scale and measure how well the cloud behaves under load. The
-performance data comes from where it matters: the VMs standpoint, where cloud
+performance data comes from where it matters: the VMs standpoint where cloud
 applications run.
 
-In the case of HTTP traffic load:
+KloudBuster *HTTP traffic load*:
 
-    * Supports to load the data plane with one OpenStack cloud (single-cloud
+    * Can load the data plane with one OpenStack cloud (single-cloud
       operations for L3 East-West scale) or two OpenStack clouds (dual-cloud
       operations with one cloud hosting the HTTP servers and the other loading
       HTTP traffic for L3 North-South scale testing)
 
-    * Supports to stage any number of tenants, routers, networks, and HTTP
+    * Can stage any number of tenants, routers, networks, and HTTP
       servers (as many as your cloud can handle)
 
-    * Real HTTP servers (Nginx) running in real Linux images (Ubuntu 14.04)
+    * Uses real HTTP servers (Nginx) running in real Linux images (Ubuntu 14.04)
 
-    * High performance and highly scalable HTTP traffic generators (wrk2) to
+    * Uses high performance and highly scalable HTTP traffic generators (wrk2) to
       simulate huge number of HTTP users and TCP connections (hundreds of
       thousands to millions of concurrent and active connections)
 
@@ -217,21 +224,25 @@ In the case of HTTP traffic load:
     * Supports periodic reporting for real-time monitoring and results
       aggregation
 
-In the case of Storage load:
+KloudBuster *Storage load*:
 
-   * VM-level Cinder volume (block storage) or Ephemeral disk file I/O
-     performance measurement using FIO running inside VMs (not bare metal)
+   * Can launch any number of VMs accessing storage using FIO running inside VMs
 
-   * Supports random and sequential file access mode, and any mix of read/write
+   * Supports VM-level Cinder volume (block storage) or Ephemeral disk file I/O
+     performance measurement
 
-   * Returns IOPs, bandwidth and loss-less millisecond-precision latency
+   * Supports random and sequential file access mode and any mix of read/write,
+     block size and queue depth
+
+   * Returns IOPs, bandwidth and loss-less sub millisecond-precision latency
      aggregations for every IO operation (typically millions per run)
 
    * Supports user configurable workload sequence
 
-*KloudBuster* supports automated progression runs for both type of loads, which
-the VMs involved for testing increases in any multiple for every iteration.
-Automatic cleanup is also performed upon termination to avoid stale resources
+*KloudBuster* supports automated progression runs on the VM count (e.g. measure
+load for 10 to 100 Vms, in increment of 10 VMs).
+
+Automatic cleanup is performed upon termination to avoid stale resources
 leaving in the cloud under test.
 
 *KloudBuster* is accessible to anybody with basic knowledge of OpenStack,
@@ -240,6 +251,11 @@ default workloads. Available to run from CLI, REST or Web User Interface... you
 pick what works best for you.
 
 .. _KloudBuster: https://github.com/openstack/kloudbuster
+
+`KloudBuster online documentation <http://kloudbuster.readthedocs.io/en/latest/>`_
+
+`Examples of KloudBuster results <http://kloudbuster.readthedocs.io/en/latest/gallery.html>`_
+
 
 Shaker
 ------
