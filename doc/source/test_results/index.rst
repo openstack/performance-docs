@@ -22,3 +22,5 @@ Test Results
     openstack_load/index
     1000_nodes/index
     reliability/index
+    control_plane/main
+
