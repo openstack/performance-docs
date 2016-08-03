@@ -1,0 +1,26 @@
+{% set http_server_with_glance_images = http_server_with_glance_images or "127.0.0.1" %}
+{
+    "GlanceImages.create_and_delete_image": [
+        {
+            "args": {
+                "image_location": "http://{{http_server_with_glance_images}}/images/glance_1g_image.raw",
+                "container_format": "bare",
+                "disk_format": "raw"
+            },
+            "runner": {
+                "type": "constant",
+                "times": 400,
+                "concurrency": 50
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 3
+                }
+            },
+            "sla": {
+                "failure_rate": { "max": 0 }
+            }
+        }
+    ]
+}
