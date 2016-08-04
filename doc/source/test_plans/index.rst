@@ -23,4 +23,4 @@ Test Plans
     1000_nodes/plan
     reliability/plan
     control_plane/plan
-
+    controlplane_density/plan
