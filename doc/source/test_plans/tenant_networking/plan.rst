@@ -1,8 +1,8 @@
 .. _openstack_tenant_networking_test_plan:
 
-=====================================
-OpenStack Tenant Networking Test Plan
-=====================================
+=======================================
+OpenStack tenant networking performance
+=======================================
 
 :status: **draft**
 :version: 1.0

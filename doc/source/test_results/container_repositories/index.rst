@@ -1,5 +1,5 @@
-Container repositories test results
-***********************************
+Container repositories performance
+**********************************
 
 .. toctree::
     :numbered:

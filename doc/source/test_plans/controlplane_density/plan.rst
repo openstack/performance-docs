@@ -1,7 +1,7 @@
 .. _controlplane_density:
 
 =======================================
-OpenStack Control Plane Density testing
+OpenStack control plane density testing
 =======================================
 
 :status: **ready**

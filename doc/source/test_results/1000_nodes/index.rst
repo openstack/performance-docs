@@ -1,5 +1,5 @@
-Testing on scale of 1000 compute hosts.
-=======================================
+1000 Compute nodes resource scalability testing
+===============================================
 
 Environment setup
 -----------------

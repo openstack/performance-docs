@@ -19,9 +19,9 @@ Contents
     :maxdepth: 2
 
     introduction.rst
-    methodologies/index.rst
-    test_plans/index.rst
+    methodologies/index
     labs/index.rst
+    test_plans/index
     test_results/index
 
 .. raw:: pdf

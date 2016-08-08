@@ -3,10 +3,10 @@
     PageBreak oneColumn
 
 ===========================
-OpenStack tenant networking
+Neutron features test plans
 ===========================
 
 .. toctree::
     :maxdepth: 3
 
-    neutron_vxlan_dvr_200/index
+    l3_ha/plan
