@@ -4,8 +4,8 @@
 Message Queue Performance
 =========================
 
-:status: draft
-:version: 1
+:status: **ready**
+:version: 1.0
 
 :Abstract:
 

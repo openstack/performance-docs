@@ -4,8 +4,8 @@
 Measuring performance of provisioning systems
 =============================================
 
-:status: draft is in progress
-:version: 0
+:status: **ready**
+:version: 1.0
 
 :Abstract:
 

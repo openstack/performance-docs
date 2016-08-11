@@ -4,7 +4,7 @@
 OpenStack Neutron L3 HA Test Plan
 =================================
 
-:status: **draft**
+:status: **ready**
 :version: 1.0
 
 :Abstract:

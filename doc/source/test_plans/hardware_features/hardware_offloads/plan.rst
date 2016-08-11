@@ -4,7 +4,7 @@
 Hardware Offloads - Comparative performance analysis
 ====================================================
 
-:status: **draft**
+:status: **ready**
 :version: 1.0
 
 :Abstract:

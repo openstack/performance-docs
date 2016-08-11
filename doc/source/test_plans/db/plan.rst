@@ -4,8 +4,8 @@
 SQL Database Test Plan
 ======================
 
-:status: draft
-:version: 0
+:status: **ready**
+:version: 1.0
 
 :Abstract:
 

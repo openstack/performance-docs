@@ -5,7 +5,7 @@ Keystone Performance testing
 ============================
 
 :status: **ready**
-:version: 1
+:version: 1.0
 
 :Abstract:
 

@@ -4,8 +4,8 @@
 OpenStack reliability testing
 =============================
 
-:status: draft
-:version: 0
+:status: **ready**
+:version: 1.0
 
 :Abstract:
   This document describes an abstract methodology for OpenStack cluster

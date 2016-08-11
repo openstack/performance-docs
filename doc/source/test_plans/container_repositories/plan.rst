@@ -5,8 +5,8 @@
 Measuring performance of container repositories
 ***********************************************
 
-:status: **draft**
-:version: 0
+:status: **ready**
+:version: 1.0
 
 :Abstract:
 

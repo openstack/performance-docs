@@ -4,7 +4,7 @@
 OpenStack tenant networking performance
 =======================================
 
-:status: **draft**
+:status: **ready**
 :version: 1.0
 
 :Abstract:
