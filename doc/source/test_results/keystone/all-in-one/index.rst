@@ -1,3 +1,5 @@
+.. _keystone_performance_all_in_one:
+
 Keystone DB / cache operations analysis
 ---------------------------------------
 

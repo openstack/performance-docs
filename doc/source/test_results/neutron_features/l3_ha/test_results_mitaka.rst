@@ -1,9 +1,13 @@
+.. _neutron_l3_ha_test_report_mitaka:
+
 Neutron L3 HA test results Mitaka
 ---------------------------------
 
 As we have already done initial testing of L3 HA functionality for Liberty,
 in this testing load parameters are increased (for example, concurrency for Rally
 tests, number of routers for manual tests).
+
+This report is generated for :ref:`neutron_l3_ha_test_plan` test plan.
 
 Environment description
 =======================

@@ -14,6 +14,7 @@ Results of measuring performance of JFrog Artifactory Pro
 
 Environment description
 =======================
+
 Hardware configuration of each server
 -------------------------------------
 
@@ -79,6 +80,7 @@ p1p1 interface of a server:
 
 Software configuration of the Artifactory service
 -------------------------------------------------
+
 Installation of Artifactory:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code:: bash
@@ -125,6 +127,7 @@ You can find outputs of some commands and /etc folder in the following archive:
 
 Software configuration of the node with test tool
 -------------------------------------------------
+
 Test tool:
 ^^^^^^^^^^
 Firstly we need to install docker-engine:
@@ -212,8 +215,10 @@ As a result of this part we got the following CSV files:
 
 Results
 =======
+
 Push action results
 -------------------
+
 PUSH_TIME(ITERATION)
 ^^^^^^^^^^^^^^^^^^^^
 After simple processing results the following plots for push action in depend on
@@ -277,6 +282,7 @@ parameter.
 
 Pull action results
 -------------------
+
 PULL_TIME(ITERATION)
 ^^^^^^^^^^^^^^^^^^^^
 After simple processing results the following plots for pull action in depend on

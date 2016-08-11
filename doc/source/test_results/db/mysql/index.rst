@@ -2,6 +2,8 @@
 
     PageBreak oneColumn
 
+.. _db_performance_mysql:
+
 =================================
 MySQL Database performance report
 =================================

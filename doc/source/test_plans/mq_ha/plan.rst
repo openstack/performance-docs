@@ -242,7 +242,8 @@ Reports
 =======
 
 Test plan execution reports:
- * :ref:`mq_ha_rabbit_report`
+ * :ref:`mq_ha_rabbit_report_disabled`
+ * :ref:`mq_ha_rabbit_report_enabled`
 
 .. references:
 

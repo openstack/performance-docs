@@ -202,3 +202,8 @@ Priority  Value            Measurement Units  Description
                                               spawn
 ========  ===============  =================  =================================
 
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`1000_nodes_report`

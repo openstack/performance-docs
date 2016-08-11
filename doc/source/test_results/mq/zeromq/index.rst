@@ -1,3 +1,5 @@
+.. _zeromq_report:
+
 ZeroMQ performance
 ------------------
 

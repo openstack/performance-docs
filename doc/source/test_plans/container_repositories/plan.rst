@@ -330,3 +330,11 @@ Proposed docker file
 .. _Docker Registry2: https://docs.docker.com/registry
 .. _JFrog Artifactory: https://www.jfrog.com/artifactory
 .. _Docker: https://www.docker.com
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`Measuring_performance_of_Sonatype_Nexus`
+ * :ref:`Measuring_performance_of_JFrog_Artifactory_Pro`
+ * :ref:`Measuring_performance_of_docker_registry`

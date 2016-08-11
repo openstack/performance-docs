@@ -7,13 +7,12 @@ Results of measuring performance of Mesos Marathon
 :Abstract:
 
   This document includes performance test results for `Mesos`_ as a container
-  platform for `Docker`_ with `Marathon`_. All test have been performed
-  regarding
-  :ref:`Measuring_performance_of_mesos_marathon`
-
+  platform for `Docker`_ with `Marathon`_. All tests have been performed
+  regarding :ref:`Measuring_performance_of_container_cluster_systems`
 
 Environment description
 =======================
+
 Cluster description
 -------------------
 * 3 master nodes with Mesos, Marathon and Zookeeper
@@ -29,8 +28,6 @@ Software versions
 Running options
 ---------------
 * Marathon extra options are "-Xmx2048m --max_tasks_per_offer 20"
-
-
 
 Hardware configuration of each server
 -------------------------------------

@@ -185,3 +185,9 @@ may look like:
 +===============+================+====================+===================+=============+=============+
 | create_volume | <mean_numbers> |   <90%ile_numbers> |  <50%ile_numbers> | <max_value> | <min_value> |
 +---------------+----------------+--------------------+-------------------+-------------+-------------+
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`Results_of_OpenStack_services_density_testing`

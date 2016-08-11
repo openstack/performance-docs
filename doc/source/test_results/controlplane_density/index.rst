@@ -9,7 +9,7 @@ Results of OpenStack Services density testing
 
   This document includes density test results of OpenStack
   services. All tests have been performed
-  regarding :ref:`controlplane_density_`
+  regarding :ref:`controlplane_density`
 
 Environment description
 =======================

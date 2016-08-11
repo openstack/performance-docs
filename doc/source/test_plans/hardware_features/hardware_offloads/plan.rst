@@ -517,3 +517,9 @@ Priority  Value            Measurement Units  Description
 ========  ===============  =================  =====================================================
 
 .. _Intel XL710 controller: http://www.intel.com/content/www/us/en/embedded/products/networking/xl710-10-40-gbe-controller-brief.html
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`hw_features_offloads`

@@ -2,7 +2,7 @@
 
     PageBreak oneColumn
 
-.. _mq_ha_rabbit_report:
+.. _mq_ha_rabbit_report_enabled:
 
 ===========================================
 RabbitMQ HA Test Reports: HA queues enabled

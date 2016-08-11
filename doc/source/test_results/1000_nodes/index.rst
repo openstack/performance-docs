@@ -1,5 +1,13 @@
+.. raw:: pdf
+
+    PageBreak oneColumn
+
+.. _1000_nodes_report:
+
 1000 Compute nodes resource scalability testing
 ===============================================
+
+This report is generated for :ref:`1000_nodes` test plan.
 
 Environment setup
 -----------------

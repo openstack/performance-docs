@@ -2,7 +2,7 @@
 
     PageBreak oneColumn
 
-.. _mq_ha_rabbit_report:
+.. _tenant_networking_report_vxlan_dvr_200_nodes:
 
 ===================================================
 Tenant Networking: Neutron DVR + VXLAN at 200 nodes

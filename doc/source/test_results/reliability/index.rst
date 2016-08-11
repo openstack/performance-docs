@@ -10,7 +10,8 @@ OpenStack reliability testing
 :Abstract:
   This document describes an abstract methodology for OpenStack cluster
   high-availability testing and analysis. OpenStack data plane testing
-  at this moment is out of scope but will be described in future.
+  at this moment is out of scope but will be described in future. All tests
+  have been performed regarding :ref:`reliability_testing`
 
 :Conventions:
 

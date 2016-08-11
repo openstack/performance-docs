@@ -2,6 +2,8 @@
 
     PageBreak oneColumn
 
+.. _db_performance_mariadb:
+
 ===================================
 MariaDB Database performance report
 ===================================

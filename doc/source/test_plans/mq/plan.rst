@@ -434,3 +434,10 @@ This section contains tools that can be used to perform the test plan.
 .. _RPC call: http://docs.openstack.org/developer/oslo.messaging/rpcclient.html#oslo_messaging.RPCClient.call
 .. _RPC cast: http://docs.openstack.org/developer/oslo.messaging/rpcclient.html#oslo_messaging.RPCClient.cast
 .. _Notification: http://docs.openstack.org/developer/oslo.messaging/notifier.html#notifier
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`mq_rabbit_report`
+ * :ref:`zeromq_report`

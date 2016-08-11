@@ -364,3 +364,9 @@ Example of Rally scenario configuration
 
 .. literalinclude:: test_plans/keystone_authenticate.json
    :language: bash
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`openstack_control_plane_performance_report`

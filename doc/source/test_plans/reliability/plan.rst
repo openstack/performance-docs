@@ -375,3 +375,9 @@ Detailed results description
 
 In this section, specify detailed description of test results,
 including factor impact.
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`reliability_testing_results`

@@ -2,7 +2,7 @@
 
     PageBreak oneColumn
 
-.. _mq_ha_rabbit_report:
+.. _mq_rabbit_report:
 
 ===========================
 RabbitMQ Performance Report

@@ -1,6 +1,11 @@
+.. _hw_features_offloads:
+
 ================================
 Hardware Offloads - Test results
 ================================
+
+This report is generated for :ref:`hardware_offloads_performance_analysis` test
+plan.
 
 Baseline physical scenario
 --------------------------

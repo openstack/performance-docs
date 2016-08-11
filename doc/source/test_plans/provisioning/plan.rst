@@ -354,3 +354,9 @@ Full script for collecting performance metrics
 .. _dstat: http://dag.wiee.rs/home-made/dstat/
 .. _Cobbler: http://cobbler.github.io/
 .. _Razor: https://github.com/puppetlabs/razor-server
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`Measuring_performance_of_Cobbler`

@@ -323,3 +323,10 @@ Elapsed time or latency for high-level OpenStack operations like virtual
 machine creation or network configuration may involve many database queries.
 The maximum query throughput the database layer can process with
 reasonable latency determines the maximum cluster size that can be supported.
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`db_performance_mysql`
+ * :ref:`db_performance_mariadb`

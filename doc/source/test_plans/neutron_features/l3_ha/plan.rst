@@ -319,3 +319,10 @@ Priority  Value            Measurement Units  Description
 ========  ===============  =================  ====================================
 1         UDP bandwidth    %                  Loss of UDP packets of 64 bytes size
 ========  ===============  =================  ====================================
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`neutron_l3_ha_test_report_liberty`
+ * :ref:`neutron_l3_ha_test_report_mitaka`

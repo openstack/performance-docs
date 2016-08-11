@@ -1,5 +1,9 @@
+.. _neutron_l3_ha_test_report_liberty:
+
 Neutron L3 HA test results Liberty
 ----------------------------------
+
+This report is generated for :ref:`neutron_l3_ha_test_plan` test plan.
 
 Environment description
 =======================

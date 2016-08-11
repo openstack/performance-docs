@@ -20,14 +20,12 @@ Measuring performance of container cluster systems
   Kubernetes, and Docker Swarm,
   which provide various ways to manage groups of containers.
 
-:Conventions:
-
-
-
 Test Plan
 =========
+
 Test Environment
 ----------------
+
 Preparation
 ^^^^^^^^^^^
 Typical container frameworks consist of several components:
@@ -46,6 +44,7 @@ framework.
 
 Test Case #1: A new application creation time
 ---------------------------------------------
+
 Description
 ^^^^^^^^^^^
 This test is aimed at measuring the total elapsed time of the create
@@ -138,6 +137,7 @@ Measuring values
 
 Test Case #2: A application CPU update time
 -------------------------------------------
+
 Description
 ^^^^^^^^^^^
 This test is aimed at measuring the total elapsed time of the update CPU
@@ -234,6 +234,7 @@ Measuring values
 
 Test Case #3: A application memory update time
 ----------------------------------------------
+
 Description
 ^^^^^^^^^^^
 This test is aimed at measuring the total elapsed time of the update memory
@@ -330,6 +331,7 @@ Measuring values
 
 Test Case #4: A application disk update time
 --------------------------------------------
+
 Description
 ^^^^^^^^^^^
 This test is aimed at measuring the total elapsed time of the update disk
@@ -426,6 +428,7 @@ Measuring values
 
 Test Case #5: A application instances update time
 -------------------------------------------------
+
 Description
 ^^^^^^^^^^^
 This test is aimed at measuring the total elapsed time of the update number of
@@ -521,6 +524,7 @@ Measuring values
 
 Test Case #6: A application restart time
 ----------------------------------------
+
 Description
 ^^^^^^^^^^^
 This test is aimed at measuring the total elapsed time of the restart
@@ -617,6 +621,7 @@ Measuring values
 
 Test Case #7: A application delete time
 ---------------------------------------
+
 Description
 ^^^^^^^^^^^
 This test is aimed at measuring the total elapsed time of the delete
@@ -713,6 +718,7 @@ Measuring values
 
 Test Case #8: Health check Performance
 --------------------------------------
+
 Description
 ^^^^^^^^^^^
 This test is aimed at validating the response time of a health check when many
@@ -783,6 +789,7 @@ Measuring REAL_INTERVAL(TASK_COUNT) values
 
 Applications
 ============
+
 list of container platforms
 ---------------------------
 
@@ -795,3 +802,9 @@ list of container platforms
 +-----------------------------+---------+
 | Docker                      |         |
 +-----------------------------+---------+
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`Results_of_measuring_performance_of_Mesos_Marathon`

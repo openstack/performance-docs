@@ -8,7 +8,7 @@ Results of measuring performance of Cobbler
 :Abstract:
 
   This document includes performance test results of `Cobbler`_
-  service as a provisioning system. All test have been performed
+  service as a provisioning system. All tests have been performed
   regarding :ref:`Measuring_performance_of_provisioning_systems`
 
 

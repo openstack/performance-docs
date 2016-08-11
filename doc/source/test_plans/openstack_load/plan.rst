@@ -186,3 +186,9 @@ In this scenario Rally boots Nova servers at constant rate:
    #. boot server
 
 .. literalinclude:: rally_scenarios/nova_boot_servers.json
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`openstack_load_report`
