@@ -7,8 +7,7 @@ Neutron features test plans
 ===========================
 
 .. toctree::
+    :glob:
     :maxdepth: 3
 
-    l3_ha/plan
-    resource_density/plan
-    agent_restart/plan
+    */plan
