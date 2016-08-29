@@ -1,13 +1,14 @@
 
-.. _openstack_control_plane_performance_report:
+.. _openstack_control_plane_performance_report_200_nodes:
 
-******************************************
-OpenStack control plane performance report
-******************************************
+********************************************************
+OpenStack control plane performance report for 200 nodes
+********************************************************
 
 :Abstract:
 
-  This document includes OpenStack control plane performance test results.
+  This document includes OpenStack control plane performance test results for
+  200 nodes.
   All tests have been performed regarding
   :ref:`openstack_control_plane_performance_test_plan`
 

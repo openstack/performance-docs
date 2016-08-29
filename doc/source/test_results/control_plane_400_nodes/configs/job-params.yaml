@@ -1,0 +1,5 @@
+---
+  concurrency: 5
+  compute: 375
+  gre_enabled: false
+  http_server_with_glance_images: "1.2.3.4"

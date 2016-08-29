@@ -369,4 +369,5 @@ Reports
 =======
 
 Test plan execution reports:
- * :ref:`openstack_control_plane_performance_report`
+ * :ref:`openstack_control_plane_performance_report_200_nodes`
+ * :ref:`openstack_control_plane_performance_report_400_nodes`
