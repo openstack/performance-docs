@@ -7,3 +7,4 @@ Container cluster systems performance
 
     mesos-marathon/mesos-marathon
     kubernetes/index
+    kubernetes/deployment/index
