@@ -162,7 +162,6 @@ was executed to show overall performance and validity of environment.
 |``boot_and_delete_server_with_secgroups`` |5                  |450    |30           |180               |                                                                                                              |
 +------------------------------------------+-------------------+-------+-------------+------------------+--------------------------------------------------------------------------------------------------------------+
 
-
 The errors discovered have been classified as the following bugs:
 
 .. list-table:: Bugs
@@ -205,6 +204,9 @@ The errors discovered have been classified as the following bugs:
      - Open
 
 
+.. image:: graf_rally_M.png
+    :width: 650px
+
 Frequency of appearance of the bugs above is shown in the following table:
 
 .. list-table:: Comparative analysis of failures
@@ -214,12 +216,12 @@ Frequency of appearance of the bugs above is shown in the following table:
      - Test
      - Number of all test of that kind that were executed
      - Number of failed tests
-     - Number of tests that failed because of current problem
+     - Number of tests with root cause determined
     *
      - ``create_delete_routers``
-     - 2210
-     - 248 (11,2 %)
-     - 121(5,5 %) - The server didn't respond in time. 11 (0,49 %) - SubnetInUse: Unable to complete operation on subnet
+     - 3310
+     - 171 (5,2 %)
+     - 121(3,6 %) - The server didn't respond in time. 11 (0,33 %) - SubnetInUse: Unable to complete operation on subnet
     *
      - ``create_and_update_routers``
      - 910
@@ -283,12 +285,21 @@ Shaker test results
 +----------------------------------------+--------+-----------------------------------------------------------------------------------------------------------------+--------+----------+-------------------------------------------------------------------------------------------------------------------------------+
 | OpenStack L3 North-South Dense                                                                                                                                                                                                                                                                                        |
 +----------------------------------------+--------+-----------------------------------------------------------------------------------------------------------------+--------+----------+-------------------------------------------------------------------------------------------------------------------------------+
-| 0                                      | 0      | `report <http://akamyshnikova.github.io/neutron-benchmark-results/mitaka/shaker/dense_l3_north_south.html>`__   | 0      | 0        | `report <http://akamyshnikova.github.io/neutron-benchmark-results/mitaka/shaker/dense_l3_north_south_restart.html>`__         |
+| 0                                      | 0      | `report <http://akamyshnikova.github.io/neutron-benchmark-results/mitaka/shaker/dense_l3_north_south.html>`__   | 29     | 0        | `report <http://akamyshnikova.github.io/neutron-benchmark-results/mitaka/shaker/dense_l3_north_south_restart.html>`__         |
 +----------------------------------------+--------+-----------------------------------------------------------------------------------------------------------------+--------+----------+-------------------------------------------------------------------------------------------------------------------------------+
 | OpenStack L3 East-West Dense                                                                                                                                                                                                                                                                                          |
 +----------------------------------------+--------+-----------------------------------------------------------------------------------------------------------------+--------+----------+-------------------------------------------------------------------------------------------------------------------------------+
-| 0                                      | 0      | `report <http://akamyshnikova.github.io/neutron-benchmark-results/mitaka/shaker/dense_l3_east_west.html>`__     | 29     | 0        | `report <http://akamyshnikova.github.io/neutron-benchmark-results/mitaka/shaker/dense_l3_east_west_restart.html>`__           |
+| 0                                      | 0      | `report <http://akamyshnikova.github.io/neutron-benchmark-results/mitaka/shaker/dense_l3_east_west.html>`__     | 0      | 0        | `report <http://akamyshnikova.github.io/neutron-benchmark-results/mitaka/shaker/dense_l3_east_west_restart.html>`__           |
 +----------------------------------------+--------+-----------------------------------------------------------------------------------------------------------------+--------+----------+-------------------------------------------------------------------------------------------------------------------------------+
+
+
+.. image:: graf_M_East-West.png
+    :width: 650px
+
+
+.. image:: graf_M_North-South.png
+    :width: 650px
+
 
 Shaker provides statistics about maximum, minimum and mean values of
 different connection measurements. Maximum among all maximum values
@@ -456,7 +467,8 @@ Ping to external network from VM during reset of primary(non-primary) controller
 | 11          | 225                 |                | 40                        |
 +-------------+---------------------+----------------+---------------------------+
 
-
+.. image:: graf_M_reboot.png
+    :width: 650px
 
 After reboot of the controller on which l3 agent was active, another l3 agent
 becomes active. When rebooted node recovers, that l3 agent becomes active as well -
@@ -534,6 +546,9 @@ Ping from one VM to another VM in different network during ban L3 agent
 | 21          | 250                 |                   | 6                         |
 +-------------+---------------------+-------------------+---------------------------+
 
+.. image:: graf_M_stop.png
+    :width: 650px
+
 With 250 routers l3 agents started to fail with `unmanaged
 state <http://paste.openstack.org/show/491608/>`__.
 
@@ -572,6 +587,9 @@ Iperf UPD testing between VMs in different networks ban L3 agent
 +---------------------+---------------------------------------------------------------------+---------------------------------------------------------------+
 |                     |  iperf -c 10.2.0.4 -p 5001 -t 120 -i 10 --bandwidth 30M --len 64 -u | WARNING: did not receive ack of last datagram after 10 tries. |
 +---------------------+---------------------------------------------------------------------+---------------------------------------------------------------+
+
+.. image:: graf_M_stop_iperf.png
+    :width: 650px
 
 With 227 routers l3 agents started to fail with `unmanaged
 state <http://paste.openstack.org/show/491608/>`__.
