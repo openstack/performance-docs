@@ -299,9 +299,9 @@ Testing process
 
 As a result of this part we got the following HTML file:
 
-:download:`keystone.html <configs/keystone.html>`
-:download:`boot_attach_live_migrate_and_delete_server_with_secgroups.html <configs/boot_attach_live_migrate_and_delete_server_with_secgroups.html>`
-:download:`create-and-delete-image.html <configs/create-and-delete-image.html>`
+| :download:`keystone.html <configs/keystone.html>`
+| :download:`boot_attach_live_migrate_and_delete_server_with_secgroups.html <configs/boot_attach_live_migrate_and_delete_server_with_secgroups.html>`
+| :download:`create-and-delete-image.html <configs/create-and-delete-image.html>`
 
 Test results
 ============
