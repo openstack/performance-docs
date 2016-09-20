@@ -1,0 +1,856 @@
+<!doctype html>
+<html ng-app="App">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rally | Rally Task Report</title>
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.1.15-beta/nv.d3.min.css">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.1.15-beta/nv.d3.min.js"></script>
+  
+
+  <script type="text/javascript">
+    "use strict";
+    var widgetDirective = function($compile) {
+  var Chart = {
+    _render: function(node, data, chart, do_after){
+      nv.addGraph(function() {
+        d3.select(node)
+          .datum(data).transition().duration(0)
+          .call(chart);
+        if (typeof do_after === "function") {
+          do_after(node, chart)
+        }
+        nv.utils.windowResize(chart.update);
+      })
+    },
+    /* NOTE(amaretskiy): this is actually a result of
+       d3.scale.category20().range(), excluding red color (#d62728)
+       which is reserved for errors */
+    _colors: ["#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c",
+              "#98df8a", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b",
+              "#c49c94", "#e377c2", "#f7b6d2", "#7f7f7f", "#c7c7c7",
+              "#bcbd22", "#dbdb8d", "#17becf", "#9edae5"],
+    _widgets: {
+      Pie: "pie",
+      StackedArea: "stack",
+      Lines: "lines",
+      Histogram: "histogram"
+    },
+    get_chart: function(widget) {
+      if (widget in this._widgets) {
+        var name = this._widgets[widget];
+        return Chart[name]
+      }
+      return function() { console.log("Error: unexpected widget:", widget) }
+    },
+    pie: function(node, data, opts, do_after) {
+      var chart = nv.models.pieChart()
+        .x(function(d) { return d.key })
+        .y(function(d) { return d.values })
+        .showLabels(true)
+        .labelType("percent")
+        .donut(true)
+        .donutRatio(0.25)
+        .donutLabelsOutside(true)
+        .color(function(d){
+          if (d.data && d.data.color) { return d.data.color }
+        });
+
+      var data_ = [], colors = [], colors_map = {errors: "#d62728"};
+      for (var i in data) {
+        var key = data[i][0];
+        if (! (key in colors_map)) {
+          if (! colors.length) { colors = Chart._colors.slice() }
+          colors_map[key] = colors.shift()
+        }
+        data_.push({key:key, values:data[i][1], color:colors_map[key]})
+      }
+      Chart._render(node, data_, chart)
+    },
+    stack: function(node, data, opts, do_after) {
+      var chart = nv.models.stackedAreaChart()
+        .x(function(d) { return d[0] })
+        .y(function(d) { return d[1] })
+        .useInteractiveGuideline(opts.guide)
+        .showControls(opts.controls)
+        .clipEdge(true);
+      chart.xAxis
+        .tickFormat(d3.format(opts.xformat || "d"))
+        .axisLabel(opts.xname || "")
+        .showMaxMin(false);
+      chart.yAxis
+        .orient("left")
+        .tickFormat(d3.format(opts.yformat || ",.3f"));
+      var data_ = [];
+      for (var i in data) {
+        var d = {key:data[i][0], values:data[i][1]};
+        if (d.key === "failed_duration") {
+          d.color = "#d62728"
+        }
+        data_.push(d);
+      }
+      Chart._render(node, data_, chart, do_after);
+    },
+    lines: function(node, data, opts, do_after) {
+      var chart = nv.models.lineChart()
+        .x(function(d) { return d[0] })
+        .y(function(d) { return d[1] })
+        .useInteractiveGuideline(opts.guide)
+        .clipEdge(true);
+      chart.xAxis
+        .tickFormat(d3.format(opts.xformat || "d"))
+        .axisLabel(opts.xname || "")
+        .showMaxMin(false);
+      chart.yAxis
+        .orient("left")
+        .tickFormat(d3.format(opts.yformat || ",.3f"));
+      var data_ = [];
+      for (var i in data) {
+        var d = {key:data[i][0], values:data[i][1]};
+        if (d.key === "failed_duration") {
+          d.color = "#d62728"
+        }
+        data_.push(d)
+      }
+      Chart._render(node, data_, chart, do_after)
+    },
+    histogram: function(node, data, opts) {
+      var chart = nv.models.multiBarChart()
+        .reduceXTicks(true)
+        .showControls(false)
+        .transitionDuration(0)
+        .groupSpacing(0.05);
+      chart
+        .legend.radioButtonMode(true);
+      chart.xAxis
+        .axisLabel("Duration (seconds)")
+        .tickFormat(d3.format(",.2f"));
+      chart.yAxis
+        .axisLabel("Iterations (frequency)")
+        .tickFormat(d3.format("d"));
+      Chart._render(node, data, chart)
+    }
+  };
+
+  return {
+    restrict: "A",
+    scope: { data: "=" },
+    link: function(scope, element, attrs) {
+      scope.$watch("data", function(data) {
+        if (! data) { return console.log("Chart has no data to render!") }
+        if (attrs.widget === "Table") {
+          var ng_class = attrs.lastrowClass ? " ng-class='{"+attrs.lastrowClass+":$last}'" : "";
+          var template = "<table class='striped'><thead>" +
+            "<tr><th ng-repeat='i in data.cols track by $index'>{{i}}<tr>" +
+            "</thead><tbody>" +
+            "<tr" + ng_class + " ng-repeat='row in data.rows track by $index'>" +
+            "<td ng-repeat='i in row track by $index'>{{i}}" +
+            "<tr>" +
+            "</tbody></table>";
+          var el = element.empty().append($compile(template)(scope)).children()[0]
+        } else {
+
+          var el_chart = element.addClass("chart").css({display:"block"});
+          var el = el_chart.html("<svg></svg>").children()[0];
+
+          var do_after = null;
+
+          if (attrs.widget in {StackedArea:0, Lines:0}) {
+
+            /* Hide widget if not enough data */
+            if ((! data.length) || (data[0].length < 1) || (data[0][1].length < 2)) {
+              return element.empty().css({display:"none"})
+            }
+
+            /* NOTE(amaretskiy): Dirty fix for changing chart width in case
+               if there are too long Y values that overlaps chart box. */
+            var do_after = function(node, chart){
+              var g_box = angular.element(el_chart[0].querySelector(".nv-y.nv-axis"));
+
+              if (g_box && g_box[0] && g_box[0].getBBox) {
+
+                try {
+                  // 30 is padding aroung graphs
+                  var width = g_box[0].getBBox().width + 30;
+                } catch (err) {
+                  // This happens sometimes, just skip silently
+                  return
+                }
+
+                // 890 is chart width (set by CSS)
+                if (typeof width === "number" && width > 890) {
+                  width = (890 * 2) - width;
+                  if (width > 0) {
+                    angular.element(node).css({width:width+"px"});
+                    chart.update()
+                  }
+                }
+              }
+            }
+          }
+          else if (attrs.widget === "Pie") {
+            if (! data.length) {
+              return element.empty().css({display:"none"})
+            }
+          }
+
+          var options = {
+            xname: attrs.nameX || "",
+            xformat: attrs.formatX || "d",
+            yformat: attrs.formatY || ",.3f",
+            controls: attrs.controls === "true",
+            guide: attrs.guide === "true"
+          };
+          Chart.get_chart(attrs.widget)(el, data, options, do_after);
+        }
+
+        if (attrs.nameY) {
+          /* NOTE(amaretskiy): Dirty fix for displaying Y-axis label correctly.
+             I believe sometimes NVD3 will allow doing this in normal way */
+          var label_y = angular.element("<div>").addClass("chart-label-y").text(attrs.nameY);
+          angular.element(el).parent().prepend(label_y)
+        }
+
+        if (attrs.description) {
+          var desc_el = angular.element("<div>").addClass(attrs.descriptionClass || "h3").text(attrs.description);
+          angular.element(el).parent().prepend(desc_el)
+        }
+
+        if (attrs.title) {
+          var title_el = angular.element("<div>").addClass(attrs.titleClass || "h2").text(attrs.title);
+          angular.element(el).parent().prepend(title_el)
+        }
+
+        angular.element(el).parent().append(angular.element("<div style='clear:both'>"))
+      });
+    }
+  }
+};
+
+    var controllerFunction = function($scope, $location) {
+        $scope.source = "{\n  \"GlanceImages.create_and_delete_image\": [\n    {\n      \"args\": {\n        \"container_format\": \"bare\", \n        \"disk_format\": \"raw\", \n        \"image_location\": \"http://10.3.56.197/images/glance_1g_image.raw\"\n      }, \n      \"context\": {\n        \"users\": {\n          \"project_domain\": \"default\", \n          \"resource_management_workers\": 20, \n          \"tenants\": 2, \n          \"user_domain\": \"default\", \n          \"users_per_tenant\": 3\n        }\n      }, \n      \"runner\": {\n        \"concurrency\": 50, \n        \"times\": 400, \n        \"type\": \"constant\"\n      }, \n      \"sla\": {\n        \"failure_rate\": {\n          \"max\": 0\n        }\n      }\n    }\n  ]\n}";
+        $scope.scenarios = [{"load_profile": [["parallel iterations", [[0.0, 0], [6.20521734995842, 49.60460691478577], [12.41043469991684, 50], [18.61565204987526, 50], [24.82086939983368, 50], [31.0260867497921, 50], [37.23130409975052, 50], [43.43652144970894, 50], [49.64173879966736, 50], [55.846956149625775, 49.989619568722986], [62.0521734995842, 49.994561672508574], [68.25739084954262, 50], [74.46260819950103, 50], [80.66782554945945, 50], [86.87304289941788, 50], [93.0782602493763, 49.996890369865525], [99.28347759933472, 49.98816397918578], [105.48869494929313, 49.996326100307314], [111.69391229925155, 49.991051259603964], [117.89912964920998, 49.997761902371934], [124.1043469991684, 49.97848510026226], [130.30956434912682, 50], [136.51478169908523, 50], [142.71999904904365, 50], [148.92521639900207, 49.99927931335262], [155.13043374896048, 49.99941325340981], [161.3356510989189, 49.99309766849273], [167.54086844887735, 49.99490389972875], [173.74608579883576, 49.99449013022902], [179.95130314879418, 49.99403678578415], [186.1565204987526, 50], [192.36173784871102, 49.99400789223193], [198.56695519866943, 49.99880956259552], [204.77217254862785, 49.99919232531777], [210.97738989858627, 49.99873540760115], [217.18260724854468, 49.99890976789362], [223.3878245985031, 49.99911559603084], [229.59304194846152, 49.99456013561748], [235.79825929841996, 49.99547350998343], [242.00347664837838, 49.98704508406087], [248.2086939983368, 49.99843033472274], [254.41391134829522, 49.991665708655795], [260.61912869825363, 49.99826938380491], [266.8243460482121, 49.997575285373145], [273.02956339817047, 50], [279.2347807481289, 49.994545189351804], [285.4399980980873, 50], [291.64521544804575, 49.9993207325671], [297.85043279800414, 49.99855770457058], [304.0556501479626, 49.998725264120054], [310.26086749792097, 49.991811329085124], [316.4660848478794, 49.99399313807764], [322.6713021978378, 49.99185566839263], [328.87651954779625, 49.99235143103125], [335.0817368977547, 49.99923793256043], [341.2869542477131, 49.99944852505998], [347.49217159767153, 49.998551902806796], [353.6973889476299, 49.99877106347408], [359.90260629758836, 49.99534026152722], [366.10782364754675, 49.997309172683465], [372.3130409975052, 49.996693417274265], [378.5182583474636, 49.992675484514365], [384.72347569742203, 49.99484242364003], [390.9286930473804, 49.99333050793625], [397.13391039733887, 49.996161153472684], [403.3391277472973, 49.997098887562146], [409.5443450972557, 49.99843840340088], [415.74956244721415, 49.99781281188879], [421.95477979717253, 49.99592581702679], [428.159997147131, 49.996214790971216], [434.36521449708937, 49.996520017538685], [440.5704318470478, 49.99554532121891], [446.7756491970062, 49.996639587664326], [452.98086654696465, 49.99368625935223], [459.18608389692304, 49.99938939317587], [465.3913012468815, 49.997028497950915], [471.5965185968399, 49.99795074786278], [477.8017359467983, 49.99651709744563], [484.00695329675676, 49.99834561360224], [490.21217064671515, 49.99702857479542], [496.4173879966736, 49.9965345027371], [502.622605346632, 49.9899710941341], [508.82782269659043, 49.99843632859795], [515.0330400465489, 49.994056650101335], [521.2382573965073, 49.99432733504187], [527.4434747464657, 49.99901838767034], [533.6486920964242, 49.99654760473355], [539.8539094463825, 49.995895540272606], [546.0591267963409, 49.99724954130975], [552.2643441462993, 49.995128285825636], [558.4695614962578, 49.99490482186339], [564.6747788462162, 49.99773047294943], [570.8799961961746, 49.31773356634322], [577.085213546133, 44.6625481630054], [583.2904308960915, 39.41570356389819], [589.4956482460499, 32.378862374311524], [595.7008655960083, 25.660264858179715], [601.9060829459668, 17.425037863543437], [608.1113002959252, 6.979963499967872], [614.3165176458836, 0.07591090960816375], [620.5217349958419, 0]]]], "errors": [{"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_MaIOfGnL:c67cc238-accb-48e0-99fa-80eadf273c5e to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_MaIOfGnL:c67cc238-accb-48e0-99fa-80eadf273c5e to become ('ACTIVE') current status SAVING\n", "iteration": 5}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_gaCdTN0h:4e696a4e-b763-43c4-b515-749fea348a72 to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_gaCdTN0h:4e696a4e-b763-43c4-b515-749fea348a72 to become ('ACTIVE') current status SAVING\n", "iteration": 8}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_awcyeDF8:9c066398-b9d0-484a-9b23-7f8e91951e32 to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_awcyeDF8:9c066398-b9d0-484a-9b23-7f8e91951e32 to become ('ACTIVE') current status SAVING\n", "iteration": 10}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_8Ax5jh1d:2e7b4c54-6a97-496a-9ca7-92af517c93fa to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_8Ax5jh1d:2e7b4c54-6a97-496a-9ca7-92af517c93fa to become ('ACTIVE') current status SAVING\n", "iteration": 14}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_PlJxMIIV:b04c80da-01b6-4531-847b-bec41523be7e to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_PlJxMIIV:b04c80da-01b6-4531-847b-bec41523be7e to become ('ACTIVE') current status SAVING\n", "iteration": 17}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_Q885IARW:b15bdccf-2e8e-458b-aca1-a6b6f2d5912e to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_Q885IARW:b15bdccf-2e8e-458b-aca1-a6b6f2d5912e to become ('ACTIVE') current status SAVING\n", "iteration": 18}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_2H7Tdo6L:a0a32fc7-a561-43d8-9b5a-49bf07c03385 to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_2H7Tdo6L:a0a32fc7-a561-43d8-9b5a-49bf07c03385 to become ('ACTIVE') current status SAVING\n", "iteration": 20}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_G2tR14Ap:25b148a5-6816-4c00-aa79-f689e1726f3e to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_G2tR14Ap:25b148a5-6816-4c00-aa79-f689e1726f3e to become ('ACTIVE') current status SAVING\n", "iteration": 27}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_GMvSS3T4:57311b16-51a8-42e1-8215-7a0c083bf311 to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_GMvSS3T4:57311b16-51a8-42e1-8215-7a0c083bf311 to become ('ACTIVE') current status SAVING\n", "iteration": 28}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_YDGXswSm:e10a3a54-03de-4584-8ff2-c1d44be44d9f to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_YDGXswSm:e10a3a54-03de-4584-8ff2-c1d44be44d9f to become ('ACTIVE') current status SAVING\n", "iteration": 32}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_1PWygP77:0db9e4cb-fe6a-4b06-ad3d-1ae4e9d416ae to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_1PWygP77:0db9e4cb-fe6a-4b06-ad3d-1ae4e9d416ae to become ('ACTIVE') current status SAVING\n", "iteration": 34}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_lgzWSR4j:964e6cdd-9737-4a36-b9c2-21728067b2a1 to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_lgzWSR4j:964e6cdd-9737-4a36-b9c2-21728067b2a1 to become ('ACTIVE') current status SAVING\n", "iteration": 37}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_zOjoZ4tM:5aafd5b6-104a-421c-bbcc-a21771243687 to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_zOjoZ4tM:5aafd5b6-104a-421c-bbcc-a21771243687 to become ('ACTIVE') current status SAVING\n", "iteration": 45}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_2FL0b4ZC:fcd57739-d97f-45dd-821b-ff4c65279ce2 to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_2FL0b4ZC:fcd57739-d97f-45dd-821b-ff4c65279ce2 to become ('ACTIVE') current status SAVING\n", "iteration": 46}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_ix5Y0dmX:e38e163f-df8f-4c7f-904b-214940579713 to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_ix5Y0dmX:e38e163f-df8f-4c7f-904b-214940579713 to become ('ACTIVE') current status SAVING\n", "iteration": 112}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_lSUzmcDU:6667d079-41ab-47cf-932f-69d099f940bf to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_lSUzmcDU:6667d079-41ab-47cf-932f-69d099f940bf to become ('ACTIVE') current status SAVING\n", "iteration": 118}, {"type": "TimeoutException", "message": "Rally tired waiting for Image s_rally_749ba780_nWtdDmZO:0d533ce8-75f4-4179-a322-a96657947681 to become ('ACTIVE') current status SAVING", "traceback": "Traceback (most recent call last):\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/runner.py\", line 64, in _run_scenario_once\n    getattr(scenario_inst, method_name)(**kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/images.py\", line 89, in create_and_delete_image\n    **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/atomic.py\", line 84, in func_atomic_actions\n    f = func(self, *args, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/scenarios/glance/utils.py\", line 47, in _create_image\n    disk_format, **kwargs)\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/plugins/openstack/wrappers/glance.py\", line 111, in create_image\n    check_interval=CONF.benchmark.\n  File \"/root/.venv/local/lib/python2.7/site-packages/rally/task/utils.py\", line 246, in wait_for_status\n    resource_status=get_status(resource))\nTimeoutException: Rally tired waiting for Image s_rally_749ba780_nWtdDmZO:0d533ce8-75f4-4179-a322-a96657947681 to become ('ACTIVE') current status SAVING\n", "iteration": 119}], "name": "create_and_delete_image", "runner": "constant", "iterations_count": 400, "output_errors": [], "pos": "0", "load_duration": 608.3546421527863, "sla_success": false, "met": "create_and_delete_image", "atomic": {"pie": [["glance.create_image", 67.32642252504826], ["glance.delete_image", 6.596277943253517]], "iter": [["glance.create_image", [[1, 85.30437994003296], [2, 94.24755597114563], [3, 52.86265206336975], [4, 48.899091958999634], [5, 54.0889790058136], [6, 123.24667191505432], [7, 48.45939803123474], [8, 51.447798013687134], [9, 122.96395683288574], [10, 48.49296998977661], [11, 123.18275308609009], [12, 47.988428831100464], [13, 49.328218936920166], [14, 88.5821590423584], [15, 122.96572208404541], [16, 50.56496214866638], [17, 93.26699900627136], [18, 122.77213096618652], [19, 123.44024395942688], [20, 95.3614821434021], [21, 122.93655300140381], [22, 91.62115597724915], [23, 47.74863409996033], [24, 53.47311806678772], [25, 93.43635106086731], [26, 51.685181856155396], [27, 50.82178807258606], [28, 123.84776210784912], [29, 123.06823110580444], [30, 49.4133939743042], [31, 90.71052694320679], [32, 94.46037197113037], [33, 123.05987215042114], [34, 93.35888695716858], [35, 123.89590811729431], [36, 48.9257869720459], [37, 94.98693108558655], [38, 123.35406589508057], [39, 49.59816288948059], [40, 49.254518032073975], [41, 87.72244691848755], [42, 84.03288912773132], [43, 87.51090097427368], [44, 48.533172845840454], [45, 92.80747318267822], [46, 123.38692593574524], [47, 122.97523307800293], [48, 53.8184130191803], [49, 52.85468888282776], [50, 89.41298699378967], [51, 54.25098395347595], [52, 55.49504113197327], [53, 48.12361192703247], [54, 47.74259305000305], [55, 47.350446939468384], [56, 52.20948791503906], [57, 47.7801718711853], [58, 101.95182299613953], [59, 99.14012503623962], [60, 49.62401294708252], [61, 46.2366099357605], [62, 45.180126905441284], [63, 49.05959892272949], [64, 48.2068030834198], [65, 51.54244613647461], [66, 48.37363386154175], [67, 47.55304789543152], [68, 106.8979480266571], [69, 106.56655716896057], [70, 50.844680070877075], [71, 47.05471396446228], [72, 53.05903387069702], [73, 57.02153420448303], [74, 64.86101412773132], [75, 53.58075308799744], [76, 53.80123209953308], [77, 53.389514207839966], [78, 54.66978693008423], [79, 53.11526894569397], [80, 52.78609490394592], [81, 54.16232490539551], [82, 58.4385130405426], [83, 57.12219190597534], [84, 53.46168518066406], [85, 59.137133836746216], [86, 56.08664393424988], [87, 58.92457604408264], [88, 53.76152992248535], [89, 53.985620975494385], [90, 103.40682911872864], [91, 109.17447113990784], [92, 55.29952907562256], [93, 57.211585998535156], [94, 58.915687084198], [95, 55.56489181518555], [96, 55.5601589679718], [97, 57.786296129226685], [98, 56.94367504119873], [99, 52.09367895126343], [100, 53.383471965789795], [101, 57.324732065200806], [102, 57.877095222473145], [103, 111.07142210006714], [104, 57.395731925964355], [105, 65.13343906402588], [106, 56.79524207115173], [107, 58.07741403579712], [108, 121.75253915786743], [109, 56.10074305534363], [110, 66.62187886238098], [111, 112.51954483985901], [112, 112.65115690231323], [113, 125.28934693336487], [114, 56.53759503364563], [115, 125.49201703071594], [116, 59.1640260219574], [117, 56.198575019836426], [118, 60.76214599609375], [119, 122.75782585144043], [120, 123.11454582214355], [121, 60.15768504142761], [122, 69.83288502693176], [123, 59.78143000602722], [124, 68.19303798675537], [125, 60.57041597366333], [126, 56.35635495185852], [127, 59.835519790649414], [128, 62.66075801849365], [129, 59.19312906265259], [130, 60.17639398574829], [131, 62.724950075149536], [132, 66.4112479686737], [133, 66.38861298561096], [134, 68.5630190372467], [135, 69.35549211502075], [136, 67.12657690048218], [137, 63.07018208503723], [138, 70.21495294570923], [139, 65.77690982818604], [140, 61.515581130981445], [141, 56.55668902397156], [142, 70.61738395690918], [143, 68.25010108947754], [144, 61.76440382003784], [145, 59.18868589401245], [146, 59.49223804473877], [147, 58.42216491699219], [148, 57.44717001914978], [149, 67.67238903045654], [150, 64.99372720718384], [151, 63.15217185020447], [152, 63.43468904495239], [153, 72.37495303153992], [154, 56.776134967803955], [155, 75.00440907478333], [156, 73.62978506088257], [157, 62.43512797355652], [158, 70.42886090278625], [159, 60.567760944366455], [160, 78.94615697860718], [161, 65.74865484237671], [162, 57.83846998214722], [163, 73.02388596534729], [164, 68.34899091720581], [165, 73.10329914093018], [166, 65.46036314964294], [167, 64.68996787071228], [168, 70.04476690292358], [169, 73.63971900939941], [170, 75.57308983802795], [171, 69.48039484024048], [172, 72.41031980514526], [173, 65.60464906692505], [174, 59.88137602806091], [175, 60.60255813598633], [176, 78.08146286010742], [177, 113.99984097480774], [178, 72.96113681793213], [179, 64.619873046875], [180, 114.29882407188416], [181, 68.46578907966614], [182, 67.82825899124146], [183, 68.00074005126953], [184, 72.0001380443573], [185, 75.7948648929596], [186, 69.98177599906921], [187, 71.027508020401], [188, 67.5034339427948], [189, 73.87942504882812], [190, 68.8033800125122], [191, 69.73600697517395], [192, 63.72472810745239], [193, 63.904492139816284], [194, 70.61004209518433], [195, 64.61625409126282], [196, 65.00533699989319], [197, 62.163310050964355], [198, 58.827900886535645], [199, 63.26164984703064], [200, 64.15973782539368], [201, 59.06307816505432], [202, 72.38371396064758], [203, 62.458613872528076], [204, 67.51396298408508], [205, 60.40570306777954], [206, 74.21842908859253], [207, 61.2646598815918], [208, 66.57502913475037], [209, 76.20377516746521], [210, 58.0429949760437], [211, 55.270663022994995], [212, 64.4562599658966], [213, 60.854161977767944], [214, 56.792561054229736], [215, 62.09070181846619], [216, 111.79663395881653], [217, 112.1884069442749], [218, 54.425889015197754], [219, 62.26604390144348], [220, 101.7421669960022], [221, 105.74364686012268], [222, 57.41603493690491], [223, 58.25532388687134], [224, 54.36683201789856], [225, 54.31606602668762], [226, 58.67011284828186], [227, 57.778225898742676], [228, 57.06780409812927], [229, 57.6706919670105], [230, 75.98912000656128], [231, 61.63541507720947], [232, 63.6271698474884], [233, 67.7968430519104], [234, 60.22677707672119], [235, 55.750941038131714], [236, 58.05163216590881], [237, 58.049379110336304], [238, 58.27496695518494], [239, 53.54039001464844], [240, 62.934900999069214], [241, 59.64217805862427], [242, 55.29381990432739], [243, 64.83378100395203], [244, 61.45490908622742], [245, 54.78695893287659], [246, 60.51209306716919], [247, 61.78153610229492], [248, 61.7589910030365], [249, 54.753324031829834], [250, 59.25863289833069], [251, 54.968008041381836], [252, 58.64695906639099], [253, 55.69187784194946], [254, 58.810669898986816], [255, 59.03328609466553], [256, 51.92946004867554], [257, 79.81398797035217], [258, 53.22819209098816], [259, 59.231019020080566], [260, 56.44659090042114], [261, 56.56096005439758], [262, 56.972954988479614], [263, 66.84239602088928], [264, 61.740484952926636], [265, 68.03030109405518], [266, 54.2026469707489], [267, 56.185240030288696], [268, 57.35528779029846], [269, 62.55963397026062], [270, 52.898144006729126], [271, 55.12462282180786], [272, 54.36950492858887], [273, 63.163464069366455], [274, 62.448034048080444], [275, 61.17266392707825], [276, 60.77896308898926], [277, 89.03386688232422], [278, 60.041386127471924], [279, 61.024231910705566], [280, 58.405153036117554], [281, 68.19246983528137], [282, 58.26493000984192], [283, 55.70668411254883], [284, 106.65133810043335], [285, 114.741938829422], [286, 71.31610703468323], [287, 118.92632794380188], [288, 118.7617118358612], [289, 60.84938097000122], [290, 57.43374800682068], [291, 63.773910999298096], [292, 65.2860541343689], [293, 59.29306101799011], [294, 69.93402981758118], [295, 58.9512140750885], [296, 60.800220012664795], [297, 56.43623089790344], [298, 55.29906487464905], [299, 59.894572019577026], [300, 53.927181005477905], [301, 115.07917213439941], [302, 115.74748802185059], [303, 55.900834798812866], [304, 57.96009397506714], [305, 54.85031318664551], [306, 60.10775303840637], [307, 61.40341591835022], [308, 55.86582684516907], [309, 58.10041689872742], [310, 60.38743805885315], [311, 52.88126301765442], [312, 62.11971187591553], [313, 61.32957100868225], [314, 55.57165789604187], [315, 58.94399809837341], [316, 58.45949602127075], [317, 59.61489009857178], [318, 61.3967490196228], [319, 63.499244928359985], [320, 60.792860984802246], [321, 59.370311975479126], [322, 60.01089596748352], [323, 57.72182893753052], [324, 61.85030198097229], [325, 67.85036706924438], [326, 55.5170738697052], [327, 61.01275897026062], [328, 69.58269691467285], [329, 62.39276385307312], [330, 56.30944085121155], [331, 65.05874395370483], [332, 56.895811796188354], [333, 67.24528312683105], [334, 54.27965307235718], [335, 58.68272614479065], [336, 66.29430794715881], [337, 63.23641896247864], [338, 61.036381006240845], [339, 67.73484802246094], [340, 62.4727520942688], [341, 63.306703090667725], [342, 63.53079795837402], [343, 65.41494703292847], [344, 61.90858697891235], [345, 68.62869215011597], [346, 68.37549018859863], [347, 63.390496015548706], [348, 75.65546703338623], [349, 60.54671502113342], [350, 69.57349705696106], [351, 71.52158617973328], [352, 53.89227509498596], [353, 62.76908087730408], [354, 66.42941904067993], [355, 72.67422699928284], [356, 94.27741003036499], [357, 96.28399705886841], [358, 68.88385200500488], [359, 55.6415331363678], [360, 103.66802597045898], [361, 102.13515090942383], [362, 57.52013897895813], [363, 64.91817092895508], [364, 65.41903305053711], [365, 55.52259683609009], [366, 70.52520513534546], [367, 65.00842213630676], [368, 57.335983991622925], [369, 58.76395893096924], [370, 65.6010148525238], [371, 64.16598701477051], [372, 60.62339997291565], [373, 63.550724029541016], [374, 66.42073583602905], [375, 62.89650082588196], [376, 59.200928926467896], [377, 63.9779372215271], [378, 56.84578204154968], [379, 62.30382490158081], [380, 60.99103808403015], [381, 60.57275199890137], [382, 57.510292053222656], [383, 58.05634808540344], [384, 51.452428102493286], [385, 50.774956941604614], [386, 58.037935972213745], [387, 52.951371908187866], [388, 56.06523513793945], [389, 52.96689009666443], [390, 51.107532024383545], [391, 54.102802991867065], [392, 53.914276123046875], [393, 54.17587399482727], [394, 52.16604995727539], [395, 49.59711790084839], [396, 48.11773610115051], [397, 45.388254165649414], [398, 44.4090850353241], [399, 42.809077978134155], [400, 40.852335929870605]]], ["glance.delete_image", [[1, 4.3434531688690186], [2, 4.736238956451416], [3, 4.797553062438965], [4, 4.716994047164917], [5, 4.065735816955566], [6, 0], [7, 3.566848039627075], [8, 3.833432197570801], [9, 0], [10, 4.585663080215454], [11, 0], [12, 4.295389890670776], [13, 3.9180638790130615], [14, 5.620467901229858], [15, 0], [16, 2.6410012245178223], [17, 4.662578105926514], [18, 0], [19, 0], [20, 5.626911878585815], [21, 0], [22, 4.30924391746521], [23, 4.073536157608032], [24, 4.104704856872559], [25, 3.7030999660491943], [26, 4.439671039581299], [27, 3.2944040298461914], [28, 0], [29, 0], [30, 4.139962911605835], [31, 4.838050842285156], [32, 4.278244972229004], [33, 0], [34, 5.5397789478302], [35, 0], [36, 3.8325870037078857], [37, 4.771142959594727], [38, 0], [39, 3.8345160484313965], [40, 4.111111879348755], [41, 4.605211973190308], [42, 12.179348945617676], [43, 3.869441032409668], [44, 4.572326183319092], [45, 3.3204421997070312], [46, 0], [47, 0], [48, 3.758647918701172], [49, 4.067478179931641], [50, 4.50796103477478], [51, 5.478924989700317], [52, 5.196092128753662], [53, 5.846143007278442], [54, 4.687997817993164], [55, 5.450856924057007], [56, 5.040101051330566], [57, 5.742385149002075], [58, 6.54720401763916], [59, 5.17237401008606], [60, 3.5035669803619385], [61, 5.560354948043823], [62, 6.740728139877319], [63, 5.647669792175293], [64, 8.088947057723999], [65, 5.814014911651611], [66, 4.8714280128479], [67, 4.826153039932251], [68, 4.58233904838562], [69, 8.895932912826538], [70, 4.4634010791778564], [71, 8.852394104003906], [72, 7.509057998657227], [73, 5.772233963012695], [74, 6.478843927383423], [75, 7.52669095993042], [76, 10.752947807312012], [77, 6.0041468143463135], [78, 9.488166093826294], [79, 6.771881103515625], [80, 5.46144700050354], [81, 6.076663970947266], [82, 5.384903907775879], [83, 5.966891050338745], [84, 5.759814023971558], [85, 6.766160011291504], [86, 4.829905986785889], [87, 9.576199054718018], [88, 5.568896055221558], [89, 6.479053974151611], [90, 6.960149049758911], [91, 8.250155925750732], [92, 7.288043022155762], [93, 5.2001049518585205], [94, 6.452868938446045], [95, 8.837034940719604], [96, 7.225610971450806], [97, 6.345671892166138], [98, 9.319796085357666], [99, 4.8002610206604], [100, 7.8818769454956055], [101, 7.7826988697052], [102, 6.534771919250488], [103, 4.786716938018799], [104, 7.6835949420928955], [105, 7.106348037719727], [106, 7.811522006988525], [107, 8.360116958618164], [108, 9.230844020843506], [109, 10.649924039840698], [110, 12.439420938491821], [111, 4.336900949478149], [112, 7.523679971694946], [113, 0], [114, 7.478801012039185], [115, 8.750279903411865], [116, 8.852175951004028], [117, 7.404246091842651], [118, 8.898375034332275], [119, 0], [120, 0], [121, 9.236886024475098], [122, 14.268379926681519], [123, 8.067065000534058], [124, 6.36396598815918], [125, 5.903764009475708], [126, 9.863830089569092], [127, 6.40347695350647], [128, 7.590900897979736], [129, 5.142879009246826], [130, 10.654139995574951], [131, 7.973345994949341], [132, 4.730193853378296], [133, 8.22687292098999], [134, 6.134897947311401], [135, 4.861008167266846], [136, 6.230024099349976], [137, 9.611088037490845], [138, 8.585894107818604], [139, 5.167863845825195], [140, 9.086198091506958], [141, 7.845136880874634], [142, 9.822576999664307], [143, 7.455765008926392], [144, 3.855937957763672], [145, 6.271726131439209], [146, 5.896870851516724], [147, 5.748023986816406], [148, 4.237669944763184], [149, 8.42709994316101], [150, 6.797173976898193], [151, 6.906122207641602], [152, 11.853399991989136], [153, 5.8639609813690186], [154, 5.63112998008728], [155, 11.408874034881592], [156, 12.883819103240967], [157, 7.294968128204346], [158, 6.330549001693726], [159, 7.580157995223999], [160, 10.083379983901978], [161, 10.756623983383179], [162, 9.08866810798645], [163, 7.9211649894714355], [164, 7.844870090484619], [165, 7.418792963027954], [166, 6.326207876205444], [167, 6.867408037185669], [168, 8.833523035049438], [169, 6.107388019561768], [170, 5.2405970096588135], [171, 6.696078062057495], [172, 9.947710037231445], [173, 5.988814830780029], [174, 7.245680093765259], [175, 6.318583965301514], [176, 6.69130802154541], [177, 6.1666741371154785], [178, 5.478111982345581], [179, 5.404587984085083], [180, 7.527122974395752], [181, 5.036557912826538], [182, 5.6088690757751465], [183, 3.5761330127716064], [184, 4.772716999053955], [185, 7.460262060165405], [186, 7.313961029052734], [187, 5.355633020401001], [188, 3.650437116622925], [189, 6.735674142837524], [190, 5.627363920211792], [191, 8.996596097946167], [192, 5.434990167617798], [193, 7.161144018173218], [194, 7.312849998474121], [195, 5.07176399230957], [196, 6.044167995452881], [197, 8.65181589126587], [198, 6.227752208709717], [199, 5.923352956771851], [200, 6.083600044250488], [201, 7.94831395149231], [202, 13.030640125274658], [203, 7.2021708488464355], [204, 7.311877012252808], [205, 6.6638689041137695], [206, 6.226449012756348], [207, 6.406416893005371], [208, 13.311363935470581], [209, 6.943314075469971], [210, 5.248389005661011], [211, 7.218952178955078], [212, 6.156938076019287], [213, 8.717081069946289], [214, 6.323698997497559], [215, 7.360220909118652], [216, 9.207421064376831], [217, 9.290051937103271], [218, 7.665058851242065], [219, 11.01686716079712], [220, 3.8542070388793945], [221, 5.549346923828125], [222, 6.875782012939453], [223, 6.857512950897217], [224, 8.26598596572876], [225, 5.781950950622559], [226, 7.474555015563965], [227, 6.4277520179748535], [228, 5.248979091644287], [229, 6.266686916351318], [230, 7.326839923858643], [231, 8.130918025970459], [232, 24.15243697166443], [233, 5.537294864654541], [234, 7.5693769454956055], [235, 6.704097032546997], [236, 6.601858139038086], [237, 5.92071008682251], [238, 7.4105751514434814], [239, 5.9755988121032715], [240, 5.888197183609009], [241, 5.900768041610718], [242, 5.878376007080078], [243, 7.619159936904907], [244, 5.384622812271118], [245, 7.4386208057403564], [246, 6.750482082366943], [247, 6.703519105911255], [248, 11.29612112045288], [249, 5.919846057891846], [250, 5.570602178573608], [251, 6.6053361892700195], [252, 5.943874835968018], [253, 5.942729949951172], [254, 9.51033902168274], [255, 6.6374218463897705], [256, 6.204689979553223], [257, 6.996252059936523], [258, 6.274258852005005], [259, 10.410847902297974], [260, 6.2674009799957275], [261, 7.994951009750366], [262, 7.901203870773315], [263, 6.669547080993652], [264, 8.16122579574585], [265, 15.522891998291016], [266, 7.592244863510132], [267, 9.64489197731018], [268, 6.568982839584351], [269, 7.56030011177063], [270, 6.523926019668579], [271, 6.760222911834717], [272, 6.296643018722534], [273, 11.671795129776001], [274, 6.797095060348511], [275, 6.740626096725464], [276, 8.418842077255249], [277, 6.83083701133728], [278, 7.614177942276001], [279, 6.362788915634155], [280, 12.002174854278564], [281, 7.459053039550781], [282, 6.685368061065674], [283, 5.401490211486816], [284, 6.055566072463989], [285, 6.151673078536987], [286, 15.127789974212646], [287, 6.752562046051025], [288, 4.928774118423462], [289, 9.42238712310791], [290, 8.49622392654419], [291, 16.029600143432617], [292, 22.11705994606018], [293, 5.839601039886475], [294, 28.287179231643677], [295, 7.9601640701293945], [296, 7.45263409614563], [297, 7.137683153152466], [298, 5.524979829788208], [299, 28.149999856948853], [300, 8.767961025238037], [301, 7.555309057235718], [302, 7.081094026565552], [303, 6.19897198677063], [304, 6.876969814300537], [305, 5.5810770988464355], [306, 5.518515110015869], [307, 8.208186149597168], [308, 12.395678997039795], [309, 13.261116981506348], [310, 7.01653790473938], [311, 4.2770891189575195], [312, 6.485856771469116], [313, 7.840594053268433], [314, 7.124122142791748], [315, 3.9856178760528564], [316, 5.7821879386901855], [317, 4.820102214813232], [318, 8.555298089981079], [319, 12.756673812866211], [320, 4.0127081871032715], [321, 4.72954797744751], [322, 6.39521598815918], [323, 12.736720085144043], [324, 8.477056980133057], [325, 11.257782936096191], [326, 5.407043933868408], [327, 7.7887890338897705], [328, 15.853217124938965], [329, 5.804972887039185], [330, 6.326390027999878], [331, 9.706911087036133], [332, 11.429512023925781], [333, 8.033370971679688], [334, 7.439875841140747], [335, 8.863163948059082], [336, 9.727963924407959], [337, 6.379880905151367], [338, 14.510897874832153], [339, 6.409717798233032], [340, 7.958755970001221], [341, 7.009068965911865], [342, 6.292263984680176], [343, 6.714262962341309], [344, 6.344836950302124], [345, 7.8524158000946045], [346, 9.594827890396118], [347, 6.197175979614258], [348, 7.892891883850098], [349, 6.3456361293792725], [350, 7.6320412158966064], [351, 12.225780010223389], [352, 12.500226974487305], [353, 8.63670802116394], [354, 5.7523579597473145], [355, 5.305912971496582], [356, 3.380157947540283], [357, 2.761470079421997], [358, 8.104825019836426], [359, 8.446326971054077], [360, 1.7795820236206055], [361, 1.2297239303588867], [362, 8.161350965499878], [363, 6.580981969833374], [364, 5.780027151107788], [365, 8.542051792144775], [366, 7.4636781215667725], [367, 5.320203065872192], [368, 10.464271068572998], [369, 6.894119024276733], [370, 5.647930860519409], [371, 5.290536880493164], [372, 5.448408126831055], [373, 6.672523021697998], [374, 5.9007790088653564], [375, 7.109995126724243], [376, 4.920085191726685], [377, 4.6430439949035645], [378, 4.399793863296509], [379, 4.717183828353882], [380, 3.2172369956970215], [381, 3.442107915878296], [382, 2.6490960121154785], [383, 3.2478039264678955], [384, 3.3539249897003174], [385, 3.9812521934509277], [386, 1.9754390716552734], [387, 2.454317092895508], [388, 1.5312778949737549], [389, 2.089232921600342], [390, 2.0387210845947266], [391, 1.682621955871582], [392, 1.7647299766540527], [393, 1.9367740154266357], [394, 2.1062369346618652], [395, 1.8288631439208984], [396, 1.5975549221038818], [397, 1.9251501560211182], [398, 1.6589350700378418], [399, 1.07218599319458], [400, 1.574894905090332]]], ["failed_duration", [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0.00017499923706054688], [7, 0], [8, 0], [9, 0.0002582073211669922], [10, 0], [11, 0.0001621246337890625], [12, 0], [13, 0], [14, 0], [15, 0.00022983551025390625], [16, 0], [17, 0], [18, 0.0002110004425048828], [19, 0.0002269744873046875], [20, 0], [21, 0.00028705596923828125], [22, 0], [23, 0], [24, 0], [25, 0], [26, 0], [27, 0], [28, 0.00017881393432617188], [29, 0.00020194053649902344], [30, 0], [31, 0], [32, 0], [33, 0.00014281272888183594], [34, 0], [35, 0.00017905235290527344], [36, 0], [37, 0], [38, 0.0002510547637939453], [39, 0], [40, 0], [41, 0], [42, 0], [43, 0], [44, 0], [45, 0], [46, 0.00015401840209960938], [47, 0.0001709461212158203], [48, 0], [49, 0], [50, 0], [51, 0], [52, 0], [53, 0], [54, 0], [55, 0], [56, 0], [57, 0], [58, 0], [59, 0], [60, 0], [61, 0], [62, 0], [63, 0], [64, 0], [65, 0], [66, 0], [67, 0], [68, 0], [69, 0], [70, 0], [71, 0], [72, 0], [73, 0], [74, 0], [75, 0], [76, 0], [77, 0], [78, 0], [79, 0], [80, 0], [81, 0], [82, 0], [83, 0], [84, 0], [85, 0], [86, 0], [87, 0], [88, 0], [89, 0], [90, 0], [91, 0], [92, 0], [93, 0], [94, 0], [95, 0], [96, 0], [97, 0], [98, 0], [99, 0], [100, 0], [101, 0], [102, 0], [103, 0], [104, 0], [105, 0], [106, 0], [107, 0], [108, 0], [109, 0], [110, 0], [111, 0], [112, 0], [113, 0.00013113021850585938], [114, 0], [115, 0], [116, 0], [117, 0], [118, 0], [119, 9.703636169433594e-05], [120, 9.608268737792969e-05], [121, 0], [122, 0], [123, 0], [124, 0], [125, 0], [126, 0], [127, 0], [128, 0], [129, 0], [130, 0], [131, 0], [132, 0], [133, 0], [134, 0], [135, 0], [136, 0], [137, 0], [138, 0], [139, 0], [140, 0], [141, 0], [142, 0], [143, 0], [144, 0], [145, 0], [146, 0], [147, 0], [148, 0], [149, 0], [150, 0], [151, 0], [152, 0], [153, 0], [154, 0], [155, 0], [156, 0], [157, 0], [158, 0], [159, 0], [160, 0], [161, 0], [162, 0], [163, 0], [164, 0], [165, 0], [166, 0], [167, 0], [168, 0], [169, 0], [170, 0], [171, 0], [172, 0], [173, 0], [174, 0], [175, 0], [176, 0], [177, 0], [178, 0], [179, 0], [180, 0], [181, 0], [182, 0], [183, 0], [184, 0], [185, 0], [186, 0], [187, 0], [188, 0], [189, 0], [190, 0], [191, 0], [192, 0], [193, 0], [194, 0], [195, 0], [196, 0], [197, 0], [198, 0], [199, 0], [200, 0], [201, 0], [202, 0], [203, 0], [204, 0], [205, 0], [206, 0], [207, 0], [208, 0], [209, 0], [210, 0], [211, 0], [212, 0], [213, 0], [214, 0], [215, 0], [216, 0], [217, 0], [218, 0], [219, 0], [220, 0], [221, 0], [222, 0], [223, 0], [224, 0], [225, 0], [226, 0], [227, 0], [228, 0], [229, 0], [230, 0], [231, 0], [232, 0], [233, 0], [234, 0], [235, 0], [236, 0], [237, 0], [238, 0], [239, 0], [240, 0], [241, 0], [242, 0], [243, 0], [244, 0], [245, 0], [246, 0], [247, 0], [248, 0], [249, 0], [250, 0], [251, 0], [252, 0], [253, 0], [254, 0], [255, 0], [256, 0], [257, 0], [258, 0], [259, 0], [260, 0], [261, 0], [262, 0], [263, 0], [264, 0], [265, 0], [266, 0], [267, 0], [268, 0], [269, 0], [270, 0], [271, 0], [272, 0], [273, 0], [274, 0], [275, 0], [276, 0], [277, 0], [278, 0], [279, 0], [280, 0], [281, 0], [282, 0], [283, 0], [284, 0], [285, 0], [286, 0], [287, 0], [288, 0], [289, 0], [290, 0], [291, 0], [292, 0], [293, 0], [294, 0], [295, 0], [296, 0], [297, 0], [298, 0], [299, 0], [300, 0], [301, 0], [302, 0], [303, 0], [304, 0], [305, 0], [306, 0], [307, 0], [308, 0], [309, 0], [310, 0], [311, 0], [312, 0], [313, 0], [314, 0], [315, 0], [316, 0], [317, 0], [318, 0], [319, 0], [320, 0], [321, 0], [322, 0], [323, 0], [324, 0], [325, 0], [326, 0], [327, 0], [328, 0], [329, 0], [330, 0], [331, 0], [332, 0], [333, 0], [334, 0], [335, 0], [336, 0], [337, 0], [338, 0], [339, 0], [340, 0], [341, 0], [342, 0], [343, 0], [344, 0], [345, 0], [346, 0], [347, 0], [348, 0], [349, 0], [350, 0], [351, 0], [352, 0], [353, 0], [354, 0], [355, 0], [356, 0], [357, 0], [358, 0], [359, 0], [360, 0], [361, 0], [362, 0], [363, 0], [364, 0], [365, 0], [366, 0], [367, 0], [368, 0], [369, 0], [370, 0], [371, 0], [372, 0], [373, 0], [374, 0], [375, 0], [376, 0], [377, 0], [378, 0], [379, 0], [380, 0], [381, 0], [382, 0], [383, 0], [384, 0], [385, 0], [386, 0], [387, 0], [388, 0], [389, 0], [390, 0], [391, 0], [392, 0], [393, 0], [394, 0], [395, 0], [396, 0], [397, 0], [398, 0], [399, 0], [400, 0]]]], "histogram": {"data": [[{"disabled": 0, "values": [{"y": 3, "x": 45.084319984912874}, {"y": 21, "x": 49.31630403995514}, {"y": 33, "x": 53.5482880949974}, {"y": 76, "x": 57.78027215003967}, {"y": 85, "x": 62.01225620508194}, {"y": 54, "x": 66.2442402601242}, {"y": 40, "x": 70.47622431516646}, {"y": 18, "x": 74.70820837020874}, {"y": 7, "x": 78.94019242525101}, {"y": 2, "x": 83.17217648029327}, {"y": 2, "x": 87.40416053533554}, {"y": 7, "x": 91.6361445903778}, {"y": 9, "x": 95.86812864542007}, {"y": 2, "x": 100.10011270046233}, {"y": 5, "x": 104.33209675550461}, {"y": 4, "x": 108.56408081054687}, {"y": 6, "x": 112.79606486558913}, {"y": 5, "x": 117.0280489206314}, {"y": 2, "x": 121.26003297567367}, {"y": 19, "x": 125.49201703071594}], "key": "glance.create_image", "view": "Square Root Choice"}, {"disabled": 1, "values": [{"y": 33, "x": 2.432935655117035}, {"y": 17, "x": 3.7936853170394897}, {"y": 56, "x": 5.154434978961945}, {"y": 107, "x": 6.515184640884399}, {"y": 90, "x": 7.875934302806854}, {"y": 46, "x": 9.236683964729309}, {"y": 18, "x": 10.597433626651764}, {"y": 11, "x": 11.958183288574219}, {"y": 12, "x": 13.318932950496674}, {"y": 2, "x": 14.679682612419128}, {"y": 4, "x": 16.040432274341583}, {"y": 0, "x": 17.401181936264038}, {"y": 0, "x": 18.761931598186493}, {"y": 0, "x": 20.122681260108948}, {"y": 0, "x": 21.483430922031403}, {"y": 1, "x": 22.844180583953857}, {"y": 1, "x": 24.204930245876312}, {"y": 0, "x": 25.565679907798767}, {"y": 0, "x": 26.926429569721222}, {"y": 2, "x": 28.287179231643677}], "key": "glance.delete_image", "view": "Square Root Choice"}], [{"disabled": 0, "values": [{"y": 24, "x": 49.31630403995514}, {"y": 109, "x": 57.78027215003967}, {"y": 139, "x": 66.2442402601242}, {"y": 58, "x": 74.70820837020874}, {"y": 9, "x": 83.17217648029327}, {"y": 9, "x": 91.6361445903778}, {"y": 11, "x": 100.10011270046233}, {"y": 9, "x": 108.56408081054687}, {"y": 11, "x": 117.0280489206314}, {"y": 21, "x": 125.49201703071594}], "key": "glance.create_image", "view": "Sturges Formula"}, {"disabled": 1, "values": [{"y": 50, "x": 3.7936853170394897}, {"y": 163, "x": 6.515184640884399}, {"y": 136, "x": 9.236683964729309}, {"y": 29, "x": 11.958183288574219}, {"y": 14, "x": 14.679682612419128}, {"y": 4, "x": 17.401181936264038}, {"y": 0, "x": 20.122681260108948}, {"y": 1, "x": 22.844180583953857}, {"y": 1, "x": 25.565679907798767}, {"y": 2, "x": 28.287179231643677}], "key": "glance.delete_image", "view": "Sturges Formula"}], [{"disabled": 0, "values": [{"y": 6, "x": 46.494981336593625}, {"y": 34, "x": 52.13762674331665}, {"y": 93, "x": 57.78027215003967}, {"y": 108, "x": 63.4229175567627}, {"y": 60, "x": 69.06556296348572}, {"y": 29, "x": 74.70820837020874}, {"y": 9, "x": 80.35085377693176}, {"y": 2, "x": 85.99349918365479}, {"y": 7, "x": 91.6361445903778}, {"y": 10, "x": 97.27878999710083}, {"y": 4, "x": 102.92143540382385}, {"y": 6, "x": 108.56408081054687}, {"y": 7, "x": 114.20672621726989}, {"y": 6, "x": 119.84937162399292}, {"y": 19, "x": 125.49201703071594}], "key": "glance.create_image", "view": "Rice Rule"}, {"disabled": 1, "values": [{"y": 37, "x": 2.8865188757578535}, {"y": 47, "x": 4.700851758321127}, {"y": 129, "x": 6.515184640884399}, {"y": 110, "x": 8.329517523447674}, {"y": 42, "x": 10.143850406010946}, {"y": 13, "x": 11.958183288574219}, {"y": 12, "x": 13.772516171137493}, {"y": 4, "x": 15.586849053700766}, {"y": 2, "x": 17.401181936264038}, {"y": 0, "x": 19.215514818827312}, {"y": 0, "x": 21.029847701390587}, {"y": 1, "x": 22.844180583953857}, {"y": 1, "x": 24.65851346651713}, {"y": 0, "x": 26.472846349080406}, {"y": 2, "x": 28.287179231643677}], "key": "glance.delete_image", "view": "Rice Rule"}]], "views": [{"id": 0, "name": "Square Root Choice"}, {"id": 1, "name": "Sturges Formula"}, {"id": 2, "name": "Rice Rule"}]}}, "iterations": {"pie": [["success", 383], ["errors", 17]], "iter": [["duration", [[1, 89.6481020450592], [2, 98.98401093482971], [3, 57.66047811508179], [4, 53.61628794670105], [5, 58.155210971832275], [6, 0], [7, 52.026386976242065], [8, 55.28138709068298], [9, 0], [10, 53.07878112792969], [11, 0], [12, 52.28397297859192], [13, 53.24644207954407], [14, 94.20288300514221], [15, 0], [16, 53.20610308647156], [17, 97.93053793907166], [18, 0], [19, 0], [20, 100.98867201805115], [21, 0], [22, 95.93059802055359], [23, 51.82232213020325], [24, 57.5779869556427], [25, 97.13978004455566], [26, 56.12501311302185], [27, 54.11635398864746], [28, 0], [29, 0], [30, 53.55350399017334], [31, 95.54879593849182], [32, 98.73898386955261], [33, 0], [34, 98.89902091026306], [35, 0], [36, 52.75852298736572], [37, 99.7582528591156], [38, 0], [39, 53.432819843292236], [40, 53.365753173828125], [41, 92.32789611816406], [42, 96.21250510215759], [43, 91.38062310218811], [44, 53.10562705993652], [45, 96.1281168460846], [46, 0], [47, 0], [48, 57.577192068099976], [49, 56.92230987548828], [50, 93.92123007774353], [51, 59.73004388809204], [52, 60.69123911857605], [53, 53.96988105773926], [54, 52.43071699142456], [55, 52.8015239238739], [56, 57.24987506866455], [57, 53.52270793914795], [58, 108.4991819858551], [59, 104.31263208389282], [60, 53.12774205207825], [61, 51.79708385467529], [62, 51.921173095703125], [63, 54.70742082595825], [64, 56.295974016189575], [65, 57.35669708251953], [66, 53.24523377418518], [67, 52.379345178604126], [68, 111.48074102401733], [69, 115.46268200874329], [70, 55.30817008018494], [71, 55.9072048664093], [72, 60.56818509101868], [73, 62.79396200180054], [74, 71.33995413780212], [75, 61.10755014419556], [76, 64.5542721748352], [77, 59.393749952316284], [78, 64.15803813934326], [79, 59.887229919433594], [80, 58.24763488769531], [81, 60.23906707763672], [82, 63.82351279258728], [83, 63.0891809463501], [84, 59.221588134765625], [85, 65.90337181091309], [86, 60.91665291786194], [87, 68.50086903572083], [88, 59.330522775650024], [89, 60.4647650718689], [90, 110.36711096763611], [91, 117.42486906051636], [92, 62.58765721321106], [93, 62.411786794662476], [94, 65.36865401268005], [95, 64.40202498435974], [96, 62.78586792945862], [97, 64.13205695152283], [98, 66.26357388496399], [99, 56.89403295516968], [100, 61.26544690132141], [101, 65.10797309875488], [102, 64.41195011138916], [103, 115.85834002494812], [104, 65.07975697517395], [105, 72.24001789093018], [106, 64.6068959236145], [107, 66.43768692016602], [108, 130.98353791236877], [109, 66.75084400177002], [110, 79.06146502494812], [111, 116.85672616958618], [112, 120.17511081695557], [113, 0], [114, 64.01649594306946], [115, 134.24250507354736], [116, 68.01640582084656], [117, 63.60298204421997], [118, 69.66067314147949], [119, 0], [120, 0], [121, 69.39470100402832], [122, 84.10142993927002], [123, 67.84873700141907], [124, 74.55721783638], [125, 66.4743001461029], [126, 66.2203311920166], [127, 66.23915719985962], [128, 70.2518310546875], [129, 64.33614182472229], [130, 70.83070397377014], [131, 70.6984429359436], [132, 71.14157605171204], [133, 74.61560297012329], [134, 74.69809913635254], [135, 74.21661710739136], [136, 73.35670804977417], [137, 72.68140888214111], [138, 78.80095100402832], [139, 70.94486999511719], [140, 70.60195922851562], [141, 64.4021999835968], [142, 80.44010210037231], [143, 75.70597696304321], [144, 65.62048697471619], [145, 65.46051287651062], [146, 65.38925099372864], [147, 64.1703040599823], [148, 61.68496012687683], [149, 76.09978485107422], [150, 71.79099607467651], [151, 70.05841994285583], [152, 75.28834199905396], [153, 78.2390649318695], [154, 62.40744090080261], [155, 86.41365814208984], [156, 86.51384282112122], [157, 69.73024797439575], [158, 76.75952506065369], [159, 68.14799809455872], [160, 89.02973103523254], [161, 76.50536298751831], [162, 66.92723298072815], [163, 80.9451630115509], [164, 76.19406414031982], [165, 80.52222299575806], [166, 71.78670716285706], [167, 71.55754804611206], [168, 78.87842392921448], [169, 79.74721717834473], [170, 80.8139021396637], [171, 76.17662000656128], [172, 82.3581931591034], [173, 71.59367513656616], [174, 67.12718105316162], [175, 66.92136716842651], [176, 84.7729561328888], [177, 120.16667294502258], [178, 78.43941402435303], [179, 70.02456593513489], [180, 121.82641911506653], [181, 73.50245094299316], [182, 73.4372410774231], [183, 71.57700800895691], [184, 76.77300095558167], [185, 83.2552421092987], [186, 77.29581999778748], [187, 76.3832437992096], [188, 71.15430998802185], [189, 80.6151978969574], [190, 74.43091702461243], [191, 78.73268604278564], [192, 69.15997695922852], [193, 71.06583309173584], [194, 77.92297101020813], [195, 69.68819808959961], [196, 71.04966688156128], [197, 70.81559085845947], [198, 65.05576801300049], [199, 69.1851270198822], [200, 70.24342703819275], [201, 67.01152920722961], [202, 85.41444706916809], [203, 69.66088318824768], [204, 74.82593297958374], [205, 67.06968092918396], [206, 80.44502806663513], [207, 67.67143702507019], [208, 79.8865270614624], [209, 83.1472659111023], [210, 63.291486978530884], [211, 62.48983907699585], [212, 70.61331009864807], [213, 69.57136297225952], [214, 63.11635684967041], [215, 69.4514467716217], [216, 121.00419807434082], [217, 121.47861099243164], [218, 62.091065883636475], [219, 73.28304195404053], [220, 105.59647512435913], [221, 111.29313397407532], [222, 64.29206705093384], [223, 65.11304497718811], [224, 62.63292598724365], [225, 60.09812808036804], [226, 66.14479398727417], [227, 64.20609998703003], [228, 62.316941022872925], [229, 63.937500953674316], [230, 83.3161268234253], [231, 69.76649379730225], [232, 87.77983117103577], [233, 73.33426308631897], [234, 67.79626393318176], [235, 62.455172061920166], [236, 64.65363001823425], [237, 63.97019386291504], [238, 65.6861219406128], [239, 59.51652002334595], [240, 68.82321405410767], [241, 65.54321503639221], [242, 61.17261004447937], [243, 72.45318913459778], [244, 66.8396520614624], [245, 62.22567081451416], [246, 67.26270198822021], [247, 68.48518300056458], [248, 73.0553879737854], [249, 60.67349600791931], [250, 64.8293879032135], [251, 61.57342600822449], [252, 64.59092807769775], [253, 61.634734869003296], [254, 68.32112002372742], [255, 65.67100214958191], [256, 58.13429594039917], [257, 86.81152820587158], [258, 59.50266408920288], [259, 69.64203190803528], [260, 62.71463489532471], [261, 64.55608987808228], [262, 64.87424492835999], [263, 73.51207399368286], [264, 69.90182089805603], [265, 83.55328702926636], [266, 61.795095920562744], [267, 65.83034992218018], [268, 63.924396991729736], [269, 70.12008595466614], [270, 59.42227005958557], [271, 61.88494610786438], [272, 60.66624402999878], [273, 74.83534908294678], [274, 69.2452380657196], [275, 67.9134669303894], [276, 69.19791984558105], [277, 95.86486887931824], [278, 67.65579199790955], [279, 67.38726687431335], [280, 70.4074559211731], [281, 75.65163993835449], [282, 64.9506618976593], [283, 61.10826301574707], [284, 112.70850205421448], [285, 120.89373016357422], [286, 86.44401717185974], [287, 125.67917490005493], [288, 123.69065999984741], [289, 70.27185392379761], [290, 65.93007683753967], [291, 79.80361700057983], [292, 87.40328311920166], [293, 65.1327440738678], [294, 98.22130298614502], [295, 66.91146492958069], [296, 68.25299882888794], [297, 63.57413911819458], [298, 60.824158906936646], [299, 88.04478311538696], [300, 62.69523906707764], [301, 122.63469386100769], [302, 122.82874202728271], [303, 62.09992504119873], [304, 64.83732604980469], [305, 60.43153786659241], [306, 65.62705683708191], [307, 69.61168813705444], [308, 68.26167297363281], [309, 71.36161994934082], [310, 67.40409183502197], [311, 57.158735036849976], [312, 68.60573601722717], [313, 69.17025399208069], [314, 62.69594883918762], [315, 62.92971682548523], [316, 64.24197387695312], [317, 64.43536806106567], [318, 69.95220994949341], [319, 76.2561559677124], [320, 64.80573391914368], [321, 64.10002207756042], [322, 66.40621590614319], [323, 70.45870208740234], [324, 70.32751297950745], [325, 79.10825610160828], [326, 60.9243688583374], [327, 68.80165100097656], [328, 85.4360032081604], [329, 68.19786882400513], [330, 62.635931968688965], [331, 74.76586604118347], [332, 68.32540893554688], [333, 75.27875399589539], [334, 61.71967601776123], [335, 67.54598999023438], [336, 76.02236485481262], [337, 69.61643719673157], [338, 75.54776287078857], [339, 74.14467787742615], [340, 70.43160891532898], [341, 70.3158631324768], [342, 69.82315015792847], [343, 72.12937188148499], [344, 68.25356793403625], [345, 76.48124623298645], [346, 77.97046494483948], [347, 69.5878050327301], [348, 83.54846286773682], [349, 66.89253497123718], [350, 77.20562601089478], [351, 83.74744892120361], [352, 66.39258313179016], [353, 71.40588283538818], [354, 72.18190693855286], [355, 77.98024392127991], [356, 97.6576669216156], [357, 99.04575610160828], [358, 76.98898005485535], [359, 64.0879578590393], [360, 105.4478189945221], [361, 103.36498093605042], [362, 65.68169093132019], [363, 71.49928498268127], [364, 71.1991639137268], [365, 64.0648729801178], [366, 77.98904013633728], [367, 70.32876205444336], [368, 67.80039310455322], [369, 65.65821194648743], [370, 71.24904799461365], [371, 69.45661497116089], [372, 66.07202482223511], [373, 70.22335195541382], [374, 72.32161498069763], [375, 70.00660300254822], [376, 64.12113904953003], [377, 68.62107801437378], [378, 61.24565601348877], [379, 67.0211009979248], [380, 64.20837903022766], [381, 64.01503300666809], [382, 60.15954899787903], [383, 61.30429005622864], [384, 54.806596994400024], [385, 54.756402015686035], [386, 60.01352882385254], [387, 55.40580701828003], [388, 57.596874952316284], [389, 55.056244134902954], [390, 53.14638900756836], [391, 55.78553104400635], [392, 55.679126024246216], [393, 56.11274600028992], [394, 54.272461891174316], [395, 51.42613410949707], [396, 49.71554398536682], [397, 47.31407403945923], [398, 46.06812810897827], [399, 43.8814959526062], [400, 42.42734408378601]]], ["idle_duration", [[1, 0.0], [2, 0.0], [3, 0.0], [4, 0.0], [5, 0.0], [6, 0], [7, 0.0], [8, 0.0], [9, 0], [10, 0.0], [11, 0], [12, 0.0], [13, 0.0], [14, 0.0], [15, 0], [16, 0.0], [17, 0.0], [18, 0], [19, 0], [20, 0.0], [21, 0], [22, 0.0], [23, 0.0], [24, 0.0], [25, 0.0], [26, 0.0], [27, 0.0], [28, 0], [29, 0], [30, 0.0], [31, 0.0], [32, 0.0], [33, 0], [34, 0.0], [35, 0], [36, 0.0], [37, 0.0], [38, 0], [39, 0.0], [40, 0.0], [41, 0.0], [42, 0.0], [43, 0.0], [44, 0.0], [45, 0.0], [46, 0], [47, 0], [48, 0.0], [49, 0.0], [50, 0.0], [51, 0.0], [52, 0.0], [53, 0.0], [54, 0.0], [55, 0.0], [56, 0.0], [57, 0.0], [58, 0.0], [59, 0.0], [60, 0.0], [61, 0.0], [62, 0.0], [63, 0.0], [64, 0.0], [65, 0.0], [66, 0.0], [67, 0.0], [68, 0.0], [69, 0.0], [70, 0.0], [71, 0.0], [72, 0.0], [73, 0.0], [74, 0.0], [75, 0.0], [76, 0.0], [77, 0.0], [78, 0.0], [79, 0.0], [80, 0.0], [81, 0.0], [82, 0.0], [83, 0.0], [84, 0.0], [85, 0.0], [86, 0.0], [87, 0.0], [88, 0.0], [89, 0.0], [90, 0.0], [91, 0.0], [92, 0.0], [93, 0.0], [94, 0.0], [95, 0.0], [96, 0.0], [97, 0.0], [98, 0.0], [99, 0.0], [100, 0.0], [101, 0.0], [102, 0.0], [103, 0.0], [104, 0.0], [105, 0.0], [106, 0.0], [107, 0.0], [108, 0.0], [109, 0.0], [110, 0.0], [111, 0.0], [112, 0.0], [113, 0], [114, 0.0], [115, 0.0], [116, 0.0], [117, 0.0], [118, 0.0], [119, 0], [120, 0], [121, 0.0], [122, 0.0], [123, 0.0], [124, 0.0], [125, 0.0], [126, 0.0], [127, 0.0], [128, 0.0], [129, 0.0], [130, 0.0], [131, 0.0], [132, 0.0], [133, 0.0], [134, 0.0], [135, 0.0], [136, 0.0], [137, 0.0], [138, 0.0], [139, 0.0], [140, 0.0], [141, 0.0], [142, 0.0], [143, 0.0], [144, 0.0], [145, 0.0], [146, 0.0], [147, 0.0], [148, 0.0], [149, 0.0], [150, 0.0], [151, 0.0], [152, 0.0], [153, 0.0], [154, 0.0], [155, 0.0], [156, 0.0], [157, 0.0], [158, 0.0], [159, 0.0], [160, 0.0], [161, 0.0], [162, 0.0], [163, 0.0], [164, 0.0], [165, 0.0], [166, 0.0], [167, 0.0], [168, 0.0], [169, 0.0], [170, 0.0], [171, 0.0], [172, 0.0], [173, 0.0], [174, 0.0], [175, 0.0], [176, 0.0], [177, 0.0], [178, 0.0], [179, 0.0], [180, 0.0], [181, 0.0], [182, 0.0], [183, 0.0], [184, 0.0], [185, 0.0], [186, 0.0], [187, 0.0], [188, 0.0], [189, 0.0], [190, 0.0], [191, 0.0], [192, 0.0], [193, 0.0], [194, 0.0], [195, 0.0], [196, 0.0], [197, 0.0], [198, 0.0], [199, 0.0], [200, 0.0], [201, 0.0], [202, 0.0], [203, 0.0], [204, 0.0], [205, 0.0], [206, 0.0], [207, 0.0], [208, 0.0], [209, 0.0], [210, 0.0], [211, 0.0], [212, 0.0], [213, 0.0], [214, 0.0], [215, 0.0], [216, 0.0], [217, 0.0], [218, 0.0], [219, 0.0], [220, 0.0], [221, 0.0], [222, 0.0], [223, 0.0], [224, 0.0], [225, 0.0], [226, 0.0], [227, 0.0], [228, 0.0], [229, 0.0], [230, 0.0], [231, 0.0], [232, 0.0], [233, 0.0], [234, 0.0], [235, 0.0], [236, 0.0], [237, 0.0], [238, 0.0], [239, 0.0], [240, 0.0], [241, 0.0], [242, 0.0], [243, 0.0], [244, 0.0], [245, 0.0], [246, 0.0], [247, 0.0], [248, 0.0], [249, 0.0], [250, 0.0], [251, 0.0], [252, 0.0], [253, 0.0], [254, 0.0], [255, 0.0], [256, 0.0], [257, 0.0], [258, 0.0], [259, 0.0], [260, 0.0], [261, 0.0], [262, 0.0], [263, 0.0], [264, 0.0], [265, 0.0], [266, 0.0], [267, 0.0], [268, 0.0], [269, 0.0], [270, 0.0], [271, 0.0], [272, 0.0], [273, 0.0], [274, 0.0], [275, 0.0], [276, 0.0], [277, 0.0], [278, 0.0], [279, 0.0], [280, 0.0], [281, 0.0], [282, 0.0], [283, 0.0], [284, 0.0], [285, 0.0], [286, 0.0], [287, 0.0], [288, 0.0], [289, 0.0], [290, 0.0], [291, 0.0], [292, 0.0], [293, 0.0], [294, 0.0], [295, 0.0], [296, 0.0], [297, 0.0], [298, 0.0], [299, 0.0], [300, 0.0], [301, 0.0], [302, 0.0], [303, 0.0], [304, 0.0], [305, 0.0], [306, 0.0], [307, 0.0], [308, 0.0], [309, 0.0], [310, 0.0], [311, 0.0], [312, 0.0], [313, 0.0], [314, 0.0], [315, 0.0], [316, 0.0], [317, 0.0], [318, 0.0], [319, 0.0], [320, 0.0], [321, 0.0], [322, 0.0], [323, 0.0], [324, 0.0], [325, 0.0], [326, 0.0], [327, 0.0], [328, 0.0], [329, 0.0], [330, 0.0], [331, 0.0], [332, 0.0], [333, 0.0], [334, 0.0], [335, 0.0], [336, 0.0], [337, 0.0], [338, 0.0], [339, 0.0], [340, 0.0], [341, 0.0], [342, 0.0], [343, 0.0], [344, 0.0], [345, 0.0], [346, 0.0], [347, 0.0], [348, 0.0], [349, 0.0], [350, 0.0], [351, 0.0], [352, 0.0], [353, 0.0], [354, 0.0], [355, 0.0], [356, 0.0], [357, 0.0], [358, 0.0], [359, 0.0], [360, 0.0], [361, 0.0], [362, 0.0], [363, 0.0], [364, 0.0], [365, 0.0], [366, 0.0], [367, 0.0], [368, 0.0], [369, 0.0], [370, 0.0], [371, 0.0], [372, 0.0], [373, 0.0], [374, 0.0], [375, 0.0], [376, 0.0], [377, 0.0], [378, 0.0], [379, 0.0], [380, 0.0], [381, 0.0], [382, 0.0], [383, 0.0], [384, 0.0], [385, 0.0], [386, 0.0], [387, 0.0], [388, 0.0], [389, 0.0], [390, 0.0], [391, 0.0], [392, 0.0], [393, 0.0], [394, 0.0], [395, 0.0], [396, 0.0], [397, 0.0], [398, 0.0], [399, 0.0], [400, 0.0]]], ["failed_duration", [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 123.24684691429138], [7, 0], [8, 0], [9, 122.96421504020691], [10, 0], [11, 123.18291521072388], [12, 0], [13, 0], [14, 0], [15, 122.96595191955566], [16, 0], [17, 0], [18, 122.77234196662903], [19, 123.44047093391418], [20, 0], [21, 122.93684005737305], [22, 0], [23, 0], [24, 0], [25, 0], [26, 0], [27, 0], [28, 123.84794092178345], [29, 123.06843304634094], [30, 0], [31, 0], [32, 0], [33, 123.06001496315002], [34, 0], [35, 123.89608716964722], [36, 0], [37, 0], [38, 123.35431694984436], [39, 0], [40, 0], [41, 0], [42, 0], [43, 0], [44, 0], [45, 0], [46, 123.38707995414734], [47, 122.97540402412415], [48, 0], [49, 0], [50, 0], [51, 0], [52, 0], [53, 0], [54, 0], [55, 0], [56, 0], [57, 0], [58, 0], [59, 0], [60, 0], [61, 0], [62, 0], [63, 0], [64, 0], [65, 0], [66, 0], [67, 0], [68, 0], [69, 0], [70, 0], [71, 0], [72, 0], [73, 0], [74, 0], [75, 0], [76, 0], [77, 0], [78, 0], [79, 0], [80, 0], [81, 0], [82, 0], [83, 0], [84, 0], [85, 0], [86, 0], [87, 0], [88, 0], [89, 0], [90, 0], [91, 0], [92, 0], [93, 0], [94, 0], [95, 0], [96, 0], [97, 0], [98, 0], [99, 0], [100, 0], [101, 0], [102, 0], [103, 0], [104, 0], [105, 0], [106, 0], [107, 0], [108, 0], [109, 0], [110, 0], [111, 0], [112, 0], [113, 125.28947806358337], [114, 0], [115, 0], [116, 0], [117, 0], [118, 0], [119, 122.75792288780212], [120, 123.11464190483093], [121, 0], [122, 0], [123, 0], [124, 0], [125, 0], [126, 0], [127, 0], [128, 0], [129, 0], [130, 0], [131, 0], [132, 0], [133, 0], [134, 0], [135, 0], [136, 0], [137, 0], [138, 0], [139, 0], [140, 0], [141, 0], [142, 0], [143, 0], [144, 0], [145, 0], [146, 0], [147, 0], [148, 0], [149, 0], [150, 0], [151, 0], [152, 0], [153, 0], [154, 0], [155, 0], [156, 0], [157, 0], [158, 0], [159, 0], [160, 0], [161, 0], [162, 0], [163, 0], [164, 0], [165, 0], [166, 0], [167, 0], [168, 0], [169, 0], [170, 0], [171, 0], [172, 0], [173, 0], [174, 0], [175, 0], [176, 0], [177, 0], [178, 0], [179, 0], [180, 0], [181, 0], [182, 0], [183, 0], [184, 0], [185, 0], [186, 0], [187, 0], [188, 0], [189, 0], [190, 0], [191, 0], [192, 0], [193, 0], [194, 0], [195, 0], [196, 0], [197, 0], [198, 0], [199, 0], [200, 0], [201, 0], [202, 0], [203, 0], [204, 0], [205, 0], [206, 0], [207, 0], [208, 0], [209, 0], [210, 0], [211, 0], [212, 0], [213, 0], [214, 0], [215, 0], [216, 0], [217, 0], [218, 0], [219, 0], [220, 0], [221, 0], [222, 0], [223, 0], [224, 0], [225, 0], [226, 0], [227, 0], [228, 0], [229, 0], [230, 0], [231, 0], [232, 0], [233, 0], [234, 0], [235, 0], [236, 0], [237, 0], [238, 0], [239, 0], [240, 0], [241, 0], [242, 0], [243, 0], [244, 0], [245, 0], [246, 0], [247, 0], [248, 0], [249, 0], [250, 0], [251, 0], [252, 0], [253, 0], [254, 0], [255, 0], [256, 0], [257, 0], [258, 0], [259, 0], [260, 0], [261, 0], [262, 0], [263, 0], [264, 0], [265, 0], [266, 0], [267, 0], [268, 0], [269, 0], [270, 0], [271, 0], [272, 0], [273, 0], [274, 0], [275, 0], [276, 0], [277, 0], [278, 0], [279, 0], [280, 0], [281, 0], [282, 0], [283, 0], [284, 0], [285, 0], [286, 0], [287, 0], [288, 0], [289, 0], [290, 0], [291, 0], [292, 0], [293, 0], [294, 0], [295, 0], [296, 0], [297, 0], [298, 0], [299, 0], [300, 0], [301, 0], [302, 0], [303, 0], [304, 0], [305, 0], [306, 0], [307, 0], [308, 0], [309, 0], [310, 0], [311, 0], [312, 0], [313, 0], [314, 0], [315, 0], [316, 0], [317, 0], [318, 0], [319, 0], [320, 0], [321, 0], [322, 0], [323, 0], [324, 0], [325, 0], [326, 0], [327, 0], [328, 0], [329, 0], [330, 0], [331, 0], [332, 0], [333, 0], [334, 0], [335, 0], [336, 0], [337, 0], [338, 0], [339, 0], [340, 0], [341, 0], [342, 0], [343, 0], [344, 0], [345, 0], [346, 0], [347, 0], [348, 0], [349, 0], [350, 0], [351, 0], [352, 0], [353, 0], [354, 0], [355, 0], [356, 0], [357, 0], [358, 0], [359, 0], [360, 0], [361, 0], [362, 0], [363, 0], [364, 0], [365, 0], [366, 0], [367, 0], [368, 0], [369, 0], [370, 0], [371, 0], [372, 0], [373, 0], [374, 0], [375, 0], [376, 0], [377, 0], [378, 0], [379, 0], [380, 0], [381, 0], [382, 0], [383, 0], [384, 0], [385, 0], [386, 0], [387, 0], [388, 0], [389, 0], [390, 0], [391, 0], [392, 0], [393, 0], [394, 0], [395, 0], [396, 0], [397, 0], [398, 0], [399, 0], [400, 0]]]], "histogram": {"data": [[{"disabled": null, "values": [{"y": 20, "x": 47.01810213327408}, {"y": 3, "x": 51.60886018276214}, {"y": 36, "x": 56.19961823225022}, {"y": 31, "x": 60.79037628173828}, {"y": 75, "x": 65.38113433122635}, {"y": 76, "x": 69.97189238071442}, {"y": 52, "x": 74.5626504302025}, {"y": 34, "x": 79.15340847969055}, {"y": 15, "x": 83.74416652917861}, {"y": 12, "x": 88.33492457866669}, {"y": 4, "x": 92.92568262815476}, {"y": 8, "x": 97.51644067764283}, {"y": 9, "x": 102.10719872713089}, {"y": 4, "x": 106.69795677661897}, {"y": 2, "x": 111.28871482610703}, {"y": 5, "x": 115.8794728755951}, {"y": 4, "x": 120.47023092508317}, {"y": 7, "x": 125.06098897457123}, {"y": 1, "x": 129.65174702405932}, {"y": 2, "x": 134.24250507354736}], "key": "task", "view": "Square Root Choice"}], [{"disabled": null, "values": [{"y": 23, "x": 51.60886018276214}, {"y": 67, "x": 60.79037628173828}, {"y": 151, "x": 69.97189238071442}, {"y": 86, "x": 79.15340847969055}, {"y": 27, "x": 88.33492457866669}, {"y": 12, "x": 97.51644067764283}, {"y": 13, "x": 106.69795677661897}, {"y": 7, "x": 115.8794728755951}, {"y": 11, "x": 125.06098897457123}, {"y": 3, "x": 134.24250507354736}], "key": "task", "view": "Sturges Formula"}], [{"disabled": null, "values": [{"y": 21, "x": 48.54835481643677}, {"y": 26, "x": 54.66936554908752}, {"y": 43, "x": 60.79037628173828}, {"y": 99, "x": 66.91138701438904}, {"y": 93, "x": 73.0323977470398}, {"y": 45, "x": 79.15340847969055}, {"y": 18, "x": 85.27441921234131}, {"y": 12, "x": 91.39542994499206}, {"y": 9, "x": 97.51644067764283}, {"y": 10, "x": 103.63745141029358}, {"y": 4, "x": 109.75846214294434}, {"y": 6, "x": 115.8794728755951}, {"y": 8, "x": 122.00048360824586}, {"y": 4, "x": 128.12149434089662}, {"y": 2, "x": 134.24250507354736}], "key": "task", "view": "Rice Rule"}]], "views": [{"id": 0, "name": "Square Root Choice"}, {"id": 1, "name": "Sturges Formula"}, {"id": 2, "name": "Rice Rule"}]}}, "additive_output": [], "table": {"rows": [["glance.create_image", 40.852, 60.573, 88.944, 103.642, 125.492, 64.842, "95.8%", 400], ["glance.delete_image", 1.072, 6.428, 9.804, 12.221, 28.287, 6.889, "100.0%", 383], ["total", 42.427, 68.198, 95.802, 110.18, 134.243, 71.731, "95.8%", 400]], "cols": ["Action", "Min (sec)", "Median (sec)", "90%ile (sec)", "95%ile (sec)", "Max (sec)", "Avg (sec)", "Success", "Count"]}, "full_duration": 618.4033200740814, "config": "{\n  \"GlanceImages.create_and_delete_image\": [\n    {\n      \"runner\": {\n        \"type\": \"constant\", \n        \"concurrency\": 50, \n        \"times\": 400\n      }, \n      \"args\": {\n        \"image_location\": \"http://10.3.56.197/images/glance_1g_image.raw\", \n        \"disk_format\": \"raw\", \n        \"container_format\": \"bare\"\n      }, \n      \"sla\": {\n        \"failure_rate\": {\n          \"max\": 0\n        }\n      }, \n      \"context\": {\n        \"users\": {\n          \"project_domain\": \"default\", \n          \"users_per_tenant\": 3, \n          \"tenants\": 2, \n          \"resource_management_workers\": 20, \n          \"user_domain\": \"default\"\n        }\n      }\n    }\n  ]\n}", "sla": [{"criterion": "failure_rate", "detail": "Failure rate criteria 0.00% <= 4.25% <= 0.00% - Failed", "success": false}], "complete_output": [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []], "cls": "GlanceImages"}];
+
+      $scope.location = {
+        /* #/path/hash/sub/div */
+        normalize: function(str) {
+          /* Remove unwanted characters from string */
+          if (typeof str !== "string") { return "" }
+          return str.replace(/[^\w\-\.]/g, "")
+        },
+        uri: function(obj) {
+          /* Getter/Setter */
+          if (! obj) {
+            var uri = {path: "", hash: "", sub: "", div: ""};
+            var arr = ["div", "sub", "hash", "path"];
+            angular.forEach($location.url().split("/"), function(value){
+              var v = $scope.location.normalize(value);
+              if (v) { var k = arr.pop(); if (k) { this[k] = v }}
+            }, uri);
+            return uri
+          }
+          var arr = [obj.path, obj.hash, obj.sub, obj.div], res = [];
+          for (var i in arr) { if (! arr[i]) { break }; res.push(arr[i]) }
+          return $location.url("/" + res.join("/"))
+        },
+        path: function(path, hash) {
+          /* Getter/Setter */
+          if (path === "") { return this.uri({}) }
+          path = this.normalize(path);
+          var uri = this.uri();
+          if (! path) { return uri.path }
+          uri.path = path;
+          var _hash = this.normalize(hash);
+          if (_hash || hash === "") { uri.hash = _hash }
+          return this.uri(uri)
+        },
+        hash: function(hash) {
+          /* Getter/Setter */
+          if (hash) { this.uri({path:this.uri().path, hash:hash}) }
+          return this.uri().hash
+        }
+      }
+
+      /* Dispatch */
+
+      $scope.route = function(uri) {
+        if (! $scope.scenarios_map) { return }
+        if (uri.path in $scope.scenarios_map) {
+          $scope.view = {is_scenario:true};
+          $scope.scenario = $scope.scenarios_map[uri.path];
+          $scope.nav_idx = $scope.nav_map[uri.path];
+          if ($scope.scenario.iterations.histogram.views.length) {
+            $scope.mainHistogram = $scope.scenario.iterations.histogram.views[0]
+          }
+          if ($scope.scenario.atomic.histogram.views.length) {
+            $scope.atomicHistogram = $scope.scenario.atomic.histogram.views[0]
+          }
+          $scope.outputIteration = 0;
+          $scope.showTab(uri);
+        } else {
+          $scope.scenario = null;
+          if (uri.path === "source") {
+            $scope.view = {is_source:true}
+          } else {
+            $scope.view = {is_main:true}
+          }
+        }
+      }
+
+      $scope.$on("$locationChangeSuccess", function (event, newUrl, oldUrl) {
+        $scope.route($scope.location.uri())
+      });
+
+      $scope.showNav = function(nav_idx) { $scope.nav_idx = nav_idx }
+
+      /* Tabs */
+
+      $scope.tabs = [
+        {
+          id: "overview",
+          name: "Overview",
+          visible: function(){ return !! $scope.scenario.iterations.pie.length }
+        },{
+          id: "details",
+          name: "Details",
+          visible: function(){ return !! $scope.scenario.atomic.pie.length }
+        },{
+          id: "output",
+          name: "Scenario Data",
+          visible: function(){ return $scope.scenario.output.length }
+        },{
+          id: "failures",
+          name: "Failures",
+          visible: function(){ return !! $scope.scenario.errors.length }
+        },{
+          id: "task",
+          name: "Input task",
+          visible: function(){ return !! $scope.scenario.config }
+        }
+      ];
+      $scope.tabs_map = {};
+      angular.forEach($scope.tabs,
+                      function(tab){ this[tab.id] = tab }, $scope.tabs_map);
+
+      $scope.showTab = function(uri) {
+        $scope.tab = uri.hash in $scope.tabs_map ? uri.hash : "overview";
+        if (! $scope.scenario.output) {
+          var has_additive = !! $scope.scenario.additive_output.length;
+          var has_complete = !! ($scope.scenario.complete_output.length
+                                 && $scope.scenario.complete_output[0].length);
+          $scope.scenario.output = {
+            has_additive: has_additive,
+            has_complete: has_complete,
+            length: has_additive + has_complete,
+            active: has_additive ? "additive" : (has_complete ? "complete" : "")
+          }
+        }
+        if (uri.hash === "output") {
+          if (uri.sub && $scope.scenario.output["has_" + uri.sub]) {
+            $scope.scenario.output.active = uri.sub
+          }
+        }
+      }
+
+      for (var i in $scope.tabs) {
+        if ($scope.tabs[i].id === $scope.location.hash()) {
+          $scope.tab = $scope.tabs[i].id
+        }
+        $scope.tabs[i].isVisible = function() {
+          if ($scope.scenario) {
+            if (this.visible()) { return true }
+            /* If tab should be hidden but is selected - show another one */
+            if (this.id === $scope.location.hash()) {
+              for (var i in $scope.tabs) {
+                var tab = $scope.tabs[i];
+                if (tab.id != this.id && tab.visible()) {
+                  $scope.tab = tab.id;
+                  return false
+                }
+              }
+            }
+          }
+          return false
+        }
+      }
+
+      $scope.showError = function(message) {
+          return (function (e) {
+            e.style.display = "block";
+            e.textContent = message
+          })(document.getElementById("page-error"))
+      }
+
+      /* Initialization */
+
+      angular.element(document).ready(function(){
+        if (! $scope.scenarios.length) {
+          return $scope.showError("No data...")
+        }
+
+        /* Compose data mapping */
+
+        $scope.nav = [];
+        $scope.nav_map = {};
+        $scope.scenarios_map = {};
+        var met = [], itr = 0, cls_idx = 0;
+        var prev_cls, prev_met;
+
+        for (var idx in $scope.scenarios) {
+          var sc = $scope.scenarios[idx];
+          if (! prev_cls) {
+            prev_cls = sc.cls
+          }
+          else if (prev_cls !== sc.cls) {
+            $scope.nav.push({cls:prev_cls, met:met, idx:cls_idx});
+            prev_cls = sc.cls;
+            met = [];
+            itr = 1;
+            cls_idx += 1
+          }
+
+          if (prev_met !== sc.met) { itr = 1 };
+          sc.ref = $scope.location.normalize(sc.cls+"."+sc.met+(itr > 1 ? "-"+itr : ""));
+          $scope.scenarios_map[sc.ref] = sc;
+          $scope.nav_map[sc.ref] = cls_idx;
+          met.push({name:sc.name, itr:itr, idx:idx, ref:sc.ref});
+          prev_met = sc.met;
+          itr += 1;
+        }
+
+        if (met.length) {
+          $scope.nav.push({cls:prev_cls, met:met, idx:cls_idx})
+        }
+
+        /* Start */
+
+        var uri = $scope.location.uri();
+        uri.path = $scope.location.path();
+        $scope.route(uri);
+        $scope.$digest()
+      })
+    };
+
+    if (typeof angular === "object") {
+      angular.module("App", [])
+        .controller("Controller", ["$scope", "$location", controllerFunction])
+        .directive("widget", widgetDirective)
+    }
+
+
+</script>
+  <style>
+    body { margin:0; padding:0 0 50px; font-size:14px; font-family:Helvetica,Arial,sans-serif }
+    a, a:active, a:focus, a:visited { text-decoration:none; outline:none }
+    p { margin:0; padding:5px 0 }
+    p.thesis { padding:10px 0 }
+    h1 { color:#666; margin:0 0 20px; font-size:30px; font-weight:normal }
+    h2, .h2 { color:#666; margin:24px 0 6px; font-size:25px; font-weight:normal }
+    h3, .h3 { color:#777; margin:12px 0 4px; font-size:18px; font-weight:normal }
+    table { border-collapse:collapse; border-spacing:0; width:100%; font-size:12px; margin:0 0 10px }
+    table th { text-align:left; padding:8px; color:#000; border:2px solid #ddd; border-width:0 0 2px 0 }
+    table th.sortable { cursor:pointer }
+    table td { text-align:left; border-top:1px solid #ddd; padding:8px; color:#333 }
+    table.compact td { padding:4px 8px }
+    table.striped tr:nth-child(odd) td { background:#f9f9f9 }
+    table.linked tbody tr:hover { background:#f9f9f9; cursor:pointer }
+    .rich, .rich td { font-weight:bold }
+    .code { padding:10px; font-size:13px; color:#333; background:#f6f6f6; border:1px solid #e5e5e5; border-radius:4px }
+
+    .header { text-align:left; background:#333; font-size:18px; padding:13px 0; margin-bottom:20px; color:#fff; background-image:linear-gradient(to bottom, #444 0px, #222 100%) }
+    .header a, .header a:visited, .header a:focus { color:#999 }
+
+    .notify-error { padding:5px 10px; background:#fee; color:red }
+    .status-skip, .status-skip td { color:grey }
+    .status-pass, .status-pass td { color:green }
+    .status-fail, .status-fail td { color:red }
+    .capitalize { text-transform:capitalize }
+    
+    .aside { margin:0 20px 0 0; display:block; width:255px; float:left }
+    .aside > div { margin-bottom: 15px }
+    .aside > div div:first-child { border-top-left-radius:4px; border-top-right-radius:4px }
+    .aside > div div:last-child { border-bottom-left-radius:4px; border-bottom-right-radius:4px }
+    .navcls { color:#678; background:#eee; border:1px solid #ddd; margin-bottom:-1px; display:block; padding:8px 9px; font-weight:bold; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer }
+    .navcls.expanded { color:#469 }
+    .navcls.active { background:#428bca; background-image:linear-gradient(to bottom, #428bca 0px, #3278b3 100%); border-color:#3278b3; color:#fff }
+    .navmet { color:#555; background:#fff; border:1px solid #ddd; font-size:12px; display:block; margin-bottom:-1px; padding:8px 10px; text-align:left; text-overflow:ellipsis; white-space:nowrap; overflow:hidden; cursor:pointer }
+    .navmet:hover { background:#f8f8f8 }
+    .navmet.active, .navmet.active:hover { background:#428bca; background-image:linear-gradient(to bottom, #428bca 0px, #3278b3 100%); border-color:#3278b3; color:#fff }
+
+    .tabs { list-style:outside none none; margin:0 0 5px; padding:0; border-bottom:1px solid #ddd }
+    .tabs:after { clear:both }
+    .tabs li { float:left; margin-bottom:-1px; display:block; position:relative }
+    .tabs li div { border:1px solid transparent; border-radius:4px 4px 0 0; line-height:20px; margin-right:2px; padding:10px 15px; color:#428bca }
+    .tabs li div:hover { border-color:#eee #eee #ddd; background:#eee; cursor:pointer; }
+    .tabs li.active div { background:#fff; border-color:#ddd #ddd transparent; border-style:solid; border-width:1px; color:#555; cursor:default }
+    .failure-mesg { color:#900 }
+    .failure-trace { color:#333; white-space:pre; overflow:auto }
+
+    .link { color:#428BCA; padding:5px 15px 5px 5px; text-decoration:underline; cursor:pointer }
+    .link.active { color:#333; text-decoration:none }
+
+    .chart { padding:0; margin:0; width:890px }
+    .chart svg { height:300px; padding:0; margin:0; overflow:visible; float:right }
+    .chart.lower svg { height:180px }
+    .chart-label-y { font-size:12px; position:relative; top:5px; padding:0; margin:0 }
+
+    .expandable { cursor:pointer }
+    .clearfix { clear:both }
+    .sortable > .arrow { display:inline-block; width:12px; height:inherit; color:#c90 }
+    .content-main { margin:0 5px; display:block; float:left }
+
+    .content-wrap {  margin:0 auto; padding:0 5px </%block>}
+    
+    @media only screen and (min-width: 320px)  { .content-wrap { width:900px  } .content-main { width:600px } }
+    @media only screen and (min-width: 900px)  { .content-wrap { width:880px  } .content-main { width:590px } }
+    @media only screen and (min-width: 1000px) { .content-wrap { width:980px  } .content-main { width:690px } }
+    @media only screen and (min-width: 1100px) { .content-wrap { width:1080px } .content-main { width:790px } }
+    @media only screen and (min-width: 1200px) { .content-wrap { width:1180px } .content-main { width:890px } }
+
+  </style>
+</head>
+<body ng-controller="Controller">
+
+  <div class="header">
+    <div class="content-wrap">
+      <a href="https://github.com/openstack/rally">Rally</a>&nbsp;
+      <span>task results</span>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+    
+
+    <p id="page-error" class="notify-error" style="display:none"></p>
+
+    <div id="content-nav" class="aside" ng-show="scenarios.length" ng-cloack>
+      <div>
+        <div class="navcls"
+             ng-class="{active:view.is_main}"
+             ng-click="location.path('')">Task overview</div>
+        <div class="navcls"
+             ng-class="{active:view.is_source}"
+             ng-click="location.path('source', '')">Input file</div>
+      </div>
+      <div>
+        <div class="navcls" title="{{n.cls}}"
+             ng-repeat-start="n in nav track by $index"
+             ng-click="showNav(n.idx)"
+             ng-class="{expanded:n.idx==nav_idx}">
+                <span ng-hide="n.idx==nav_idx">&#9658;</span>
+                <span ng-show="n.idx==nav_idx">&#9660;</span>
+                {{n.cls}}</div>
+        <div class="navmet" title="{{m.name}}"
+             ng-show="n.idx==nav_idx"
+             ng-class="{active:m.ref==scenario.ref}"
+             ng-click="location.path(m.ref)"
+             ng-repeat="m in n.met track by $index"
+             ng-repeat-end>{{m.name}}</div>
+      </div>
+    </div>
+
+    <div id="content-main" class="content-main" ng-show="scenarios.length" ng-cloak>
+
+      <div ng-show="view.is_main">
+        <h1>Task overview</h1>
+        <table class="linked compact"
+               ng-init="ov_srt='ref'; ov_dir=false">
+          <thead>
+            <tr>
+              <th class="sortable"
+                  title="Scenario name, with optional suffix of call number"
+                  ng-click="ov_srt='ref'; ov_dir=!ov_dir">
+                Scenario
+                <span class="arrow">
+                  <b ng-show="ov_srt=='ref' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='ref' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable"
+                  title="How long the scenario run, without context duration"
+                  ng-click="ov_srt='load_duration'; ov_dir=!ov_dir">
+                Load duration (s)
+                <span class="arrow">
+                  <b ng-show="ov_srt=='load_duration' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='load_duration' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable"
+                  title="Scenario duration plus context duration"
+                  ng-click="ov_srt='full_duration'; ov_dir=!ov_dir">
+                Full duration (s)
+                <span class="arrow">
+                  <b ng-show="ov_srt=='full_duration' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='full_duration' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable" title="Number of iterations"
+                  ng-click="ov_srt='iterations_count'; ov_dir=!ov_dir">
+                Iterations
+                <span class="arrow">
+                  <b ng-show="ov_srt=='iterations_count' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='iterations_count' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable" title="Scenario runner type"
+                  ng-click="ov_srt='runner'; ov_dir=!ov_dir">
+                Runner
+                <span class="arrow">
+                  <b ng-show="ov_srt=='runner' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='runner' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable" title="Number of errors occurred"
+                  ng-click="ov_srt='errors.length'; ov_dir=!ov_dir">
+                Errors
+                <span class="arrow">
+                  <b ng-show="ov_srt=='errors.length' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='errors.length' && ov_dir">&#x25be;</b>
+                </span>
+              <th class="sortable" title="Whether SLA check is successful"
+                  ng-click="ov_srt='sla_success'; ov_dir=!ov_dir">
+                Success (SLA)
+                <span class="arrow">
+                  <b ng-show="ov_srt=='sla_success' && !ov_dir">&#x25b4;</b>
+                  <b ng-show="ov_srt=='sla_success' && ov_dir">&#x25be;</b>
+                </span>
+            <tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="sc in scenarios | orderBy:ov_srt:ov_dir"
+                ng-click="location.path(sc.ref)">
+              <td>{{sc.ref}}
+              <td>{{sc.load_duration | number:3}}
+              <td>{{sc.full_duration | number:3}}
+              <td>{{sc.iterations_count}}
+              <td>{{sc.runner}}
+              <td>{{sc.errors.length}}
+              <td>
+                <span ng-show="sc.sla_success" class="status-pass">&#x2714;</span>
+                <span ng-hide="sc.sla_success" class="status-fail">&#x2716;</span>
+            <tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div ng-show="view.is_source">
+        <h1>Input file</h1>
+        <pre class="code">{{source}}</pre>
+      </div>
+
+      <div ng-show="view.is_scenario">
+        <h1>{{scenario.cls}}.<wbr>{{scenario.name}} ({{scenario.full_duration | number:3}}s)</h1>
+        <ul class="tabs">
+          <li ng-repeat="t in tabs"
+              ng-show="t.isVisible()"
+              ng-class="{active:t.id == tab}"
+              ng-click="location.hash(t.id)">
+            <div>{{t.name}}</div>
+          </li>
+          <div class="clearfix"></div>
+        </ul>
+        <div ng-include="tab"></div>
+
+        <script type="text/ng-template" id="overview">
+          <p class="thesis">
+            Load duration: <b>{{scenario.load_duration | number:3}} s</b> &nbsp;
+            Full duration: <b>{{scenario.full_duration | number:3}} s</b> &nbsp;
+            Iterations: <b>{{scenario.iterations_count}}</b> &nbsp;
+            Failures: <b>{{scenario.errors.length}}</b>
+          </p>
+
+          <div ng-show="scenario.sla.length">
+            <h2>Service-level agreement</h2>
+            <table class="striped">
+              <thead>
+                <tr>
+                  <th>Criterion
+                  <th>Detail
+                  <th>Success
+                <tr>
+              </thead>
+              <tbody>
+                <tr class="rich"
+                    ng-repeat="row in scenario.sla track by $index"
+                    ng-class="{'status-fail':!row.success, 'status-pass':row.success}">
+                  <td>{{row.criterion}}
+                  <td>{{row.detail}}
+                  <td class="capitalize">{{row.success}}
+                <tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div widget="Table"
+               data="scenario.table"
+               lastrow-class="rich"
+               title="Total durations">
+          </div>
+
+          <div widget="StackedArea"
+               data="scenario.iterations.iter"
+               name-x="Iteration sequence number"
+               controls="true"
+               guide="true">
+          </div>
+
+          <div widget="StackedArea"
+               data="scenario.load_profile"
+               title="Load Profile"
+               title-class="h3"
+               name-x="Timeline (seconds)"
+               format-y="d"
+               format-x=",.2f"
+               class="lower">
+          </div>
+
+          <div widget="Pie"
+               data="scenario.iterations.pie"
+               title="Distribution"
+               title-class="h3"
+               style="float:left; width:40%; margin-top:15px">
+          </div>
+
+          <div widget="Histogram"
+               ng-if="scenario.iterations.histogram.data.length"
+               data="scenario.iterations.histogram.data[mainHistogram.id]"
+               style="float:left; width:59%; margin-top:15px; position:relative; top:40px">
+          </div>
+
+          <select ng-model="mainHistogram"
+                  ng-show="scenario.iterations.histogram.data.length"
+                  ng-options="i.name for i in scenario.iterations.histogram.views track by i.id"
+                  style="float:right; margin:45px 35px 0">
+          </select>
+
+          <div class="clearfix"></div>
+
+        </script>
+
+        <script type="text/ng-template" id="details">
+
+          <div widget="StackedArea"
+               data="scenario.atomic.iter"
+               title="Atomic Action Durations"
+               name-x="Iteration sequence number"
+               controls="true"
+               guide="true">
+          </div>
+
+          <div widget="Pie"
+               data="scenario.atomic.pie"
+               title="Distribution"
+               title-class="h3"
+               style="float:left; width:40%; margin-top:15px">
+          </div>
+
+          <div widget="Histogram" data="scenario.atomic.histogram.data[atomicHistogram.id]"
+               ng-if="scenario.atomic.histogram.data.length"
+               style="float:left; width:59%; margin-top:15px; position:relative; top:40px">
+          </div>
+
+          <select ng-show="scenario.atomic.histogram.data.length"
+                  ng-model="atomicHistogram"
+                  ng-options="i.name for i in scenario.atomic.histogram.views track by i.id"
+                  style="float:right; margin:45px 35px 0">
+          </select>
+
+          <div class="clearfix"></div>
+
+        </script>
+
+        <script type="text/ng-template" id="output">
+
+          <div style="padding:10px 0 0">
+            <span class="link"
+                  ng-click="location.hash('output/additive')"
+                  ng-class="{active:scenario.output.active === 'additive'}"
+                  ng-if="scenario.output.has_additive">Aggregated</span>
+            <span class="link"
+                  ng-click="location.hash('output/complete')"
+                  ng-class="{active:scenario.output.active === 'complete'}"
+                  ng-if="scenario.output.has_complete">Per iteration</span>
+          </div>
+
+          <div ng-repeat="chart in scenario.additive_output"
+               ng-if="scenario.output.active === 'additive'">
+            <div widget="{{chart.widget}}"
+                 title="{{chart.title}}"
+                 description="{{chart.description}}"
+                 name-x="{{chart.axis_label}}"
+                 name-y="{{chart.label}}"
+                 data="chart.data">
+            </div>
+          </div>
+
+          <div ng-if="scenario.output.active === 'complete'" style="padding:10px 0 0">
+            <select ng-model="outputIteration">
+              <option ng-repeat="i in scenario.complete_output track by $index"
+                      value="{{$index}}">
+                Iteration {{$index}}
+            </select>
+
+            <div ng-repeat="chart in scenario.complete_output[outputIteration]">
+              <div widget="{{chart.widget}}"
+                   title="{{chart.title}}"
+                   description="{{chart.description}}"
+                   name-x="{{chart.axis_label}}"
+                   name-y="{{chart.label}}"
+                   data="chart.data">
+              </div>
+            </div>
+          </div>
+        </script>
+
+        <script type="text/ng-template" id="failures">
+          <h2>Task failures (<ng-pluralize
+            count="scenario.errors.length"
+            when="{'1': '1 iteration', 'other': '{} iterations'}"></ng-pluralize> failed)
+          </h2>
+          <table class="striped">
+            <thead>
+              <tr>
+                <th>
+                <th>Iteration
+                <th>Exception type
+                <th>Exception message
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="expandable"
+                  ng-repeat-start="i in scenario.errors track by $index"
+                  ng-click="i.expanded = ! i.expanded">
+                <td>
+                  <span ng-hide="i.expanded">&#9658;</span>
+                  <span ng-show="i.expanded">&#9660;</span>
+                <td>{{i.iteration}}
+                <td>{{i.type}}
+                <td class="failure-mesg">{{i.message}}
+              </tr>
+              <tr ng-show="i.expanded" ng-repeat-end>
+                <td colspan="4" class="failure-trace">{{i.traceback}}
+              </tr>
+            </tbody>
+          </table>
+        </script>
+
+        <script type="text/ng-template" id="task">
+          <h2>Subtask Configuration</h2>
+          <pre class="code">{{scenario.config}}</pre>
+        </script>
+      </div>
+
+    </div>
+    <div class="clearfix"></div>
+
+
+  </div>
+
+  <script type="text/javascript">
+    if (! window.angular) {(function(f){
+      f(document.getElementById("content-nav"), "none");
+      f(document.getElementById("content-main"), "none");
+      f(document.getElementById("page-error"), "block").textContent = "Failed to load AngularJS framework"
+    })(function(e, s){e.style.display = s; return e})}
+</script>
+</body>
+</html>
