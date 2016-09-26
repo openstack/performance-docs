@@ -6,3 +6,4 @@ Container cluster systems performance
     :maxdepth: 4
 
     mesos-marathon/mesos-marathon
+    kubernetes/index
