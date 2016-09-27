@@ -1,0 +1,68 @@
+{% set flavor_name = flavor_name or "m1.tiny" %}
+{% set image_name = image_name or "^(cirros.*uec|TestVM)$" %}
+{
+   "NovaPerformancePlugin.boot_attach_live_migrate_and_delete_server_with_secgroups": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "{{image_name}}"
+                },
+                "security_group_count": 2,
+                "rules_per_security_group": 10,
+                "boot_server_kwargs": { "auto_assign_nic" : true },
+                "create_volume_kwargs": {},
+                "volume_size": 1,
+                "disk_over_commit": false,
+                "min_sleep": 0,
+                "max_sleep": 0,
+                "block_migration": false,
+                "do_migration": true,
+                "do_delete": true
+            },
+            "runner": {
+                "type": "constant",
+                "times": {{ 5 * compute }},
+                "concurrency": {{concurrency}}
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 10
+                },
+                "quotas": {
+                    "neutron": {
+                        "network": -1,
+                        "security_group": -1,
+                        "security_group_rule": -1,
+                        "port": -1,
+                        "subnet": -1,
+                        "router": -1
+                    },
+                    "nova": {
+                        "instances": -1,
+                        "cores": -1,
+                        "ram": -1,
+                        "floating_ips": -1,
+                        "security_groups": -1,
+                        "security_group_rules": -1
+                    },
+                    "cinder": {
+                        "volumes": -1,
+                        "gigabytes": -1,
+                        "snapshots": -1
+                    }
+                },
+                "network": {
+                    "start_cidr": "{{ "100.1.0.0/25" if gre_enabled else "1.0.0.0/25" }}",
+                    "networks_per_tenant": 1
+                }
+            },
+            "sla": {
+                "failure_rate": { "max": 0 }
+            }
+        }
+    ]
+}
