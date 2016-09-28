@@ -1,7 +1,7 @@
 .. _openstack_l2:
 
-OpenStack L2
-************
+OpenStack L2 Full
+*****************
 
 In this scenario Shaker launches pairs of instances in the same tenant network.
 Every instance is hosted on a separate compute node, all available compute

@@ -40,7 +40,7 @@ within the tenant network (L2 domain).
         - '[type == ''agent''] >> (stats.packets.avg > 100000)'
         title: UDP
         udp: true
-    file_name: /opt/stack/.venv/local/lib/python2.7/site-packages/shaker/scenarios/openstack/perf_l2.yaml
+    file_name: shaker/shaker/scenarios/openstack/perf_l2.yaml
     title: OpenStack L2 Performance
 
 Ping
@@ -57,23 +57,23 @@ Ping
     time: 10
     title: Ping
 
-.. image:: e16eb203-5cb1-49b9-aed3-6fb87e2f9e08.*
+.. image:: 040fbe4a-8b9d-4288-bd53-23133ab0d780.*
 
 **Stats**:
 
 =============  ========  ========  ========
-Metric         Min       Avg       Max
+Metric         Min       Avg       Max     
 =============  ========  ========  ========
-ping_icmp, ms      0.27      0.56      1.55
+ping_icmp, ms      0.26      0.43      1.12
 =============  ========  ========  ========
 
 **SLA**:
 
-=========================  ===========  ==================  ========
-Expression                 Concurrency  Node                Result
-=========================  ===========  ==================  ========
-stats.ping_icmp.avg < 2.0            1  node-25.domain.tld  OK
-=========================  ===========  ==================  ========
+=========================  ===========  ===================  ========
+Expression                 Concurrency  Node                 Result  
+=========================  ===========  ===================  ========
+stats.ping_icmp.avg < 2.0            1  node-228.domain.tld  OK
+=========================  ===========  ===================  ========
 
 TCP
 ===
@@ -89,25 +89,25 @@ TCP
     - '[type == ''agent''] >> (stats.retransmits.max < 10)'
     title: TCP
 
-.. image:: 0b79db9b-af16-4471-a525-5c740098a7a7.*
+.. image:: d4d58e1d-355b-421b-830e-431e97e594b1.*
 
 **Stats**:
 
 =================  ========  ========  ========
-Metric             Min       Avg       Max
+Metric             Min       Avg       Max     
 =================  ========  ========  ========
-bandwidth, Mbit/s   5559.96   6875.94   7930.98
-retransmits                                  26
+bandwidth, Mbit/s   9309.98   9378.30   9390.23
+retransmits                         1       104
 =================  ========  ========  ========
 
 **SLA**:
 
-==========================  ===========  ==================  ========
-Expression                  Concurrency  Node                Result
-==========================  ===========  ==================  ========
-stats.bandwidth.avg > 5000            1  node-25.domain.tld  OK
-stats.retransmits.max < 10            1  node-25.domain.tld  FAIL
-==========================  ===========  ==================  ========
+==========================  ===========  ===================  ========
+Expression                  Concurrency  Node                 Result  
+==========================  ===========  ===================  ========
+stats.bandwidth.avg > 5000            1  node-228.domain.tld  OK
+stats.retransmits.max < 10            1  node-228.domain.tld  FAIL
+==========================  ===========  ===================  ========
 
 UDP
 ===
@@ -125,23 +125,23 @@ UDP
     title: UDP
     udp: true
 
-.. image:: 4c1cfdd5-5f8c-41de-ab18-75309778f91f.*
+.. image:: e7e6243f-d0ed-43f9-a75c-13874be522a3.*
 
 **Stats**:
 
-============  =========  =========  =========
-Metric        Min        Avg        Max
-============  =========  =========  =========
-loss, %                      0.019
-jitter, ms                   0.003
-packets, pps     184290     206668     223370
-============  =========  =========  =========
+============  ========  ========  ========
+Metric        Min       Avg       Max     
+============  ========  ========  ========
+loss, %                     4.09
+jitter, ms                  0.01
+packets, pps    190320    199583    213660
+============  ========  ========  ========
 
 **SLA**:
 
-==========================  ===========  ==================  ========
-Expression                  Concurrency  Node                Result
-==========================  ===========  ==================  ========
-stats.packets.avg > 100000            1  node-25.domain.tld  OK
-==========================  ===========  ==================  ========
+==========================  ===========  ===================  ========
+Expression                  Concurrency  Node                 Result  
+==========================  ===========  ===================  ========
+stats.packets.avg > 100000            1  node-228.domain.tld  OK
+==========================  ===========  ===================  ========
 

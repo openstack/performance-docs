@@ -1,7 +1,7 @@
 .. _openstack_l3_north_south_performance:
 
-OpenStack L3 North-South Performance
-************************************
+OpenStack L3 North-South Performance 2 nodes
+********************************************
 
 In this scenario Shaker launches 1 pair of instances on different compute
 nodes. Instances are in different networks connected to different routers,

@@ -41,7 +41,7 @@ east-west).
         - '[type == ''agent''] >> (stats.packets.avg > 100000)'
         title: UDP
         udp: true
-    file_name: /opt/stack/.venv/local/lib/python2.7/site-packages/shaker/scenarios/openstack/perf_l3_east_west.yaml
+    file_name: shaker/shaker/scenarios/openstack/perf_l3_east_west.yaml
     title: OpenStack L3 East-West Performance
 
 Ping
@@ -58,22 +58,22 @@ Ping
     time: 10
     title: Ping
 
-.. image:: 62f33859-d3eb-401f-b002-f77af299090d.*
+.. image:: 52751a66-4acd-4ecd-80ec-2722692dd601.*
 
 **Stats**:
 
 =============  ========  ========  ========
 Metric         Min       Avg       Max     
 =============  ========  ========  ========
-ping_icmp, ms      0.54      0.71      1.24
+ping_icmp, ms      0.26      0.51      0.90
 =============  ========  ========  ========
 
 **SLA**:
 
 =========================  ===========  ===================  ========
-Expression                 Concurrency  Node                 Result
+Expression                 Concurrency  Node                 Result  
 =========================  ===========  ===================  ========
-stats.ping_icmp.avg < 2.0            1  node-164.domain.tld  OK
+stats.ping_icmp.avg < 2.0            1  node-248.domain.tld  OK
 =========================  ===========  ===================  ========
 
 TCP
@@ -90,24 +90,24 @@ TCP
     - '[type == ''agent''] >> (stats.retransmits.max < 10)'
     title: TCP
 
-.. image:: 7f38e7b9-498a-4e82-b928-aa0dc5641d7f.*
+.. image:: eba8ca00-5402-44ab-93d3-2bc0a32baad5.*
 
 **Stats**:
 
 =================  ========  ========  ========
-Metric             Min       Avg       Max
+Metric             Min       Avg       Max     
 =================  ========  ========  ========
-bandwidth, Mbit/s   5405.46   5812.68   7309.81
-retransmits                                  13
+bandwidth, Mbit/s   9309.96   9376.98   9389.82
+retransmits                         1        98
 =================  ========  ========  ========
 
 **SLA**:
 
 ==========================  ===========  ===================  ========
-Expression                  Concurrency  Node                 Result
+Expression                  Concurrency  Node                 Result  
 ==========================  ===========  ===================  ========
-stats.bandwidth.avg > 5000            1  node-164.domain.tld  OK
-stats.retransmits.max < 10            1  node-164.domain.tld  FAIL
+stats.bandwidth.avg > 5000            1  node-248.domain.tld  OK
+stats.retransmits.max < 10            1  node-248.domain.tld  FAIL
 ==========================  ===========  ===================  ========
 
 UDP
@@ -126,23 +126,23 @@ UDP
     title: UDP
     udp: true
 
-.. image:: 3dcd5b03-943e-44d0-9e8c-3ef79c424d4e.*
+.. image:: 0c603cc9-dfa2-4ccd-8e9f-3c167bdd27b7.*
 
 **Stats**:
 
-============  =========  =========  =========
-Metric        Min        Avg        Max
-============  =========  =========  =========
-loss, %                      0.005
-jitter, ms                   0.004
-packets, pps     138870     153702     165970
-============  =========  =========  =========
+============  ========  ========  ========
+Metric        Min       Avg       Max     
+============  ========  ========  ========
+loss, %                     0.00
+jitter, ms                  0.00
+packets, pps    134550    142620    150010
+============  ========  ========  ========
 
 **SLA**:
 
 ==========================  ===========  ===================  ========
 Expression                  Concurrency  Node                 Result  
 ==========================  ===========  ===================  ========
-stats.packets.avg > 100000            1  node-164.domain.tld  OK
+stats.packets.avg > 100000            1  node-248.domain.tld  OK
 ==========================  ===========  ===================  ========
 
