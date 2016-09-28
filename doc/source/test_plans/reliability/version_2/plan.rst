@@ -1,4 +1,4 @@
-.. _reliability_testing:
+.. _reliability_testing_version_2:
 
 ==========================================
 OpenStack reliability testing. Version 2.0
@@ -18,11 +18,13 @@ OpenStack reliability testing. Version 2.0
 
   - **MTTR** - mean time to recover service performance after the fault.
 
-  - **Service Downtime** - the time when service was not available and number
-    of errors is more than defined by SLA.
+  - **Service Downtime** - the time when service was not available.
 
-  - **Operation Degradation** - the difference in operation performance
-    compared with performance when service operates normally.
+  - **Absolute performance degradation** - is an absolute difference between
+    the mean of operation duration during recovery period and the baseline's.
+
+  - **Relative performance degradation** - is the ratio between the mean
+    of operation duration during recovery period and the baseline's.
 
   - **Fault injection** - the function that emulates failure in software or
     hardware.
@@ -201,14 +203,14 @@ Overall the following metrics need to be collected:
      - How long does it takes to recover service performance after the failure.
    *
      - 1
-     - Operation Degradation
+     - Absolute performance degradation
      - sec
      - the mean of difference in operation performance during recovery period
        and operation performance when service operates normally.
    *
      - 1
-     - Operation Degradation Ratio
-     - sec
+     - Relative performance degradation
+     - ratio
      - the ratio between operation performance during recovery period and
        operation performance when service operates normally.
 
@@ -252,13 +254,45 @@ succeed operation.
 To find the recovery period we first calculate the mean duration of
 consequent operations with sliding window. The period is treated as
 `Recovery period` when mean operation duration is significantly more than
-the mean operation duration in the baseline. `Operation degradation` is
-calculated as difference between mean of operation duration during Recovery
-period and the baseline's. `Operation ratio` is the ratio between mean of
-operation duration during Recovery period and the baseline's.
+the mean operation duration in the baseline. The average duration of Recovery
+period is `MTTR` value. `Absolute performance degradatio` is calculated as
+difference between mean of operation duration during Recovery period and
+the baseline's. `Relative performance degradation` is the ratio between
+mean of operation duration during Recovery period and the baseline's.
+
+
+How to run
+^^^^^^^^^^
+
+Prerequisites:
+ * Install `Rally` tool and configure deployment parameters
+
+   * Verify that Rally is properly installed by running ``rally show flavors``
+
+ * Install `os-faults` library: ``pip install os-faults``
+
+   * Configure cloud and power management parameters, refer to `os-faults-cfg`
+   * Verify parameters by running ``os-inject-fault -v``
+
+ * Install `RallyRunners` tool: ``pip install rally-runners``
+
+Run scenarios:
+ ``rally-reliability -s SCENARIO -o OUTPUT -b BOOK``
+
+To show full list of scenarios:
+ ``rally-reliability -h``
+
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`reliability_test_results_version_2`
 
 
 .. references:
 
 .. _Rally: https://rally.readthedocs.io/
 .. _os-faults: https://os-faults.readthedocs.io/
+.. _os-faults-cfg: http://os-faults.readthedocs.io/en/latest/readme.html#usage
+.. _RallyRunners: https://github.com/shakhat/rally-runners
