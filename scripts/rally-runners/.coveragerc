@@ -1,0 +1,6 @@
+[run]
+branch = True
+source = rally_runners
+
+[report]
+ignore_errors = True

@@ -1,0 +1,35 @@
+---
+{% set repeat = repeat|default(1) %}
+  VMTasks.boot_runcommand_delete:
+{% for iteration in range(repeat) %}
+    -
+      args:
+        flavor:
+          name: "m1.micro"
+        image:
+          name: "(^cirros.*uec$|TestVM)"
+        floating_network: "admin_floating_net"
+        command:
+          script_inline: "echo '{}'"
+          interpreter: "/bin/sh"
+        username: "cirros"
+      runner:
+        type: "constant_for_duration"
+        duration: 900
+        concurrency: 2
+      context:
+        users:
+          tenants: 1
+          users_per_tenant: 1
+        network: {}
+      hooks:
+        -
+          name: fault_injection
+          args:
+            action: restart keystone service on one node
+          trigger:
+            name: event
+            args:
+              unit: iteration
+              at: [60]
+{% endfor %}
