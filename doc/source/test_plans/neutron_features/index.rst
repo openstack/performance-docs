@@ -10,3 +10,4 @@ Neutron features test plans
     :maxdepth: 3
 
     l3_ha/plan
+    resource_density/plan

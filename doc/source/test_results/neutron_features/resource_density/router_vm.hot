@@ -1,0 +1,41 @@
+heat_template_version: 2013-05-23
+
+resources:
+  east_private_net:
+    type: OS::Neutron::Net
+    properties:
+      name: my_net_east
+
+  east_private_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: east_private_net }
+      cidr: 10.1.0.0/16
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network: admin_floating_net
+
+  router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router }
+      subnet_id: { get_resource: east_private_subnet }
+
+  server_1:
+    type: OS::Nova::Server
+    properties:
+      name: server_1
+      image: TestVM
+      flavor: m1.micro
+      networks:
+        - port: { get_resource: port_1 }
+
+  port_1:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: east_private_net }
+      fixed_ips:
+        - subnet_id: { get_resource: east_private_subnet }

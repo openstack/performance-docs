@@ -11,4 +11,4 @@ Neutron features scale testing
 
     l3_ha/test_results_liberty
     l3_ha/test_results_mitaka
-
+    resource_density/index
