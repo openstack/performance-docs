@@ -8,7 +8,7 @@ Results of measuring of API performance of Kubernetes
 
   This document includes performance test results of Kubernetes API.
   All tests have been performed regarding
-  :ref:`Measuring_of_API_performance_of_Kubernetes`
+  :ref:`Measuring_of_API_performance_of_container_cluster_system`
 
 
 Environment description
@@ -81,7 +81,7 @@ bond0 interface of a server:
    spanning-tree bpduguard enable
    no snmp trap link-status
 
-Software configuration of kubernetes service
+Software configuration of Kubernetes service
 --------------------------------------------
 Setting up Kubernetes
 ^^^^^^^^^^^^^^^^^^^^^
@@ -196,7 +196,7 @@ You can see more from the `load.py`_ code.
   +----------------------------+------------------------------------------+
   | Ubuntu                     | Ubuntu 14.04 LTS                         |
   +----------------------------+------------------------------------------+
-  | e2e-test (kubernetes repo) | v1.3.5                                   |
+  | e2e-test (Kubernetes repo) | v1.3.5                                   |
   +----------------------------+------------------------------------------+
   | Docker                     | 1.11.2, build b9f10c9                    |
   +----------------------------+------------------------------------------+
@@ -212,7 +212,7 @@ Preparation
 -----------
 1.
   Kubernetes was set up on top of 10 nodes as described in
-  `Setting up kubernetes`_ section.
+  `Setting up Kubernetes`_ section.
 
 2.
   e2e-test container was running on top of infrastructure one-node Kubernetes
@@ -292,6 +292,44 @@ Please note, that numbers of pods and other items depend on numbers of nodes.
 |   :scale: 50                                |   :scale: 50                  |
 +---------------------------------------------+-------------------------------+
 
+Kubernetes pod startup latency measurement
+------------------------------------------
+
+For this testing purposes `MMM(MySQL/Master/Minions) testing suite`_ was used
+(more information in `Pod startup time measurement toolkit`_ section).
+
+This toolkit was run against 150 nodes Kubernetes environment installed via
+`Kargo`_ deployment tool. The most basic configuration (1 replication
+controller, N pods, each pod containing 1 container) was run against the
+environment. Additional configurations will be tested and results published
+in terms of further researches.
+
+The first run includes information about 500 pods being run on fresh Kubernetes
+environment (no tests have been run on it before):
+
+.. image:: MMM-tool/500_containers_first_run.png
+   :alt: Containers startup time (500 containers, first run)
+   :width: 650px
+
+This weird timings pattern is related to the fact that first 500 containers
+pack was run against not warmed up environment (minions images were not
+pre-loaded on Kubernetes worker nodes, that means that during first run Docker
+registry/repo/etc was really stressed).
+
+The same scenario run against the warmed-up environment will have linear
+pattern (with ~50 milliseconds per container startup):
+
+.. image:: MMM-tool/500_containers_second_run.png
+   :alt: Containers startup time (500 containers, second run)
+   :width: 650px
+
+This pattern will remain the same with bigger number of containers (15000
+containers, the same ~50 milliseconds per container startup):
+
+.. image:: MMM-tool/15000_containers.png
+   :alt: Containers startup time (15000 containers)
+   :width: 650px
+
 Applications
 ============
 Files and scripts to build Docker container with e2e-test tool
@@ -320,9 +358,35 @@ e2e-tests/create_rst_table_from_k8s_e2e_log.py:
 .. literalinclude:: e2e-tests/create_rst_table_from_k8s_e2e_log.py
     :language: python
 
+Pod startup time measurement toolkit
+------------------------------------
+
+for `Kubernetes pod startup latency measurement`_ test case
+`MMM(MySQL/Master/Minions) testing suite`_ was used.
+
+This is a client/server set for testing speed of k8s/docker/networking
+scheduling capabilities speed.
+
+Architecture is simple and consist of the following:
+
+* MariaDB/MySQL service (replication controller with only one replica)
+* Master service, a simple Python application based on `Flask`_ framework with
+  multiple threads and producer/consumer queue for SQL inserts
+* Minion replication controller - a simple bash script which registers minions
+  on master service.
+
+This approach guarantees that container will report about its status itself,
+so any issues (e.g. too slow startup or unsuccessful at all attempt to create
+a container will be observed in the testing results).
+
+For more details please proceed to the
+`MMM(MySQL/Master/Minions) testing suite`_ documentation.
+
 
 .. references:
 
 .. _Kargo: https://github.com/kubespray/kargo
 .. _e2e-tests: https://github.com/kubernetes/kubernetes/blob/release-1.4/docs/devel/e2e-tests.md
 .. _load.py: https://github.com/kubernetes/kubernetes/blob/master/test/e2e/load.go
+.. _MMM(MySQL/Master/Minions) testing suite: https://github.com/AleksandrNull/MMM
+.. _Flask: http://flask.pocoo.org/

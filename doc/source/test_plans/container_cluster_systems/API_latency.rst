@@ -148,6 +148,33 @@ Measuring values of API latencies of requests which make actions on containers
   | POST                            |                                         |
   +---------------------------------+-----------------------------------------+
 
+Test Case #1.5: Container creation startup latency extended measurement
+-----------------------------------------------------------------------
+
+Description
+^^^^^^^^^^^
+
+The is a specific interest in understanding not only when container cluster
+system is reporting that the requested container is up and running, but when
+this container really becomes operable in data plane terms. This can be
+measured via scheduling and spawning containers, that will report about their
+status to some centralized manager. This data needs to be collected and then
+carefully analyzed, especially keeping attention to possible regressions (if
+huge number of containers is created - either at once or one by one).
+
+List of performance metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. table:: list of test metrics to be collected during this test
+
+  +-----------------------------+---------------------------------------------+
+  | Parameter                   |Description                                  |
+  +=============================+=============================================+
+  |  CONTAINER_STARTUP_LATENCY  | | The time which a container management     |
+  |                             | | system needs to spawn workable and fully  |
+  |                             | | operable container.                       |
+  +-----------------------------+---------------------------------------------+
+
 Test Case #2: API latencies of any other supported requests
 -----------------------------------------------------------
 Description
