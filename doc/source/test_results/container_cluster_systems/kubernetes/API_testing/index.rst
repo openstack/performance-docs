@@ -69,8 +69,8 @@ Network scheme of the environment:
    :alt: Network Scheme of the environment
    :scale: 65
 
-Here is the piece of switch configuration for each switch port which is a part of
-bond0 interface of a server:
+Here is the piece of switch configuration for each switch port which is a part
+of bond0 interface of a server:
 
 .. code:: bash
 
@@ -155,9 +155,10 @@ to nodes count):
 Operating system configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 You can find outputs of some commands and /etc folder in the following archive:
-:download:`server_description_of_node1 <configs/server_description_of_node1.tar.gz>`
-:download:`server_description_of_node3 <configs/server_description_of_node3.tar.gz>`
-:download:`server_description_of_node4 <configs/server_description_of_node4.tar.gz>`
+
+- :download:`server_description_of_node1 <configs/server_description_of_node1.tar.gz>`
+- :download:`server_description_of_node3 <configs/server_description_of_node3.tar.gz>`
+- :download:`server_description_of_node4 <configs/server_description_of_node4.tar.gz>`
 
 Software configuration of Test tool:
 ------------------------------------
@@ -251,18 +252,18 @@ We performed the steps from 1 to 3 for Kubernetes cluster on top of 10, 50 and
 
 Results
 =======
-10-nodes cluster
-----------------
+10-nodes cluster (all values are presented in milliseconds)
+-----------------------------------------------------------
 
 .. include:: results/10_nodes_results.rst
 
-50-nodes cluster
-----------------
+50-nodes cluster (all values are presented in milliseconds)
+-----------------------------------------------------------
 
 .. include:: results/50_nodes_results.rst
 
-355-nodes cluster
------------------
+355-nodes cluster (all values are presented in milliseconds)
+------------------------------------------------------------
 
 .. include:: results/355_nodes_results.rst
 
@@ -299,13 +300,15 @@ For this testing purposes `MMM(MySQL/Master/Minions) testing suite`_ was used
 (more information in `Pod startup time measurement toolkit`_ section).
 
 This toolkit was run against 150 nodes Kubernetes environment installed via
-`Kargo`_ deployment tool. The most basic configuration (1 replication
-controller, N pods, each pod containing 1 container) was run against the
-environment. Additional configurations will be tested and results published
-in terms of further researches.
+`Kargo`_ deployment tool (these nodes were taken from the same nodes pool all
+previous Kubernetes API performance tests were run against). The most basic
+configuration (1 replication controller, N pods, each pod containing 1
+container) was run against the environment. Additional configurations will be
+tested and results published in terms of further researches.
 
 The first run includes information about 500 pods being run on fresh Kubernetes
-environment (no tests have been run on it before):
+environment (no tests have been run on it before, warm-up run with about 3 pods
+per node density):
 
 .. image:: MMM-tool/500_containers_first_run.png
    :alt: Containers startup time (500 containers, first run)
@@ -317,14 +320,16 @@ pre-loaded on Kubernetes worker nodes, that means that during first run Docker
 registry/repo/etc was really stressed).
 
 The same scenario run against the warmed-up environment will have linear
-pattern (with ~50 milliseconds per container startup):
+pattern (with ~50 milliseconds per container startup, about 3 pods per cluster
+node density):
 
 .. image:: MMM-tool/500_containers_second_run.png
    :alt: Containers startup time (500 containers, second run)
    :width: 650px
 
 This pattern will remain the same with bigger number of containers (15000
-containers, the same ~50 milliseconds per container startup):
+containers, the same ~50 milliseconds per container startup, 100 pods per
+cluster node density):
 
 .. image:: MMM-tool/15000_containers.png
    :alt: Containers startup time (15000 containers)
