@@ -429,3 +429,4 @@ Reports
 
 Test plan execution reports:
  * :ref:`tenant_networking_report_vxlan_dvr_200_nodes`
+ * :ref:`tenant_networking_report_vxlan_dvr_378_nodes`

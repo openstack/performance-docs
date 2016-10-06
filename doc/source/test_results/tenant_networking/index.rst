@@ -8,5 +8,6 @@ OpenStack tenant networking
 
 .. toctree::
     :maxdepth: 3
+    :glob:
 
-    neutron_vxlan_dvr_200/index
+    */index

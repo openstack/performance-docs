@@ -1,7 +1,7 @@
 .. _openstack_l3_east_west:
 
-OpenStack L3 East-West
-**********************
+OpenStack L3 East-West Full
+***************************
 
 In this scenario Shaker launches pairs of instances, each instance on its own
 compute node. All available compute nodes are utilized. Instances are connected
