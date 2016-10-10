@@ -11,3 +11,4 @@ Neutron features test plans
 
     l3_ha/plan
     resource_density/plan
+    agent_restart/plan
