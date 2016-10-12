@@ -106,7 +106,7 @@ On all 3 database server hosts:
   wsrep_node_address              = "10.4.1.114"
   wsrep_sst_method                = rsync
   wsrep_slave_threads             = 24
-  max_connections                 = 100
+  max_connections                 = 250
   connect_timeout                 = 5
   wait_timeout                    = 600
   max_allowed_packet              = 16M
@@ -230,13 +230,13 @@ due to replication will be measured.
 Parameters
 ^^^^^^^^^^
 
-=================  ========================
+=================  =============================
 Parameter          Value
-=================  ========================
-Database	   MySQL, MariaDB, Percona
-Number of threads  10, 20, 30, 60, 120, 180
+=================  =============================
+Database	       MySQL, MariaDB, Percona
+Number of threads  20, 40, 60, 80, 120, 160, 200
 Replication        1, 3
-=================  ========================
+=================  =============================
 
 Database configurations
 
@@ -288,13 +288,13 @@ Some of the ultimate goals of the testing tool are to identify:
 Parameters
 ^^^^^^^^^^
 
-=================  ========================
+=================  =============================
 Parameter          Value
-=================  ========================
+=================  =============================
 Database           MySQL, MariaDB, Percona
-Number of threads  10, 20, 30, 60, 120, 180
+Number of threads  20, 40, 60, 80, 120, 160, 200
 Replication        1, 3
-=================  ========================
+=================  =============================
 
 Database configurations will be chosen from among the best of the
 sysbench tests.
