@@ -11,3 +11,4 @@ Labs
 
     intel_lab_1
     intel_lab_2
+    grid5000
