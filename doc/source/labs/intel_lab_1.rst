@@ -1,8 +1,8 @@
-.. _intel_mirantis_performance_lab:
+.. _intel_mirantis_performance_lab_1:
 
-===================================
-Intel-Mirantis Performance-Team Lab
-===================================
+======================================
+Intel-Mirantis Performance-Team Lab #1
+======================================
 
 Background
 ==========

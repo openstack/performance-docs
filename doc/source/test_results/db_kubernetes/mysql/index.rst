@@ -13,7 +13,7 @@ Environment description
 
 This report is generated for :ref:`db_performance` test plan with
 `Sysbench`_ tool. The data is collected in
-:ref:`intel_mirantis_performance_lab`.
+:ref:`intel_mirantis_performance_lab_2`.
 
 
 Software

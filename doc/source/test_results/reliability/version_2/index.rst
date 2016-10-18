@@ -11,7 +11,7 @@ Environment description
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 This report contains results for :ref:`reliability_testing_version_2`
-test plan. The data is collected in :ref:`intel_mirantis_performance_lab`.
+test plan. The data is collected in :ref:`intel_mirantis_performance_lab_1`.
 
 
 Software

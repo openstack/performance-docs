@@ -13,7 +13,7 @@ Environment description
 
 This report is generated for :ref:`message_queue_ha` test plan with
 `Oslo.messaging Simulator`_ tool. The data is collected in
-:ref:`intel_mirantis_performance_lab`.
+:ref:`intel_mirantis_performance_lab_1`.
 
 
 Software

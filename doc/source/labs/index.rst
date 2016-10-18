@@ -9,4 +9,5 @@ Labs
 .. toctree::
     :maxdepth: 2
 
-    intel_lab
+    intel_lab_1
+    intel_lab_2
