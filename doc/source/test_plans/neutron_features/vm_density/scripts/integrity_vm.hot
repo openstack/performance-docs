@@ -1,0 +1,126 @@
+heat_template_version: 2013-05-23
+description: Template to create multiple instances.
+
+parameters:
+  image:
+    type: string
+    description: Image used for servers
+  flavor:
+    type: string
+    description: flavor used by the servers
+    default: m1.micro
+    constraints:
+      - custom_constraint: nova.flavor
+  public_network:
+    type: string
+    label: Public network name or ID
+    description: Public network with floating IP addresses.
+    default: admin_floating_net
+  instance_count_floating:
+    type: number
+    description: Number of instances to create
+    default: 1
+  instance_count_non_floating:
+    type: number
+    description: Number of instances to create
+    default: 1
+
+
+resources:
+
+  private_network:
+    type: OS::Neutron::Net
+    properties:
+          name: integrity_network
+
+  private_subnet_floating:
+    type: OS::Neutron::Subnet
+    properties:
+      name: integrity_floating_subnet
+      network_id: { get_resource: private_network }
+      cidr: 10.10.10.0/24
+      dns_nameservers:
+        - 8.8.8.8
+
+  private_subnet_non_floating:
+    type: OS::Neutron::Subnet
+    properties:
+      name: integrity_non_floating_subnet
+      network_id: { get_resource: private_network }
+      cidr: 20.20.20.0/24
+      dns_nameservers:
+        - 8.8.8.8
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      name: integrity_router
+      external_gateway_info:
+        network: { get_param: public_network }
+
+  router_interface_floating:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router }
+      subnet: { get_resource: private_subnet_floating }
+
+  router_interface_non_floating:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router }
+      subnet: { get_resource: private_subnet_non_floating }
+
+  server_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules: [
+        {remote_ip_prefix: 0.0.0.0/0,
+        protocol: tcp,
+        port_range_min: 1,
+        port_range_max: 65535},
+        {remote_ip_prefix: 0.0.0.0/0,
+        protocol: udp,
+        port_range_min: 1,
+        port_range_max: 65535},
+        {remote_ip_prefix: 0.0.0.0/0,
+        protocol: icmp}]
+
+  policy_group_floating:
+    type: OS::Nova::ServerGroup
+    properties:
+      name: nova_server_group_floating
+      policies: [anti-affinity]
+
+  policy_group_non_floating:
+    type: OS::Nova::ServerGroup
+    properties:
+      name: nova_server_group_non_floating
+      policies: [anti-affinity]
+
+  server_group_floating:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: instance_count_floating}
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          image: { get_param: image }
+          flavor: { get_param: flavor }
+          networks:
+            - subnet: { get_resource: private_subnet_floating }
+          scheduler_hints: { group: { get_resource: policy_group_floating} }
+          security_groups: [{get_resource: server_security_group}]
+
+  server_group_non_floating:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: instance_count_non_floating}
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          image: { get_param: image }
+          flavor: { get_param: flavor }
+          networks:
+            - subnet: { get_resource: private_subnet_non_floating }
+          scheduler_hints: { group: { get_resource: policy_group_non_floating} }
+          security_groups: [{get_resource: server_security_group}]
