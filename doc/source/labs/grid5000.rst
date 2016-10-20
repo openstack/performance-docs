@@ -1,0 +1,32 @@
+.. _intel_mirantis_performance_lab:
+
+===================================
+Grid'5000
+===================================
+
+Background
+==========
+
+Grid'5000 [#]_ is a large-scale and versatile testbed for experiment-driven
+research in all areas of computer science, with a focus on parallel and
+distributed computing including Cloud, HPC and Big Data.
+
+The platform gives access to approximately to 1000 machines grouped in 30
+clusters geographically distributed in 8 sites.
+
+The Open access [#]_ program allows external users to get an account on the
+platform. 
+
+Hardware
+========
+
+Due to the numerous use cases the platform addresses, servers and network
+configuration [#]_ may differ between different clusters but remain homogeneous
+inside the same cluster.
+
+References
+----------
+
+.. [#] https://www.grid5000.fr/mediawiki/index.php/Grid5000:Home
+.. [#] https://www.grid5000.fr/mediawiki/index.php/Grid5000:Get_an_account
+.. [#] https://www.grid5000.fr/mediawiki/index.php/Special:G5KHardware
