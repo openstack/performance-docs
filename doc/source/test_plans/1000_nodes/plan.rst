@@ -207,3 +207,4 @@ Reports
 
 Test plan execution reports:
  * :ref:`1000_nodes_report`
+ * :ref:`1000_nodes_fake_driver_report`
