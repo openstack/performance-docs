@@ -1,5 +1,5 @@
-Keystone authentication with memached restart on one node
-=========================================================
+Keystone authentication with memcached restart on one node
+==========================================================
 
 This report is generated on results collected by execution of the following
 Rally scenario:
