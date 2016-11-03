@@ -1,0 +1,17 @@
+{
+    "Authenticate.keystone": [
+        {
+            "runner": {
+                "type": "constant",
+                "times": {{times}},
+                "concurrency": {{concurrency}}
+            },
+            "context": {
+                "users": {
+                    "tenants": 2,
+                    "users_per_tenant": 3
+                }
+            }
+        }
+    ]
+}
