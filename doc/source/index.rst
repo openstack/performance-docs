@@ -19,6 +19,7 @@ Contents
     :maxdepth: 2
 
     introduction.rst
+    summits_recaps/index
     methodologies/index
     labs/index.rst
     test_plans/index
