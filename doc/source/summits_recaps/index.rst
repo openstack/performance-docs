@@ -10,3 +10,4 @@ OpenStack summits news
     :maxdepth: 2
 
     ocata_summit.rst
+    newton_summit.rst
