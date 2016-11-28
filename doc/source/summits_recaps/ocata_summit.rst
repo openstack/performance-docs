@@ -69,6 +69,20 @@ Useful links:
 * `Architecture WG summit etherpad`_
 * `Architecture WG proposal`_
 
+NFV Working Group
+------------------------------------------
+
+The WG follows on the previous telecom/NFV WG that met their goal of creating
+telecom/NFV related user stories.  This new team will work with the OpenStack
+community to guide OpenStack Operators in running telecommunication services and
+Network Function Virtualization (NFV) systems.  This means all kinds of things, from
+developing operational tools, to shepherding requirements through the OpenStack
+ecosystem and to performance testing and benchmarking. All information about this
+group can be found using the following links:
+
+* `Ops NFV Wiki page`_
+* `Ops NFV summit etherpad`_
+
 QA: destructive testing
 -----------------------
 
@@ -98,6 +112,8 @@ downtime, performance degradation, etc.): `upgrades summit etherpad`_.
 .. _LDT session etherpad: https://etherpad.openstack.org/p/BCN-Large-Deployments-Team
 .. _Architecture WG summit etherpad: https://etherpad.openstack.org/p/BCN-architecture-wg
 .. _Architecture WG proposal: https://etherpad.openstack.org/p/arch-wg-draft
+.. _Ops NFV Wiki page: https://wiki.openstack.org/wiki/Ops-telecom-nfv
+.. _Ops NFV summit etherpad: https://etherpad.openstack.org/p/BCN-ops-telcom-nfv-team
 .. _Destructive testing summit etherpad: https://etherpad.openstack.org/p/ocata-qa-destructive-testing
 .. _OS-faults documentation: http://os-faults.readthedocs.io/en/latest/usage.html
 .. _upgrades summit etherpad: https://etherpad.openstack.org/p/ocata-xp-upgrades
