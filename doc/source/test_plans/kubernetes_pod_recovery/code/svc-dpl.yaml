@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: svc
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: svc
+      annotations:
+        scheduler.alpha.kubernetes.io/affinity: '{"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution":
+          {"nodeSelectorTerms": [{"matchExpressions": [{"key": "kubernetes.io/hostname",
+          "operator": "In", "values": ["node4", "node5", "node6"]}]}]}}}'
+    spec:
+      containers:
+      - name: svc
+        image: 127.0.0.1:31500/qa/svc
+        ports:
+        - containerPort: 8000
