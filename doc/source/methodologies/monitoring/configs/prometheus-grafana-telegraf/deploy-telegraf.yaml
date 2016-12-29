@@ -1,0 +1,118 @@
+---
+- hosts: all-cluster-nodes
+  remote_user: root
+  tasks:
+     - name: Create user telegraf
+       user: name=telegraf home=/opt/telegraf
+     - name: Create /opt/telegraf
+       file: path=/opt/telegraf state=directory owner=telegraf
+     - name: Create bin dir for telegraf
+       file: path=/opt/telegraf/bin state=directory owner=telegraf
+     - name: Create etc dir for telegraf
+       file: path=/opt/telegraf/etc state=directory owner=telegraf
+     - name: Copy telegraf to server
+       copy: src=../../telegraf/opt/bin/telegraf dest=/opt/telegraf/bin/telegraf mode=0755
+       register: telegraf_bin
+     - name: Copy telegraf.service
+       copy: src=telegraf/telegraf.service dest=/etc/systemd/system/telegraf.service
+       register: telegraf_service
+     - name: Start and enable telegraf
+       systemd: state=started enabled=yes daemon_reload=yes name=telegraf
+     - name: Delete allmetrics.tmp.lock
+       file: path=/opt/telegraf/bin/data/allmetrics.tmp.lock state=absent
+       when: telegraf_service.changed or telegraf_bin.changed
+     - name: Restart telegraf if telegraf binary has been changed
+       systemd: state=restarted name=telegraf
+       when: telegraf_bin.changed
+     - name: Install software
+       apt: name={{ item }} state=installed
+       with_items:
+           - sysstat
+           - numactl
+     - name: Copy system metric scripts
+       copy: src=../../telegraf/opt/system_stats/{{ item }} dest=/opt/telegraf/bin/{{ item }} mode=0755
+       with_items:
+         - entropy.sh
+         - iostat_per_device.sh
+         - memory_bandwidth.sh
+         - numa_stat_per_pid.sh
+         - per_process_cpu_usage.sh
+         - list_openstack_processes.sh
+         - network_tcp_queue.sh
+     - name: Copy pcm-memory-one-line.x
+       copy: src=../../telegraf/opt/system_stats/intel_pcm_mem/pcm-memory-one-line.x dest=/opt/telegraf/bin/pcm-memory-one-line.x mode=0755
+     - name: Add sysctl for pcm
+       sysctl: name=kernel.nmi_watchdog value=0 state=present reload=yes
+     - name: Load kernel module msr
+       modprobe: name=msr state=present
+     - name: Add module autoload
+       lineinfile: dest=/etc/modules line='msr'
+     - name: Add user telegraf to sudoers
+       lineinfile:
+          dest: /etc/sudoers
+          state: present
+          line: "telegraf ALL=(ALL) NOPASSWD: ALL"
+
+
+- hosts: cluster-nodes
+  remote_user: root
+  tasks:
+     - name: Copy telegraf config
+       copy: src=./telegraf/telegraf-sys.conf dest=/opt/telegraf/etc/telegraf.conf
+       register: telegraf_conf
+     - name: Restart telegraf if config has been changed
+       systemd: state=restarted name=telegraf
+       when: telegraf_conf.changed
+
+- hosts: main-kuber
+  remote_user: root
+  tasks:
+     - name: Copy openstack scripts
+       copy: src=../../telegraf/opt/osapi/{{ item }} dest=/opt/telegraf/bin/{{ item }} mode=0755
+       with_items:
+          - glog.sh
+          - osapitime.sh
+          - vmtime.sh
+       tags: [ 'openstack' ]
+     - name: Copy etcd scripts
+       copy: src=../../telegraf/opt/k8s_etcd/{{ item }} dest=/opt/telegraf/bin/{{ item }} mode=0755
+       with_items:
+          - etcd_get_metrics.sh
+          - k8s_get_metrics.sh
+     - name: Install software for scripts
+       apt: name={{ item }} state=installed
+       with_items:
+           - mysql-client
+           - bc
+           - jq
+       tags: [ 'openstack' ]
+     - name: Create dirs for scripts
+       file: path=/opt/telegraf/bin/{{ item }} state=directory owner=telegraf
+       with_items:
+          - log
+          - data
+     - name: Copy telegraf config
+       template: src=telegraf/telegraf-openstack.conf.j2 dest=/opt/telegraf/etc/telegraf.conf
+       register: telegraf_conf
+       tags: [ 'openstack' ]
+     - name: Delete allmetrics.tmp.lock
+       file: path=/opt/telegraf/bin/data/allmetrics.tmp.lock state=absent
+       when: telegraf_conf.changed
+     - name: Restart telegraf if config has been changed
+       systemd: state=restarted name=telegraf
+       when: telegraf_conf.changed
+       tags: [ 'openstack' ]
+
+- hosts: all-cluster-nodes
+  remote_user: root
+  tasks:
+     - name: Reload telegraf is service file has been changed
+       systemd: daemon_reload=yes state=reloaded name=telegraf
+       when: telegraf_service.changed
+
+- hosts: main
+  remote_user: root
+  tasks:
+     - name: update prometheus config
+       template: src=./prometheus/targets.yml.j2 dest=/var/lib/prometheus/targets-{{ cluster_tag }}.yml
+       tags: [ 'prometheus' ]

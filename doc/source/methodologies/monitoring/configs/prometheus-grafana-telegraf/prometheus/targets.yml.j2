@@ -1,0 +1,6 @@
+- targets:
+{% for host in groups['all-cluster-nodes']%}
+  - {{hostvars[host]['inventory_hostname']}}:9126
+{% endfor %}
+  labels:
+    env: {{ cluster_tag }}

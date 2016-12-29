@@ -1,0 +1,58 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+      monitor: 'codelab-monitor'
+
+rule_files:
+  # - "first.rules"
+  # - "second.rules"
+
+scrape_configs:
+
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    scrape_timeout: 5s
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ['172.20.9.115:9090']
+
+{% for env_num in range(1,7) %}
+  - job_name: 'k8-env-{{env_num}}'
+    scrape_interval: 30s
+    scrape_timeout: 30s
+    scheme: https
+    tls_config:
+       insecure_skip_verify: true
+    kubernetes_sd_configs:
+    - api_server: 'https://172.20.8.6{{env_num}}:443'
+      role: node
+      tls_config:
+        insecure_skip_verify: true
+      basic_auth:
+        username: kube
+        password: changeme
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels: [__address__]
+        target_label: env
+        regex: .*
+        replacement: env-{{env_num}}
+
+  - job_name: 'etcd-env-{{env_num}}'
+    scrape_interval: 5s
+    scrape_timeout: 5s
+    scheme: https
+    tls_config:
+       insecure_skip_verify: true
+    file_sd_configs:
+       - files:
+          - etcd-env-{{env_num}}.yml
+{% endfor %}
+
+

@@ -7,7 +7,8 @@ Methodologies
 =======================
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 4
 
     tools
     hyper-scale
+    monitoring/index

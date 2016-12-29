@@ -1,0 +1,30 @@
+{% raw %}
+-- Invert Response time and some more fields to integer type
+
+local fields = {["ResponseTime"] = 0, ["RemotePort"] = 0, ["StatusCode"] = 0}
+local msg = {
+    Type = "KubeAPIlog",
+    Severity = 6,
+    Fields = fields
+}
+
+function process_message ()
+    fields["ResponseTime"] = tonumber(read_message("Fields[ResponseTime]"))
+    fields["RemotePort"] = tonumber(read_message("Fields[RemotePort]"))
+    fields["StatusCode"] = tonumber(read_message("Fields[StatusCode]"))
+    msg.Payload = read_message("Payload")
+    fields["Code"] = read_message("Fields[Code]")
+    fields["ContainerID"] = read_message("Fields[ContainerID]")
+    fields["ContainerName"] = read_message("Fields[ContainerName]")
+    fields["Environment"] = read_message("Fields[Environment]")
+    fields["Method"] = read_message("Fields[Method]")
+    fields["RemoteIP"] = read_message("Fields[RemoteIP]")
+    fields["Url"] = read_message("Fields[Url]")
+    local ok, msg = pcall(inject_message, msg)
+        if not ok then
+        inject_payload("txt", "error", msg)
+    end
+    return 0
+end
+
+{% endraw %}

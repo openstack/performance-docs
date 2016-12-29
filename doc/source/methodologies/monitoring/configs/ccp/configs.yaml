@@ -1,0 +1,38 @@
+configs:
+  private_interface: p1p1.602
+  public_interface: p1p1.602
+  ingress:
+    enabled: true
+  glance:
+    bootstrap:
+      enable: true
+#  nova:
+#    allocation_ratio:
+#      cpu: 16.0
+  neutron:
+    physnets:
+      - name: "physnet1"
+        bridge_name: "br-ex"
+        interface: "p1p1.649"
+        flat: true
+        vlan_range: false
+    bootstrap:
+      internal:
+        enable: true
+      external:
+        enable: true
+        net_name: ext-net
+        subnet_name: ext-subnet
+        physnet: physnet1
+        network: 10.144.0.0/12
+        gateway: 10.144.0.1
+        nameserver: 10.144.0.1
+        pool:
+          start: 10.144.1.0
+          end: 10.159.255.250
+  keystone:
+    debug: true
+  heat:
+    debug: true
+  memcached:
+    ram: 30720

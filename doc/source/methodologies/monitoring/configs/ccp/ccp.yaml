@@ -1,0 +1,15 @@
+builder:
+  push: true
+  no_cache: false
+registry:
+  address: "172.20.8.35:5000/env-1"
+repositories:
+  skip_empty: True
+kubernetes:
+  server: http://172.20.9.234:8080
+---
+!include
+- versions.yaml
+- topology.yaml
+- configs.yaml
+- repos.yaml

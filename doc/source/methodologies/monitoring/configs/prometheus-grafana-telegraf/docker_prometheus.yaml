@@ -1,0 +1,10 @@
+---
+- name: Deploy prometheus in docker
+  docker_container:
+    name: prometheus
+    image: 'prom/prometheus:v1.4.0'
+    ports: 9090:9090
+    state: started
+    volumes: ['/var/lib/prometheus:/prometheus']
+    command: '-config.file=/prometheus/prometheus.yml -storage.local.retention 168h0m0s -storage.local.max-chunks-to-persist 3024288 -storage.local.memory-chunks=50502740 -storage.local.num-fingerprint-mutexes=300960'
+  tags: [ 'prometheus' ]

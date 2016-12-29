@@ -1,0 +1,124 @@
+---
+- hosts: common
+  remote_user: root
+  tasks:
+     - name: Install common packages
+       apt: name={{ item }} state=installed
+       with_items:
+           - python-pip
+       tags: [ 'always' ]
+     - name: Install docker for Ubuntu 14.04
+       apt: name=docker.io state=installed
+       when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '14.04'
+       tags: [ 'always' ]
+     - name: Install docker for Ubuntu 16.01
+       apt: name=docker state=installed
+       when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '16.0.'
+       tags: [ 'always' ]
+     - name: Install python deps
+       pip: name={{ item }}
+       with_items:
+           - docker-py
+           - docker-compose
+       tags: [ 'always' ]
+
+- hosts: grafana
+  remote_user: root
+  vars:
+     postgresql_root_user: root
+     postgresql_root_password: aijoom1Shiex
+     grafana_postgresql_user: grafana
+     grafana_postgresql_password: sHskdhos6se
+     grafana_postgresql_db: grafana
+     grafana_user: admin
+     grafana_password: admin
+  tasks:
+     - name: Install packages for grafana
+       apt: name={{ item }} state=installed
+       with_items:
+           - postgresql-client-9.3
+           - python-psycopg2
+     - name: Create postgres data dir
+       file: path=/var/lib/postgres/data/db state=directory
+       tags: [ 'grafana' ]
+     - name: Run postgres in docker
+       docker_container:
+          name: postgres
+          image: 'postgres:latest'
+          ports: 5432:5432
+          volumes: '/var/lib/postgres/data:/var/lib/postgres/data'
+          env:
+             POSTGRES_USER: "{{ postgresql_root_user }}"
+             POSTGRES_PASSWORD: "{{ postgresql_root_password }}"
+             PGDATA: /var/lib/postgres/data/db
+       tags: [ 'grafana' ]
+     - name: Create DB for grafana
+       postgresql_db:
+          name: "{{ grafana_postgresql_db }}"
+          login_user: "{{ postgresql_root_user }}"
+          login_password: "{{ postgresql_root_password }}"
+          login_host: localhost
+          encoding: 'UTF-8'
+       tags: [ 'grafana' ]
+     - name: Create user for grafana in postgres
+       postgresql_user:
+          name: "{{ grafana_postgresql_user }}"
+          login_user: "{{ postgresql_root_user }}"
+          login_password: "{{ postgresql_root_password }}"
+          login_host: localhost
+          password: "{{ grafana_postgresql_password }}"
+          db: grafana
+          priv: ALL
+       tags: [ 'grafana' ]
+     - name: Create data dir for Grafana
+       file: path=/var/lib/grafana state=directory
+       tags: [ 'grafana' ]
+     - name: Start Grafana container
+       docker_container:
+          name: grafana
+          image: 'grafana/grafana:4.0.1'
+          volumes: '/var/lib/grafana:/var/lib/grafana'
+          ports: 3000:3000
+          env:
+             GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_user }}"
+             GF_SECURITY_ADMIN_USER: "{{ grafana_password }}"
+             GF_DATABASE_TYPE: postgres
+             GF_DATABASE_HOST: "{{ ansible_default_ipv4.address }}"
+             GF_DATABASE_NAME: "{{ grafana_postgresql_db }}"
+             GF_DATABASE_USER: "{{ grafana_postgresql_user }}"
+             GF_DATABASE_PASSWORD: "{{ grafana_postgresql_password }}"
+             GF_INSTALL_PLUGINS: grafana-piechart-panel
+       tags: [ 'grafana' ]
+
+- hosts: prometheuses
+  remote_user: root
+  tasks:
+     - name: Data dir for prometheus
+       file: path=/var/lib/prometheus state=directory
+       tags: [ 'prometheus' ]
+     - include: docker_prometheus.yaml
+
+- hosts: prometheus-kuber
+  remote_user: root
+  tasks:
+     - name: Copy prometheus config
+       template: src=prometheus/prometheus-kuber.yml.j2 dest=/var/lib/prometheus/prometheus.yml
+       register: prometheus_yml
+       tags: [ 'prometheus', 'prometheus-conf' ]
+     - include: docker_prometheus.yaml
+     - name: Send kill -1 to prometheus if prometheus.yml changed
+       command: pkill -1 prometheus
+       when: prometheus_yml.changed
+       tags: [ 'prometheus', 'prometheus-conf']
+- hosts: prometheus-system
+  remote_user: root
+  tasks:
+     - name: Copy prometheus config
+       template: src=prometheus/prometheus-system.yml.j2 dest=/var/lib/prometheus/prometheus.yml
+       register: prometheus_yml
+       tags: [ 'prometheus', 'prometheus-conf' ]
+     - include: docker_prometheus.yaml
+     - name: Send kill -1 to prometheus if prometheus.yml changed
+       command: pkill -1 prometheus
+       when: prometheus_yml.changed
+       tags: [ 'prometheus', 'prometheus-conf']

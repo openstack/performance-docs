@@ -1,0 +1,46 @@
+---
+- hosts: main-kuber
+  remote_user: root
+  tasks:
+    - name: Fetch heka package
+      get_url:
+        url: "{{ heka_package_url }}"
+        dest: /tmp/heka_amd64.deb
+        mode: 0664
+        force: yes
+    - name: Download heka package locally
+      fetch:
+        src: /tmp/heka_amd64.deb
+        dest: ./heka_amd64.deb
+        fail_on_missing: yes
+        flat: yes
+
+- hosts: cluster-nodes
+  remote_user: root
+  tasks:
+    - name: Propagate heka package across cluster nodes
+      copy:
+        src: ./heka_amd64.deb
+        dest: /tmp/heka_amd64.deb
+
+- hosts: all-cluster-nodes
+  remote_user: root
+  tasks:
+    - name: Install heka package
+      apt: deb=/tmp/heka_amd64.deb
+    - name: Adding heka user to docker group
+      user: name='heka' groups=docker append=yes
+    - name: Copy heka conf
+      template: src=heka/00-hekad.toml.j2 dest=/etc/heka/conf.d/00-hekad.toml
+      notify: restart heka
+    - name: Copy heka lua scripts
+      template: src=heka/kubeapi_to_int.lua.j2 dest=/usr/share/heka/lua_filters/kubeapi_to_int.lua
+      register: heka_lua
+      notify: restart heka
+    - name: ensure heka is running
+      systemd: state=started name=heka enabled=yes
+ 
+  handlers:
+    - name: restart heka
+      systemd: state=restarted name=heka
+
