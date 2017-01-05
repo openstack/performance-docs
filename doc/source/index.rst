@@ -24,6 +24,7 @@ Contents
     labs/index.rst
     test_plans/index
     test_results/index
+    issues/index
 
 .. raw:: pdf
 
