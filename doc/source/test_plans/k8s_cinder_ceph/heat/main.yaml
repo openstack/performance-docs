@@ -1,0 +1,56 @@
+heat_template_version: newton
+
+parameters:
+  image:
+    type: string
+  flavor:
+    type: string
+  key_name:
+    type: string
+  vm_count:
+    type: string
+  volume_size:
+    type: string
+  network_name:
+    type: string
+  test_iodepth:
+    type: number
+    default: 64
+  test_runtime:
+    type: number
+    default: 600
+  test_filesize:
+    type: string
+    default: 4G
+  test_mode:
+    type: string
+    default: size
+  test_rw:
+    type: string
+    default: randrw
+
+
+resources:
+  server_resources:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: vm_count }
+      resource_def:
+        type: vm-with-vol.yaml
+        properties:
+          image: { get_param: image }
+          flavor: { get_param: flavor }
+          key_name: { get_param: key_name }
+          network_name: { get_param: network_name }
+          volume_size: { get_param: volume_size }
+          test_iodepth: { get_param: test_iodepth }
+          test_filesize: { get_param: test_filesize }
+          test_runtime: { get_param: test_runtime }
+          test_mode: { get_param: test_mode }
+          test_rw: { get_param: test_rw }
+          index:
+            list_join: ['-', [ {get_param: test_mode},'vm', {get_param: test_rw}, '%index%' ]]
+
+outputs:
+  script_result:
+    value: { get_attr: [server_resources, result] }

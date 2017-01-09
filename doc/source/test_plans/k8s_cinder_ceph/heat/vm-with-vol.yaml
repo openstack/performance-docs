@@ -1,0 +1,74 @@
+heat_template_version: newton
+parameters:
+  image:
+    type: string
+  flavor:
+    type: string
+  key_name:
+    type: string
+  volume_size:
+    type: string
+  network_name:
+    type: string
+  volume_image:
+    type: string
+    default: 40g-urandom
+  test_iodepth:
+    type: number
+  test_filesize:
+    type: string
+  index:
+    type: string
+  test_mode:
+    type: string
+    default: size
+  test_rw:
+    type: string
+    default: randrw
+  test_runtime:
+    type: number
+    default: 300
+
+resources:
+  server:
+    type: OS::Nova::Server
+    properties:
+      name: { get_param: index }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key_name }
+      networks:
+        - network: { get_param: network_name }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #!/bin/bash
+            export IODEPTH=iodepth
+            export SIZE=filesize
+            export RWMODE=rwmode
+            export RUNMOD=runmode
+            export RUNTIME=runtime
+            scriptfile
+          params:
+            scriptfile: { get_file: vmScript.sh }
+            iodepth: { get_param: test_iodepth }
+            filesize: { get_param: test_filesize }
+            runmode: { get_param: test_mode }
+            rwmode: { get_param: test_rw }
+            runtime: { get_param: test_runtime }
+  volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: volume_size }
+      image: { get_param: volume_image }
+
+  attachment:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      instance_uuid: { get_resource: server }
+      volume_id: { get_resource: volume }
+
+outputs:
+  result:
+    value: stub-attribute

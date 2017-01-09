@@ -1,0 +1,29 @@
+---
+  CinderVolumes.create_and_attach_volume:
+    -
+      args:
+          size: 10
+          image:
+            name: "cirros_vm"
+          flavor:
+            name: "m1.tiny"
+      runner:
+        type: "constant"
+        times: 120
+        concurrency: 40
+      context:
+        users:
+          tenants: 3
+          users_per_tenant: 3
+        quotas:
+          cinder:
+            volumes: -1
+            gigabytes: -1
+            snapshots: -1
+        api_versions:
+            cinder:
+                version: 2
+                service_type: volumev2
+      sla:
+        failure_rate:
+          max: 10
