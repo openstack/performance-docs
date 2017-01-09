@@ -6,3 +6,4 @@ Kubernetes system performance
     :maxdepth: 4
 
     API_testing/index
+    density/index
