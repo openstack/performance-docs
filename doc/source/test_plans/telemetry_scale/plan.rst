@@ -4,7 +4,7 @@
 Telemetry Services resource consumption/scalability testing
 ===========================================================
 
-:status: **draft**
+:status: **ready**
 :version: 1.0
 
 :Abstract:
@@ -182,3 +182,9 @@ Performance
 Failure Conditions
 
 - Errors in log files (Gnocchi, Ceilometer, Nova, Swift, ...)
+
+Reports
+=======
+
+Test plan execution reports:
+ * :ref:`telemetry_gnocchi_with_ceph_report_1k_instances`
