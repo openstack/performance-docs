@@ -480,7 +480,7 @@ Ping from one VM to another VM in different network during ban L3 agent
 | 10          |                     |                 | 4                         |
 +-------------+---------------------+-----------------+---------------------------+
 
-The loss of packages on iterations 6-7 happend for the similar reason as
+The loss of packages on iterations 6-7 happened for the similar reason as
 for previous manual scenario. L3 agent `status
 flapped <http://paste.openstack.org/show/491598/>`__ during loss.
 

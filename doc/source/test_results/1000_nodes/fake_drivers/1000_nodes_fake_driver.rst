@@ -15,16 +15,16 @@ Environment setup
 The results presented in this study are based on experiments made with the
 OpenStack Mitaka release. The system has been deployed leveraging a dedicated
 set of scripts [#]_ built on top of Kolla framework [#]_.  Each service is
-encapsulated in a dedicated container and have been started accross 26 physical
+encapsulated in a dedicated container and have been started across 26 physical
 servers. Note that we are only interested in evaluating the scalability of the
 control plane, for this purpose we use the nova fake drivers at the compute
-level.  
+level.
 
 The OpenStack services placement is described (numbers in
 parenthesis indicate the number of instances/containers) in the following listing :
 
 - control (1 physical server)
-  
+
   - neutron_server (1)
   - nova_novncproxy (1)
   - nova_consoleauth (1)
@@ -55,11 +55,11 @@ parenthesis indicate the number of instances/containers) in the following listin
   - neutron_openvswitch_agent (1)
 
 - rabbitmq-node (3 physical servers)
-  
+
   - rabbitmq (1)
 
 - scheduler (1 physical server)
-  
+
   - nova_scheduler(8)
 
 
@@ -153,13 +153,13 @@ Table 1. Services top watermarks in terms of CPU and RAM.
 Table 2. Top number of connections
 
 +-----------------+------------+
-| Service         | Connections| 
+| Service         | Connections|
 +=================+============+
 | rabbitmq **     |  7.6 K     |
 +-----------------+------------+
 | mariadb         |  2.245 K   |
 +-----------------+------------+
-| memcached       |  879       | 
+| memcached       |  879       |
 +-----------------+------------+
 
 | * approx. each of eight nova-scheduler processes (see below)
@@ -173,12 +173,12 @@ Especially when running in a non-clustered setup as it may result in hitting
 the limitation of the system (e.g open files).
 
 
-The rally report is available : 
+The rally report is available :
 
 :download:`reports/rally_report.html <./reports/rally_report.html>`
 
 
-Graphs: 
+Graphs:
 
 .. image:: figs/nova.png
   :width: 1300px
