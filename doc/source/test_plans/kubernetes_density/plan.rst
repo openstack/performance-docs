@@ -65,6 +65,34 @@ List of performance metrics
   +-------------------------+---------------------------------------------+
 
 
+Test Case #2: Measure Kubelet capacity
+--------------------------------------
+
+Description
+^^^^^^^^^^^
+The goal of this test is to investigate Kubelet capacity. For this, rerun
+test case #1 for different number of nodes.
+
+List of performance metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. table:: list of test metrics to be collected during this test
+
+  +-------------------------+---------------------------------------------+
+  | Parameter               | Description                                 |
+  +=========================+=============================================+
+  | POD_COUNT               | Number of pods                              |
+  +-------------------------+---------------------------------------------+
+  | NODE_COUNT              | Number of nodes                             |
+  +-------------------------+---------------------------------------------+
+  | POD_FIRST_REPORT        | Time taken by pod to start and report       |
+  +-------------------------+---------------------------------------------+
+  | KUBECTL_RUN             | Time for all pods to be reported as running |
+  +-------------------------+---------------------------------------------+
+  | KUBECTL_TERMINATE       | Time to terminate all pods                  |
+  +-------------------------+---------------------------------------------+
+
+
 Reports
 =======
 
