@@ -12,3 +12,4 @@ Methodologies
     tools
     hyper-scale
     monitoring/index
+    monitoring/influxha

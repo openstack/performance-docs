@@ -1,0 +1,38 @@
+# Name of the HTTP server, used for display purposes only
+[[http]]
+name = "influx-http"
+
+# TCP address to bind to, for HTTP server
+bind-addr = "influx2_ip:9096"
+
+# Array of InfluxDB instances to use as backends for Relay
+# name: name of the backend, used for display purposes only.
+# location: full URL of the /write endpoint of the backend
+# timeout: Go-parseable time duration. Fail writes if incomplete in this time.
+# skip-tls-verification: skip verification for HTTPS location. WARNING: it's insecure. Don't use in production.
+output = [
+    { name="local-influx2", location = "http://127.0.0.1:8086/write", timeout="10s"  },
+    { name="remote-influx1", location = "http://influx1_ip:8086/write", timeout="10s"  },
+]
+
+[[udp]]
+# Name of the UDP server, used for display purposes only
+name = "influx-udp"
+
+# UDP address to bind to
+bind-addr = "127.0.0.1:9096"
+
+# Socket buffer size for incoming connections
+read-buffer = 0 # default
+
+# Precision to use for timestamps
+precision = "n" # Can be n, u, ms, s, m, h
+
+# Array of InfluxDB UDP instances to use as backends for Relay
+# name: name of the backend, used for display purposes only.
+# location: host and port of backend.
+# mtu: maximum output payload size
+output = [
+    { name="local-influx2-udp", location="127.0.0.1:8089", mtu=512 },
+    { name="remote-influx1-udp", location="influx1_ip:8089", mtu=512 },
+]
