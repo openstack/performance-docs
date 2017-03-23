@@ -1,0 +1,16 @@
+{
+    "type": "ExistingCloud",
+    "auth_url": "https://identity.external:8443/v3",
+    "region_name": "RegionOne",
+    "endpoint_type": "public",
+    "admin": {
+        "username": "admin",
+        "password": "password",
+        "user_domain_name": "default",
+        "project_name": "admin",
+        "project_domain_name": "default"
+    },
+    "https_insecure": True,
+    "https_cacert": "",
+}
+

@@ -1,0 +1,34 @@
+repositories:
+  repos:
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-ceph
+    name: fuel-ccp-ceph
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-cinder
+    name: fuel-ccp-cinder
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-debian-base
+    name: fuel-ccp-debian-base
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-entrypoint
+    name: fuel-ccp-entrypoint
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-etcd
+    name: fuel-ccp-etcd
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-glance
+    name: fuel-ccp-glance
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-heat
+    name: fuel-ccp-heat
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-horizon
+    name: fuel-ccp-horizon
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-ironic
+    name: fuel-ccp-ironic
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-keystone
+    name: fuel-ccp-keystone
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-galera
+    name: fuel-ccp-galera
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-memcached
+    name: fuel-ccp-memcached
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-neutron
+    name: fuel-ccp-neutron
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-nova
+    name: fuel-ccp-nova
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-openstack-base
+    name: fuel-ccp-openstack-base
+  - git_url: https://git.openstack.org/openstack/fuel-ccp-rabbitmq
+    name: fuel-ccp-rabbitmq

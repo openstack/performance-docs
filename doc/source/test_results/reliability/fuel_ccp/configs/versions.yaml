@@ -1,0 +1,30 @@
+images:
+  tag: newton
+sources:
+  openstack/cinder:
+    git_ref: stable/newton
+    git_url: https://github.com/openstack/cinder.git
+  openstack/glance:
+    git_ref: stable/newton
+    git_url: https://github.com/openstack/glance.git
+  openstack/heat:
+    git_ref: stable/newton
+    git_url: https://github.com/openstack/heat.git
+  openstack/horizon:
+    git_ref: stable/newton
+    git_url: https://github.com/openstack/horizon.git
+  openstack/keystone:
+    git_ref: stable/newton
+    git_url: https://github.com/openstack/keystone.git
+  openstack/neutron:
+    git_ref: stable/newton
+    git_url: https://github.com/openstack/neutron.git
+  openstack/nova:
+    git_ref: stable/newton
+    git_url: https://github.com/openstack/nova.git
+  openstack/requirements:
+    git_ref: stable/newton
+    git_url: https://git.openstack.org/openstack/requirements.git
+  openstack/sahara-dashboard:
+    git_ref: stable/newton
+    git_url: https://git.openstack.org/openstack/sahara-dashboard.git
