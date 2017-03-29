@@ -1,0 +1,16 @@
+{
+    "admin": {
+        "password": "password",
+        "project_domain_name": "default",
+        "project_name": "admin",
+        "user_domain_name": "default",
+        "username": "admin"
+    },
+    "auth_url": "https://identity.external:8443/v3",
+    "endpoint": null,
+    "endpoint_type": null,
+    "https_cacert": "",
+    "https_insecure": true,
+    "region_name": "",
+    "type": "ExistingCloud"
+}
