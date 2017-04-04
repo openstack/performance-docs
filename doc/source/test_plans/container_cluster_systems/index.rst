@@ -17,6 +17,7 @@ Contents
     kargo_deploy_performance
     performance_and_scaling
     API_latency
+    etcd
 
 .. raw:: pdf
 

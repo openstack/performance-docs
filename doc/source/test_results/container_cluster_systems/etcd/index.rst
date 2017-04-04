@@ -8,7 +8,7 @@ Results of the ETCD health tests
 :Abstract:
 
   This piece of art includes the results of the ETCD tests made
-  basing on the _ETCD_health_tests plan.
+  basing on the :ref:`ETCD_health_tests`.
   Our goal was to research how many Kubernetes items (pods and services)
   could be spawned in terms of ETCD. We figured out which ETCD metrics
   are crucial and collected them under appropriate (pods or services)
