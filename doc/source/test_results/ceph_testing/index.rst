@@ -144,6 +144,8 @@ Ceph was deployed by Decapod tool. Cluster config for decapod:
 You can find outputs of some commands and /etc folder in the following archives:
 
 | :download:`ceph-osd-1.tar.gz <configs/ceph-osd-1.tar.gz>`
+| :download:`ceph-mon-1.tar.gz <configs/ceph-mon-1.tar.gz>`
+| :download:`compute-1.tar.gz <configs/compute-1.tar.gz>`
 
 Testing process
 ===============
@@ -169,4 +171,3 @@ Test results
 .. image:: configs/result-3.png
 
 .. image:: configs/result-4.png
-
