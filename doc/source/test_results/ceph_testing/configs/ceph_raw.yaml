@@ -1,0 +1,17 @@
+include: default.yaml
+
+clouds:
+    ceph: ssh://root@osscr01r09c32::/root/.ssh/id_rsa
+
+discover: ceph
+
+explicit_nodes:
+    "ssh://root@localhost::/root/.ssh/id_rsa": testnode
+
+
+tests:
+    - io:
+        cfg: ceph
+        params:
+            FILENAME: /dev/vdb
+            TEST_FILE_SIZE: 30

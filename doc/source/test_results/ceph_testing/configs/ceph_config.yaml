@@ -1,0 +1,1074 @@
+{
+  "global_vars": {
+    "ceph_facts_template": "/usr/local/lib/python3.5/dist-packages/decapod_common/facts/ceph_facts_module.py.j2",
+    "ceph_stable": true,
+    "ceph_stable_distro_source": "jewel-xenial",
+    "ceph_stable_release": "jewel",
+    "ceph_stable_release_uca": "jewel-xenial",
+    "ceph_stable_repo": "http://mirror.fuel-infra.org/decapod/ceph/jewel-xenial",
+    "ceph_stable_repo_key": "AF94F6A6A254F5F0",
+    "ceph_stable_repo_keyserver": "hkp://keyserver.ubuntu.com:80",
+    "cluster": "ceph",
+    "cluster_network": "10.3.56.0/21",
+    "copy_admin_key": true,
+    "dmcrypt_dedicated_journal": false,
+    "dmcrypt_journal_collocation": false,
+    "fsid": "04c1462d-0333-4302-b51e-7aa14dfefb92",
+    "journal_collocation": false,
+    "journal_size": 80000,
+    "max_open_files": 131072,
+    "nfs_file_gw": false,
+    "nfs_obj_gw": false,
+    "os_tuning_params": [
+      {
+        "name": "kernel.pid_max",
+        "value": 4194303
+      },
+      {
+        "name": "fs.file-max",
+        "value": 26234859
+      }
+    ],
+    "public_network": "10.3.56.0/21",
+    "raw_multi_journal": true,
+    "restapi_template_local_path": "/usr/local/lib/python3.5/dist-packages/decapod_plugin_playbook_deploy_cluster/ceph-rest-api.service"
+  },
+  "inventory": {
+    "_meta": {
+      "hostvars": {
+        "10.3.56.200": {
+          "ansible_user": "ansible",
+          "devices": [],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": []
+        },
+        "10.3.56.48": {
+          "ansible_user": "ansible",
+          "devices": [],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": []
+        },
+        "10.3.56.51": {
+          "ansible_user": "ansible",
+          "devices": [],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": []
+        },
+        "10.3.61.80": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.100": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4",
+            "/dev/sdi1",
+            "/dev/sdi2",
+            "/dev/sdi3",
+            "/dev/sdi4"
+          ]
+        },
+        "10.3.62.101": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.102": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.103": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.104": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4",
+            "/dev/sdi1",
+            "/dev/sdi2",
+            "/dev/sdi3",
+            "/dev/sdi4"
+          ]
+        },
+        "10.3.62.105": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdi"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4",
+            "/dev/sdj1",
+            "/dev/sdj2",
+            "/dev/sdj3",
+            "/dev/sdj4"
+          ]
+        },
+        "10.3.62.65": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4",
+            "/dev/sdj1",
+            "/dev/sdj2",
+            "/dev/sdj3",
+            "/dev/sdj4"
+          ]
+        },
+        "10.3.62.66": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.67": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.68": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.69": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdi"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4",
+            "/dev/sdj1",
+            "/dev/sdj2",
+            "/dev/sdj3",
+            "/dev/sdj4"
+          ]
+        },
+        "10.3.62.70": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.73": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sde1",
+            "/dev/sde2",
+            "/dev/sde3",
+            "/dev/sde4",
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4"
+          ]
+        },
+        "10.3.62.74": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.75": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.76": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.77": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdf1",
+            "/dev/sdf2",
+            "/dev/sdf3",
+            "/dev/sdf4",
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4"
+          ]
+        },
+        "10.3.62.78": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.79": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4",
+            "/dev/sdi1",
+            "/dev/sdi2",
+            "/dev/sdi3",
+            "/dev/sdi4"
+          ]
+        },
+        "10.3.62.80": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.81": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.82": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdi"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4",
+            "/dev/sdj1",
+            "/dev/sdj2",
+            "/dev/sdj3",
+            "/dev/sdj4"
+          ]
+        },
+        "10.3.62.83": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4",
+            "/dev/sdh1",
+            "/dev/sdh2",
+            "/dev/sdh3",
+            "/dev/sdh4"
+          ]
+        },
+        "10.3.62.84": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdd1",
+            "/dev/sdd2",
+            "/dev/sdd3",
+            "/dev/sdd4",
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4"
+          ]
+        },
+        "10.3.62.85": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.86": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdg1",
+            "/dev/sdg2",
+            "/dev/sdg3",
+            "/dev/sdg4",
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4"
+          ]
+        },
+        "10.3.62.87": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.88": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.89": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdg1",
+            "/dev/sdg2",
+            "/dev/sdg3",
+            "/dev/sdg4",
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4"
+          ]
+        },
+        "10.3.62.90": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdi"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4",
+            "/dev/sdj1",
+            "/dev/sdj2",
+            "/dev/sdj3",
+            "/dev/sdj4"
+          ]
+        },
+        "10.3.62.91": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.92": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4",
+            "/dev/sdh1",
+            "/dev/sdh2",
+            "/dev/sdh3",
+            "/dev/sdh4"
+          ]
+        },
+        "10.3.62.93": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdd1",
+            "/dev/sdd2",
+            "/dev/sdd3",
+            "/dev/sdd4",
+            "/dev/sdg1",
+            "/dev/sdg2",
+            "/dev/sdg3",
+            "/dev/sdg4"
+          ]
+        },
+        "10.3.62.94": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.95": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.96": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.97": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        },
+        "10.3.62.98": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sda",
+            "/dev/sdb",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sdd1",
+            "/dev/sdd2",
+            "/dev/sdd3",
+            "/dev/sdd4",
+            "/dev/sdc1",
+            "/dev/sdc2",
+            "/dev/sdc3",
+            "/dev/sdc4"
+          ]
+        },
+        "10.3.62.99": {
+          "ansible_user": "ansible",
+          "devices": [
+            "/dev/sdd",
+            "/dev/sde",
+            "/dev/sdf",
+            "/dev/sdg",
+            "/dev/sdc",
+            "/dev/sdh",
+            "/dev/sdi",
+            "/dev/sdj"
+          ],
+          "monitor_interface": "bond0.130",
+          "raw_journal_devices": [
+            "/dev/sda1",
+            "/dev/sda2",
+            "/dev/sda3",
+            "/dev/sda4",
+            "/dev/sdb1",
+            "/dev/sdb2",
+            "/dev/sdb3",
+            "/dev/sdb4"
+          ]
+        }
+      }
+    },
+    "clients": [],
+    "iscsi_gw": [],
+    "mdss": [],
+    "mons": [
+      "10.3.56.200",
+      "10.3.56.48",
+      "10.3.56.51"
+    ],
+    "nfss": [],
+    "osds": [
+      "10.3.62.67",
+      "10.3.62.73",
+      "10.3.62.76",
+      "10.3.62.96",
+      "10.3.62.94",
+      "10.3.62.78",
+      "10.3.62.92",
+      "10.3.62.89",
+      "10.3.62.102",
+      "10.3.62.101",
+      "10.3.62.98",
+      "10.3.62.79",
+      "10.3.62.77",
+      "10.3.62.69",
+      "10.3.62.66",
+      "10.3.62.68",
+      "10.3.62.83",
+      "10.3.62.85",
+      "10.3.62.88",
+      "10.3.62.90",
+      "10.3.62.99",
+      "10.3.62.82",
+      "10.3.62.70",
+      "10.3.62.74",
+      "10.3.62.75",
+      "10.3.62.97",
+      "10.3.61.80",
+      "10.3.62.105",
+      "10.3.62.86",
+      "10.3.62.65",
+      "10.3.62.91",
+      "10.3.62.84",
+      "10.3.62.104",
+      "10.3.62.100",
+      "10.3.62.93",
+      "10.3.62.80",
+      "10.3.62.81",
+      "10.3.62.87",
+      "10.3.62.103",
+      "10.3.62.95"
+    ],
+    "rbdmirrors": [],
+    "restapis": [],
+    "rgws": []
+  }
+}
