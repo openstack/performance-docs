@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ name }}
+  namespace: minions
+  labels:
+    k8s-app: minion
+spec:
+  selector:
+    k8s-app: minion
+  ports:
+  - name: {{ name }}
+    port: 80
+    protocol: TCP
