@@ -1,0 +1,63 @@
+configs:
+  private_interface: p1p1.602
+  public_interface: p1p1.602
+  ingress:
+    enabled: true
+  glance:
+    tls:
+      enabled: false
+    bootstrap:
+      enable: true
+  neutron:
+    tls:
+      enabled: false
+    physnets:
+      - name: "physnet1"
+        bridge_name: "br-ex"
+        interface: "p1p1"
+        flat: true
+        vlan_range: false
+        dpdk: false
+    bootstrap:
+      internal:
+        enable: true
+      external:
+        enable: true
+        net_name: ext-net
+        subnet_name: ext-subnet
+        physnet: physnet1
+        network: 10.144.0.0/12
+        gateway: 10.144.0.1
+        nameserver: 10.144.0.1
+        pool:
+          start: 10.144.1.0
+          end: 10.159.255.250
+  keystone:
+    debug: true
+  security:
+    tls:
+      create_certificates: false
+  etcd:
+    tls:
+      enabled: false
+  db:
+    tls:
+      enabled: false
+  rabbitmq:
+    tls:
+      enabled: false
+  keystone:
+    tls:
+      enabled: false
+  cinder:
+    tls:
+      enabled: false
+  heat:
+    tls:
+      enabled: false
+  nova:
+    tls:
+      enabled: false
+  horizon:
+    tls:
+      enabled: false

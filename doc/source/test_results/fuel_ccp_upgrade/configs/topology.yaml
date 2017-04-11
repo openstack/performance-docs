@@ -1,0 +1,92 @@
+nodes:
+  # node[1-3]: ETCD
+  # node[4-5]: Kubernetes master
+
+  node([6|7|8])$: # 6-8
+    roles:
+      - controller
+      - openvswitch
+      - messaging
+      - db
+
+  node9$:
+    roles:
+      - etc
+      - backups
+
+  node[1-9][0-9]$: # 10-99
+    roles:
+      - compute
+      - openvswitch
+
+  node(1[0-4][0-9])$: # 100-149
+    roles:
+      - compute
+      - openvswitch
+
+  node(15[0-3])$: # 150 - 153
+    roles:
+      - compute
+      - openvswitch
+
+replicas:
+  database: 3
+  etcd: 1
+  rpc: 3
+  notifications: 3
+  glance-api: 1
+  glance-registry: 1
+  keystone: 3
+  nova-api: 3
+  nova-scheduler: 3
+  nova-conductor: 3
+  neutron-server: 3
+  neutron-metadata-agent: 3
+  horizon: 3
+  heat-api: 3
+  heat-engine: 3
+
+roles:
+  db:
+    - database
+  messaging:
+    - rpc
+    - notifications
+  controller:
+    - etcd
+    - glance-api
+    - glance-registry
+    - heat-api-cfn
+    - heat-api
+    - heat-engine
+    - horizon
+    - keystone
+    - memcached
+    - neutron-dhcp-agent
+    - neutron-l3-agent
+    - neutron-metadata-agent
+    - neutron-server
+    - nova-api
+    - nova-conductor
+    - nova-consoleauth
+    - nova-novncproxy
+    - nova-scheduler
+  compute:
+    - nova-compute
+    - nova-libvirt
+  openvswitch:
+    - neutron-openvswitch-agent
+    - openvswitch-db
+    - openvswitch-vswitchd
+  etc:
+    - etcd
+  backups:
+    - backup
+services:
+  database:
+    service_def: galera
+  rpc:
+    service_def: rabbitmq
+  notifications:
+    service_def: rabbitmq
+
