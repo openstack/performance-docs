@@ -1,0 +1,8 @@
+cloud_management:
+    driver: fuel-ccp
+    args:
+        jump_host: 172.20.8.63
+        jump_user: root
+        username: root
+        password: r00tme
+        private_key_file: ~/.ssh/os_faults

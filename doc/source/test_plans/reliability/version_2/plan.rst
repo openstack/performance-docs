@@ -288,6 +288,7 @@ Reports
 
 Test plan execution reports:
  * :ref:`reliability_test_results_version_2`
+ * :ref:`reliability_test_results_version_2_containerized`
 
 
 .. references:
