@@ -17,13 +17,9 @@ Fuel Containerized Control Plane upgradability performance testing
 Test Plan
 =========
 
-This document is inspired by
-:ref:`openstack_control_plane_performance_test_plan`, and aims to cover
-baseline cloud operations and extend this test suite to verify containerized
-deployment approach. As :ref:`openstack_control_plane_performance_test_plan`
-this test plan covers basic cloud operation VMs creation, as well as
-long-running test suites to verify cloud stability during update Open
-Stack from Mitaka to Newton.
+This test plan covers basic network performance with long-running test suites
+to verify cloud network stability and performance during update Open Stack
+from Mitaka to Newton.
 
 Test Environment
 ----------------
