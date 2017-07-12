@@ -21,7 +21,7 @@ Contents
     introduction.rst
     summits_recaps/index
     methodologies/index
-    labs/index.rst
+    labs/index
     test_plans/index
     test_results/index
     issues/index
