@@ -306,10 +306,10 @@ Use the following VM parameters for testing purposes:
 
    .. code:: bash
 
-      PLUGIN_PATH="${WORK_DIR}/plugins"
+      PLUGINS_PATH="${WORK_DIR}/plugins"
       SCENARIOS="random_controller_reboot_factor.json"
-      for scenario in SCENARIOS; do
-        rally --plugin-paths ${PLUGINS_PATH} task start --tag ${scenario} ${WORK_DR}/scenarios/${scenario}
+      for scenario in ${SCENARIOS}; do
+        rally --plugin-paths ${PLUGINS_PATH} task start --tag ${scenario} ${WORK_DIR}/scenarios/${scenario}
       done
       task_list="$(rally task list --uuids-only)"
       rally task report --tasks ${task_list} --out=${WORK_DIR}/rally_report.html
