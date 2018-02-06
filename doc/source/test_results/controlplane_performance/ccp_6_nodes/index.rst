@@ -191,7 +191,7 @@ Load: 80 rps
 | total                 | 0.155     | 1.159        | 1.771        | 1.931        | 2.875     | 1.181     | 97.5%   | 12000 |
 +-----------------------+-----------+--------------+--------------+--------------+-----------+-----------+---------+-------+
 
-Keysotne with fernet tokens
+Keystone with fernet tokens
 ---------------------------
 
 Rally report: :download:`report.html <configs/fernet_50rps.html>`.
