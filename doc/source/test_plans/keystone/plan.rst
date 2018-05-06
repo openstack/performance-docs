@@ -240,7 +240,7 @@ profiling via service configuration files and add the following section::
 In this test plan it's supposed to turn profiling on for Cinder, Glance, Nova,
 Neutron and Keystone.
 
-.. _library: https://pypi.python.org/pypi/osprofiler
+.. _library: https://pypi.org/project/osprofiler/
 .. _Nova: https://review.openstack.org/#/q/status:open+branch:master+topic:bp/osprofiler-support-in-nova
 .. _Neutron: https://review.openstack.org/#/q/status:open++branch:master+topic:bug/1335640
 .. _Keystone: https://review.openstack.org/#/q/status:open+branch:master+topic:osprofiler-support-in-keystone

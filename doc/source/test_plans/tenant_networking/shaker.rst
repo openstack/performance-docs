@@ -13,7 +13,7 @@ to accept connections from Shaker agents. See more details in
 `Shaker deployment`_ guide.
 
 Shaker is distributed as Python package and available through PyPi
-(https://pypi.python.org/pypi/pyshaker/).
+(https://pypi.org/project/pyshaker/).
 It is recommended to be installed inside virtualenv.
 
 .. code::
@@ -119,6 +119,6 @@ Test Case 7: Neutron QoS testing
 
 .. references:
 
-.. _Shaker: http://pyshaker.readthedocs.org/en/latest/index.html
-.. _Shaker deployment: http://pyshaker.readthedocs.org/en/latest/installation.html#openstack-deployment
-.. _Running Shaker by non-admin user: http://pyshaker.readthedocs.org/en/latest/installation.html#running-shaker-by-non-admin-user
+.. _Shaker: https://pyshaker.readthedocs.io/en/latest/index.html
+.. _Shaker deployment: https://pyshaker.readthedocs.io/en/latest/installation.html#openstack-deployment
+.. _Running Shaker by non-admin user: https://pyshaker.readthedocs.io/en/latest/installation.html#running-shaker-by-non-admin-user
