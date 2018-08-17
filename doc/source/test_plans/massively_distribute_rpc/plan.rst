@@ -402,4 +402,6 @@ framework.
 Reports
 =======
 
+Results of Test Case 1 are available here_.
 
+.. _here: ../../test_results/massively_distribute_rpc/index.html
