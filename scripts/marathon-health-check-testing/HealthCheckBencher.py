@@ -13,6 +13,7 @@ from marathon.models import MarathonHealthCheck
 from Queue import Empty
 from Queue import Queue
 from random import random
+import six
 from threading import Thread
 from time import sleep
 from urllib2 import urlopen
@@ -198,7 +199,7 @@ class HealthCheckBencher(object):
     def start_test(self):
         task_list = self.get_tasks()
         for action in self.action_list:
-            if isinstance(action, basestring):
+            if isinstance(action, six.text_type):
                 if action.startswith('sleep='):
                     amount = int(action.split('=')[1])
                     sleep(60*amount)
