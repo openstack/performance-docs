@@ -1,4 +1,4 @@
 - project:
     templates:
       - openstack-python-jobs
-      - publish-openstack-sphinx-docs
+      - publish-openstack-docs-pti
