@@ -301,8 +301,8 @@ concurrent loads.
 
 - As a result of this part we got the following CSV files in following format
 starttime,stoptime,jobname,
-read_iops,read_bandwith,read_complelatency_mean,read_complelatency_min,read_complelatency_max,read_complelatency_95%ile,read_complelatency_99%ile,read_total_latency_avg,read_bandwith_avg,
-write_iops,write_bandwith,write_complelatency_mean,write_complelatency_min,write_complelatency_max,write_complelatency_95%ile,write_complelatency_99%ile,write_total_latency_avg,write_bandwith_avg.
+read_iops,read_bandwidth,read_complelatency_mean,read_complelatency_min,read_complelatency_max,read_complelatency_95%ile,read_complelatency_99%ile,read_total_latency_avg,read_bandwidth_avg,
+write_iops,write_bandwidth,write_complelatency_mean,write_complelatency_min,write_complelatency_max,write_complelatency_95%ile,write_complelatency_99%ile,write_total_latency_avg,write_bandwidth_avg.
 
 :download:`METRICS(NUMBER_OF_VM_WORKERS=2) <results/cinder_ceph/02/2.csv>`
 

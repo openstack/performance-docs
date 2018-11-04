@@ -157,7 +157,7 @@ RUNMOD="${RUNMOD}"
 PARSEONLY="${PARSEONLY:-false}"
 
 # Output format:
-# starttime, endtime, Jobname, read IOPS, read bandwith KB/s, mean read complete latency msec, avg read latency msec, avg read bandwith KB/s, write IOPS, write bandwith KB/s, mean write complete latency msec, avg write latency msec, avg write bandwith KB/s
+# starttime, endtime, Jobname, read IOPS, read bandwidth KB/s, mean read complete latency msec, avg read latency msec, avg read bandwidth KB/s, write IOPS, write bandwidth KB/s, mean write complete latency msec, avg write latency msec, avg write bandwidth KB/s
 if [[ "${PARSEONLY}" == "true" ]]; then
   for tline in $(cat "${1}")
   do
