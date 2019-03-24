@@ -67,7 +67,7 @@ main ()
   cd ./fuel-ccp-installer
 
   if [ "$FUEL_CCP_COMMIT" ]; then
-      git fetch git://git.openstack.org/openstack/fuel-ccp-installer $FUEL_CCP_COMMIT && git checkout FETCH_HEAD
+      git fetch https://git.openstack.org/openstack/fuel-ccp-installer $FUEL_CCP_COMMIT && git checkout FETCH_HEAD
   fi
 
   echo "Running on $NODE_NAME: $ENV_NAME"

@@ -27,7 +27,7 @@ to be installed within virtual environment.
 
 .. code::
 
-    $ git clone git://git.openstack.org/openstack/oslo.messaging
+    $ git clone https://git.openstack.org/openstack/oslo.messaging
     $ cd oslo.messaging/
     $ virtualenv .venv
     $ source .venv/bin/activate
