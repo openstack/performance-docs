@@ -50,6 +50,12 @@ master_doc = 'index'
 project = u'Performance Docs'
 copyright = u'2015, OpenStack Foundation'
 
+# openstackdocstheme options
+openstackdocs_repo_name = 'openstack/performance-docs'
+openstackdocs_bug_project = 'rally'
+openstackdocs_bug_tag = 'performance-docs'
+openstackdocs_auto_version = False
+
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
@@ -89,7 +95,7 @@ exclude_patterns = []
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'native'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []

@@ -1,4 +1,9 @@
 - project:
     templates:
-      - openstack-python-jobs
       - publish-openstack-docs-pti
+    check:
+      jobs:
+        - openstack-tox-pep8
+    gate:
+      jobs:
+        - openstack-tox-pep8
