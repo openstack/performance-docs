@@ -89,7 +89,7 @@ do
       then
               echo "The following "${#NODE_IPS[@]}" are unreachable" | tee -a ${RESULTS_FILE}
               echo ${NODE_IPS[@]} | tee -a ${RESULTS_FILE}
-              break 
+              break
       fi
       if ((${#NODE_IPS[@]} == 0 ))
       then
